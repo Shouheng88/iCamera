@@ -395,6 +395,7 @@ class Camera1 extends CameraViewImpl {
             return;
         }
         if (setZoomInternal(zoom)) {
+            // 修改相机的参数
             mCamera.setParameters(mCameraParameters);
         }
     }
@@ -439,6 +440,8 @@ class Camera1 extends CameraViewImpl {
     }
 
     /**
+     * 类似于放缩之类的操作
+     *
      * @return {@code true} if {@link #mCameraParameters} was modified.
      */
     private boolean setZoomInternal(float zoom) {

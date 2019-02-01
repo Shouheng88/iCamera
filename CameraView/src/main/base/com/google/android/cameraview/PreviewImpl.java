@@ -20,9 +20,8 @@ import android.view.Surface;
 import android.view.SurfaceHolder;
 import android.view.View;
 
-
 /**
- * Encapsulates all the operations related to camera preview in a backward-compatible manner.
+ * 抽象类，用于定义相机预览控件应该具有的一些方法和字段
  */
 abstract class PreviewImpl {
 
@@ -31,9 +30,7 @@ abstract class PreviewImpl {
     }
 
     private Callback mCallback;
-
     private int mWidth;
-
     private int mHeight;
 
     void setCallback(Callback callback) {
@@ -62,8 +59,7 @@ abstract class PreviewImpl {
         return null;
     }
 
-    void setBufferSize(int width, int height) {
-    }
+    void setBufferSize(int width, int height) { }
 
     void setSize(int width, int height) {
         mWidth = width;

@@ -12,6 +12,7 @@ class CameraFragment : CommonFragment<FragmentCameraBinding>() {
     override fun getLayoutResId() = R.layout.fragment_camera
 
     override fun doCreateView(savedInstanceState: Bundle?) {
+        // 添加监听方法
         binding.cv.addCallback(callback)
         binding.cv.setOnMoveListener(onMoveListener)
         binding.cv.setOpenVoice(true)
@@ -19,6 +20,7 @@ class CameraFragment : CommonFragment<FragmentCameraBinding>() {
 
     override fun onHiddenChanged(hidden: Boolean) {
         if (!hidden) {
+            // 恢复预览
             binding.cv.resumePreview()
         }
     }
@@ -28,11 +30,13 @@ class CameraFragment : CommonFragment<FragmentCameraBinding>() {
         if (isHidden) {
             return
         }
+        // 开启相机
         binding.cv.start()
     }
 
     override fun onPause() {
         super.onPause()
+        // 关闭相机
         binding.cv.stop()
     }
 
@@ -42,7 +46,9 @@ class CameraFragment : CommonFragment<FragmentCameraBinding>() {
 
     private val callback = object : CameraView.Callback() {
         override fun onCameraOpened(cameraView: CameraView?) {
-            super.onCameraOpened(cameraView)
+            /* TODO 这个参数是传入进去之后做了什么处理？ */
+            binding.cv.setWidthHeightRatio(3, 4)
+            binding.cv.setPictureSize(1000, 1333)
         }
 
         override fun onCameraClosed(cameraView: CameraView?) {
@@ -65,5 +71,4 @@ class CameraFragment : CommonFragment<FragmentCameraBinding>() {
             super.onTouchMove(left)
         }
     }
-
 }

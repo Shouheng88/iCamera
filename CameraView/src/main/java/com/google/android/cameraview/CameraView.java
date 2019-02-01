@@ -39,8 +39,15 @@ import android.widget.FrameLayout;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Set;
 
+/**
+ * TODO 问题列表：
+ * 1. 设置照片的参数是如何设置的？
+ * 2. 考虑使用异步的操作来设置相机以提升打开相机的速度
+ */
 public class CameraView extends FrameLayout {
 
     /**
@@ -96,13 +103,10 @@ public class CameraView extends FrameLayout {
      * The mode for for the camera device's flash control
      */
     @IntDef({FLASH_OFF, FLASH_ON, FLASH_TORCH, FLASH_AUTO, FLASH_RED_EYE})
-    public @interface Flash {
-    }
+    public @interface Flash { }
 
     @IntDef({NONE, FIXED_WIDTH, FIXED_HEIGHT, SCALE_SMALLER, SCALE_LARGER})
-    public @interface AdjustType {
-
-    }
+    public @interface AdjustType { }
 
     CameraViewImpl mImpl;
 
@@ -152,7 +156,6 @@ public class CameraView extends FrameLayout {
         this(context, attrs, 0);
     }
 
-    @SuppressWarnings("WrongConstant")
     public CameraView(Context context, AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
         mContext = context;
@@ -161,7 +164,8 @@ public class CameraView extends FrameLayout {
             mDisplayOrientationDetector = null;
             return;
         }
-        // Internal setup
+
+        // region TODO 考虑使用工厂方法重构这部分代码
         preview = createPreviewImpl(context);
         mCallbacks = new CallbackBridge();
         if (Build.VERSION.SDK_INT < 21) {
@@ -171,24 +175,29 @@ public class CameraView extends FrameLayout {
         } else {
             mImpl = new Camera1(mCallbacks, preview);
         }
-        // Attributes
-        TypedArray a = context.obtainStyledAttributes(attrs, R.styleable.CameraView, defStyleAttr,
-                R.style.Widget_CameraView);
+        // endregion
+
+        // region 获取布局属性的操作，保留这部分逻辑
+        TypedArray a = context.obtainStyledAttributes(attrs, R.styleable.CameraView, defStyleAttr, R.style.Widget_CameraView);
         mAdjustViewBounds = a.getBoolean(R.styleable.CameraView_android_adjustViewBounds, false);
         mClipScreen = a.getBoolean(R.styleable.CameraView_clipScreen, false);
         adjustType = a.getInt(R.styleable.CameraView_cameraAdjustType, adjustType);
+        // 设置前后摄像头
         setFacing(a.getInt(R.styleable.CameraView_facing, FACING_BACK));
-        setPreviewFormat(a.getInt(R.styleable.CameraView_preferredPreviewFormat,
-                Build.VERSION.SDK_INT < 21 ? ImageFormat.NV21
-                        : ImageFormat.YUV_420_888));
+        // 设置预览的格式
+        setPreviewFormat(a.getInt(R.styleable.CameraView_preferredPreviewFormat, Build.VERSION.SDK_INT < 21 ? ImageFormat.NV21 : ImageFormat.YUV_420_888));
+        // 设置宽高比
         String aspectRatio = a.getString(R.styleable.CameraView_aspectRatio);
         if (aspectRatio != null) {
             setAspectRatio(AspectRatio.parse(aspectRatio));
         } else {
             setAspectRatio(Constants.DEFAULT_ASPECT_RATIO);
         }
+        // 设置自动对焦
         setAutoFocus(a.getBoolean(R.styleable.CameraView_autoFocus, true));
+        // 设置闪光灯
         setFlash(a.getInt(R.styleable.CameraView_flash, Constants.FLASH_AUTO));
+        // 类似于放缩的感觉
         String zoomString = a.getString(R.styleable.CameraView_zoom);
         if (!TextUtils.isEmpty(zoomString)) {
             try {
@@ -200,7 +209,9 @@ public class CameraView extends FrameLayout {
             setZoom(1.0f);
         }
         a.recycle();
-        // Display orientation detector
+        // endregion
+
+        // 检测屏幕的方向
         mDisplayOrientationDetector = new DisplayOrientationDetector(context) {
             @Override
             public void onDisplayOrientationChanged(int displayOrientation) {
@@ -208,6 +219,7 @@ public class CameraView extends FrameLayout {
             }
         };
 
+        // region 设置触摸的效果
         focusMarkerLayout = new FocusMarkerLayout(getContext());
         addView(focusMarkerLayout);
         onTouchListener = new OnTouchListener() {
@@ -217,6 +229,7 @@ public class CameraView extends FrameLayout {
                 if (motionEvent.getPointerCount() > 1) {
                     Log.e("camera1", "多指点击");
                     multiTouch = true;
+                    // TODO 多点触控的时候事件是如何被处理的？？
                     preview.getView().dispatchTouchEvent(motionEvent);
                 } else {
                     if (motionEvent.getPointerCount() == 1) {
@@ -277,6 +290,7 @@ public class CameraView extends FrameLayout {
         };
 
         focusMarkerLayout.setOnTouchListener(onTouchListener);
+        // endregion
     }
 
     public void setOnMoveListener(OnMoveListener listener) {
@@ -291,6 +305,12 @@ public class CameraView extends FrameLayout {
         mImpl.setPreferredPreviewFormat(anInt);
     }
 
+    /**
+     * 创建用于预览相机的控件，根据系统版本，考虑使用工厂模式优化
+     *
+     * @param context 上下文
+     * @return 相机预览控件
+     */
     @NonNull
     private PreviewImpl createPreviewImpl(Context context) {
         PreviewImpl preview;
@@ -446,21 +466,29 @@ public class CameraView extends FrameLayout {
     }
 
     /**
+     * 打开相机并开启预览模式
+     *
      * Open a camera device and start showing camera preview. This is typically called from
      * {@link Activity#onResume()}.
      */
     public void start() {
         if (!mImpl.start()) {
-            //store the state ,and restore this state after fall back o Camera1
+            // Store the state, and restore this state after fall back to Camera1
+            // 保存状态
             Parcelable state = onSaveInstanceState();
             // Camera2 uses legacy hardware layer; fall back to Camera1
+            // 恢复之后重新创建了相机，并且重新创建了预览控件！！
             mImpl = new Camera1(mCallbacks, createPreviewImpl(getContext()));
+            // 恢复状态？？什么鬼？？干嘛这么调！！不就是恢复之前的状态嘛……
             onRestoreInstanceState(state);
+            // 调用相机的启动方法
             mImpl.start();
         }
     }
 
     /**
+     * 停止相机
+     *
      * Stop camera preview and close the device. This is typically called from
      * {@link Activity#onPause()}.
      */
@@ -468,6 +496,7 @@ public class CameraView extends FrameLayout {
         mImpl.stop();
     }
 
+    // region 一些对外提供的接口方法，实际直接调用了相机实例的方法
     /**
      * @return {@code true} if the camera is opened.
      */
@@ -519,8 +548,7 @@ public class CameraView extends FrameLayout {
     /**
      * Chooses camera by the direction it faces.
      *
-     * @param facing The camera facing. Must be either {@link #FACING_BACK} or
-     *               {@link #FACING_FRONT}.
+     * @param facing The camera facing. Must be either {@link #FACING_BACK} or {@link #FACING_FRONT}.
      */
     public void setFacing(@Facing int facing) {
         mImpl.setFacing(facing);
@@ -622,7 +650,6 @@ public class CameraView extends FrameLayout {
         return mImpl.getFlash();
     }
 
-
     /**
      * Take a picture. The result will be returned to
      * {@link Callback#onPictureTaken(CameraView, byte[])}.
@@ -642,21 +669,25 @@ public class CameraView extends FrameLayout {
     public void autoFocus() {
         mImpl.autoFocus();
     }
+    // endregion
 
+    // region 内部类和接口定义
+
+    /**
+     * 该类用来维护属于 CameraView 的回调的列表，两者所拥有的方法是一致的
+     * 该类只在 CameraView 中声明和实例化了一个实例
+     */
     private class CallbackBridge implements CameraViewImpl.Callback {
 
-        private final ArrayList<Callback> mCallbacks = new ArrayList<>();
+        private final List<Callback> mCallbacks = new LinkedList<>();
 
         private boolean mRequestLayoutOnOpen;
-
-        CallbackBridge() {
-        }
 
         public void add(Callback callback) {
             mCallbacks.add(callback);
         }
 
-        public void remove(Callback callback) {
+        void remove(Callback callback) {
             mCallbacks.remove(callback);
         }
 
@@ -699,12 +730,14 @@ public class CameraView extends FrameLayout {
             }
         }
 
-
-        public void reserveRequestLayoutOnOpen() {
+        void reserveRequestLayoutOnOpen() {
             mRequestLayoutOnOpen = true;
         }
     }
 
+    /**
+     * 用于缓存状态信息的类
+     */
     protected static class SavedState extends BaseSavedState {
 
         @Facing
@@ -719,8 +752,7 @@ public class CameraView extends FrameLayout {
 
         float zoom;
 
-        @SuppressWarnings("WrongConstant")
-        public SavedState(Parcel source, ClassLoader loader) {
+        SavedState(Parcel source, ClassLoader loader) {
             super(source);
             facing = source.readInt();
             ratio = source.readParcelable(loader);
@@ -729,7 +761,7 @@ public class CameraView extends FrameLayout {
             zoom = source.readFloat();
         }
 
-        public SavedState(Parcelable superState) {
+        SavedState(Parcelable superState) {
             super(superState);
         }
 
@@ -755,15 +787,15 @@ public class CameraView extends FrameLayout {
             public SavedState[] newArray(int size) {
                 return new SavedState[size];
             }
-
         });
 
     }
 
     /**
+     * CameraView 的回调类
+     *
      * Callback for monitoring events about {@link CameraView}.
      */
-    @SuppressWarnings("UnusedParameters")
     public abstract static class Callback {
 
         /**
@@ -799,7 +831,6 @@ public class CameraView extends FrameLayout {
 
         public void onTouchMove(boolean left) {
         }
-
     }
-
+    // endregion
 }
