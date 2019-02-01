@@ -1,8 +1,11 @@
 package me.shouheng.sample
 
 import android.os.Bundle
+import android.widget.Toast
 import com.google.android.cameraview.CameraView
 import me.shouheng.sample.databinding.FragmentCameraBinding
+import java.io.File
+import java.io.FileOutputStream
 
 /**
  * Created on 2019/2/1.
@@ -16,6 +19,8 @@ class CameraFragment : CommonFragment<FragmentCameraBinding>() {
         binding.cv.addCallback(callback)
         binding.cv.setOnMoveListener(onMoveListener)
         binding.cv.setOpenVoice(true)
+
+        binding.btnShot.setOnClickListener({ binding.cv.takePicture() })
     }
 
     override fun onHiddenChanged(hidden: Boolean) {
@@ -56,7 +61,13 @@ class CameraFragment : CommonFragment<FragmentCameraBinding>() {
         }
 
         override fun onPictureTaken(cameraView: CameraView?, data: ByteArray?) {
-            super.onPictureTaken(cameraView, data)
+            binding.cv.resumePreview()
+            val path = System.currentTimeMillis().toString() + ".png"
+            val file = File(context!!.getExternalFilesDir(null), path)
+            val out = FileOutputStream(file)
+            out.write(data)
+            out.close()
+            Toast.makeText(context, "Wrote to $path", Toast.LENGTH_SHORT).show()
         }
 
         override fun notPermission() {

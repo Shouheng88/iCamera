@@ -47,6 +47,7 @@ import java.util.Set;
  * TODO 问题列表：
  * 1. 设置照片的参数是如何设置的？
  * 2. 考虑使用异步的操作来设置相机以提升打开相机的速度
+ * Q3. 实际拍摄出的照片和预览的照片并不一致！！A: 原来的项目中已经提供了参数来供我们使用 {@link AdjustType}
  */
 public class CameraView extends FrameLayout {
 
@@ -105,6 +106,11 @@ public class CameraView extends FrameLayout {
     @IntDef({FLASH_OFF, FLASH_ON, FLASH_TORCH, FLASH_AUTO, FLASH_RED_EYE})
     public @interface Flash { }
 
+    /**
+     * 这个参数用来决定自适应调整的类型！！
+     * 因为预览的效果可能无法填充整个屏幕，所以，你可以选择按照长或者宽为基准进行自适应
+     * 这只是预览的效果，而不是实际拍摄出的图片的效果！
+     */
     @IntDef({NONE, FIXED_WIDTH, FIXED_HEIGHT, SCALE_SMALLER, SCALE_LARGER})
     public @interface AdjustType { }
 
@@ -230,6 +236,7 @@ public class CameraView extends FrameLayout {
                     Log.e("camera1", "多指点击");
                     multiTouch = true;
                     // TODO 多点触控的时候事件是如何被处理的？？
+                    // 这个方法就是用来实现手势放大和缩小的地方，注释了之后就无效了
                     preview.getView().dispatchTouchEvent(motionEvent);
                 } else {
                     if (motionEvent.getPointerCount() == 1) {
@@ -314,11 +321,11 @@ public class CameraView extends FrameLayout {
     @NonNull
     private PreviewImpl createPreviewImpl(Context context) {
         PreviewImpl preview;
-        if (Build.VERSION.SDK_INT < 14) {
+//        if (Build.VERSION.SDK_INT < 14) {
             preview = new SurfaceViewPreview(context, this);
-        } else {
-            preview = new TextureViewPreview(context, this);
-        }
+//        } else {
+//            preview = new TextureViewPreview(context, this);
+//        }
         return preview;
     }
 
