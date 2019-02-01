@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <RelativeLayout
+        android:background="#FA000000"
+        android:clipChildren="true"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <com.google.android.cameraview.CameraView
+            android:id="@+id/cv"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_centerInParent="true"
+            android:adjustViewBounds="true"
+            android:background="#FA000000"
+            android:keepScreenOn="true"
+            tools:background="@android:color/black"
+            app:autoFocus="true"
+            app:cameraAdjustType="scaleLarger"
+            app:clipScreen="true"
+            app:flash="off"
+            app:preferredPreviewFormat="NV21"
+            app:zoom="1.0f" />
+
+    </RelativeLayout>
+
+</layout>
