@@ -11,6 +11,8 @@ import android.util.AttributeSet;
 import android.view.View;
 import android.widget.FrameLayout;
 import me.shouheng.camerax.configuration.Configuration;
+import me.shouheng.camerax.configuration.SizeCalculateStrategy;
+import me.shouheng.camerax.enums.Camera;
 import me.shouheng.camerax.listeners.StateListener;
 import me.shouheng.camerax.manager.CameraManager;
 import me.shouheng.camerax.manager.CameraManagerFactory;
@@ -28,6 +30,7 @@ public class CameraView extends FrameLayout {
     private CameraPreview cameraPreview;
     private CameraManager cameraManager;
     private Configuration configuration;
+    private SizeCalculateStrategy sizeCalculateStrategy = null;
 
     public CameraView(@NonNull Context context) {
         this(context, null);
@@ -54,7 +57,7 @@ public class CameraView extends FrameLayout {
         callbackBridge = new CallbackBridge();
         cameraPreview = CameraPreviewFactory.getCameraPreview();
         cameraManager = CameraManagerFactory.getCameraManager(context, callbackBridge, cameraPreview);
-        cameraManager.initializeCameraManager(configuration);
+        cameraManager.initializeCameraManager(configuration, sizeCalculateStrategy);
 
 //        TypedArray a = context.obtainStyledAttributes(attrs, R.styleable.CameraView, defStyleAttr, R.style.Widget_CameraView);
         // TODO define the attributes used for widget in xml.
@@ -89,12 +92,16 @@ public class CameraView extends FrameLayout {
 
     /* ========================================== Public API Methods ===============================================*/
 
-    public void start() {
-        if (!cameraManager.start()) {
+    public void start(@Camera.CameraFace int cameraFace) {
+        if (!cameraManager.openCamera(cameraFace)) {
             cameraManager = CameraManagerFactory.getCameraManager(context, callbackBridge, cameraPreview);
-            cameraManager.initializeCameraManager(configuration);
-            cameraManager.start();
+            cameraManager.initializeCameraManager(configuration, sizeCalculateStrategy);
+            cameraManager.openCamera(cameraFace);
         }
+    }
+
+    public void setSizeCalculateStrategy(SizeCalculateStrategy sizeCalculateStrategy) {
+        this.sizeCalculateStrategy = sizeCalculateStrategy;
     }
 
     public void addStateListener(@NonNull StateListener stateListener) {

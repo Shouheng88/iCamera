@@ -4,4 +4,9 @@ package me.shouheng.camerax.preview.impl;
  * The {@link me.shouheng.camerax.preview.CameraPreview} based on {@link android.view.TextureView}.
  */
 public class TextureViewPreview extends AbstractCameraPreview {
+    @Override
+    public boolean isReady() {
+        // TODO
+        return true;
+    }
 }

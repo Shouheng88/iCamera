@@ -3,6 +3,7 @@ package me.shouheng.sample
 import android.os.Bundle
 import android.widget.Toast
 import com.google.android.cameraview.CameraView
+import me.shouheng.camerax.enums.Camera.CAMERA_FACE_REAR
 import me.shouheng.camerax.listeners.StateListener
 import me.shouheng.sample.databinding.FragmentCameraBinding
 import java.io.File
@@ -85,8 +86,8 @@ class CameraFragment : CommonFragment<FragmentCameraBinding>() {
             return
         }
         // 开启相机
-//        binding.cv.start()
-        binding.cvx.start()
+//        binding.cv.openCamera()
+        binding.cvx.start(CAMERA_FACE_REAR)
     }
 
     override fun onPause() {

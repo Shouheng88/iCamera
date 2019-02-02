@@ -23,10 +23,10 @@ public class DefaultManagerCreatorStrategy implements ManagerCreatorStrategy {
     @NonNull
     @Override
     public CameraManager create(CameraManager.Callback callback, CameraPreview cameraPreview) {
-        if (CameraHelper.hasCamera2(context)) {
-            return Camera2Manager.getInstance(callback, cameraPreview);
-        } else {
+//        if (CameraHelper.hasCamera2(context)) {
+//            return Camera2Manager.getInstance(callback, cameraPreview);
+//        } else {
             return Camera1Manager.getInstance(callback, cameraPreview);
-        }
+//        }
     }
 }
