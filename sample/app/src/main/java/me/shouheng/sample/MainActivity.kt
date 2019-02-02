@@ -16,10 +16,12 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
         customStatusBar()
-        supportFragmentManager
-            .beginTransaction()
-            .replace(R.id.fragment_container, CameraFragment())
-            .commit()
+        findViewById<View>(R.id.btn_camera).setOnClickListener {
+            supportFragmentManager
+                .beginTransaction()
+                .replace(R.id.fragment_container, CameraFragment())
+                .commit()
+        }
     }
 
     private fun customStatusBar() {

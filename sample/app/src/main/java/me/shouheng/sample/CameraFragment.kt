@@ -3,6 +3,7 @@ package me.shouheng.sample
 import android.os.Bundle
 import android.widget.Toast
 import com.google.android.cameraview.CameraView
+import me.shouheng.camerax.listeners.StateListener
 import me.shouheng.sample.databinding.FragmentCameraBinding
 import java.io.File
 import java.io.FileOutputStream
@@ -15,12 +16,60 @@ class CameraFragment : CommonFragment<FragmentCameraBinding>() {
     override fun getLayoutResId() = R.layout.fragment_camera
 
     override fun doCreateView(savedInstanceState: Bundle?) {
+        testCameraX()
+    }
+
+    fun testCameraView() {
         // 添加监听方法
         binding.cv.addCallback(callback)
         binding.cv.setOnMoveListener(onMoveListener)
         binding.cv.setOpenVoice(true)
 
         binding.btnShot.setOnClickListener({ binding.cv.takePicture() })
+    }
+
+    fun testCameraX() {
+        // 添加监听方法
+        binding.cvx.addStateListener(object : StateListener {
+            override fun onVideoToken() {
+                // empty
+            }
+
+            override fun onPictureTaken(cameraView: me.shouheng.camerax.CameraView?, data: ByteArray?) {
+                // empty
+            }
+
+            override fun onTouch() {
+                // empty
+            }
+
+            override fun onPreviewFrame(
+                cameraView: me.shouheng.camerax.CameraView?,
+                data: ByteArray?,
+                width: Int,
+                height: Int,
+                format: Int
+            ) {
+                // empty
+            }
+
+            override fun onPermissionDenied(
+                cameraView: me.shouheng.camerax.CameraView?,
+                permissions: Array<out String>?
+            ) {
+                // empty
+            }
+
+            override fun onCameraOpened(cameraView: me.shouheng.camerax.CameraView?) {
+
+            }
+
+            override fun onCameraClosed(cameraView: me.shouheng.camerax.CameraView?) {
+                // empty
+            }
+        })
+
+//        binding.btnShot.setOnClickListener({ binding.cv.takePicture() })
     }
 
     override fun onHiddenChanged(hidden: Boolean) {
@@ -36,13 +85,14 @@ class CameraFragment : CommonFragment<FragmentCameraBinding>() {
             return
         }
         // 开启相机
-        binding.cv.start()
+//        binding.cv.start()
+        binding.cvx.start()
     }
 
     override fun onPause() {
         super.onPause()
         // 关闭相机
-        binding.cv.stop()
+//        binding.cv.stop()
     }
 
     private val onMoveListener = CameraView.OnMoveListener {
