@@ -6,7 +6,6 @@ import android.view.Surface;
 import me.shouheng.camerax.configuration.Configuration;
 import me.shouheng.camerax.configuration.SizeCalculateStrategy;
 import me.shouheng.camerax.preview.CameraPreview;
-import me.shouheng.camerax.utils.Size;
 
 import java.util.List;
 
@@ -80,6 +79,11 @@ public class Camera1Manager extends AbstractCameraManager<Integer> {
     }
 
     @Override
+    public boolean isCameraOpened() {
+        return camera != null;
+    }
+
+    @Override
     public boolean openCamera(final Integer cameraId) {
         this.currentCameraId = cameraId;
         try {
@@ -113,7 +117,7 @@ public class Camera1Manager extends AbstractCameraManager<Integer> {
         }
         camera = Camera.open(cameraId);
         cameraParameters = camera.getParameters();
-        prepareOutputSize();
+        adjustCameraParameters();
         callback.onCameraOpened();
     }
 
@@ -122,23 +126,73 @@ public class Camera1Manager extends AbstractCameraManager<Integer> {
      *
      * Prepare the preview and output image and video size.
      */
-    private void prepareOutputSize() {
-        List<Camera.Size> supportedPreviewSizes = cameraParameters.getSupportedPreviewSizes();
-        List<Camera.Size> supportedVideoSizes = cameraParameters.getSupportedVideoSizes();
-        List<Camera.Size> supportedPictureSizes = cameraParameters.getSupportedPictureSizes();
-        Log.d(TAG, "prepareOutputSize: " + supportedPreviewSizes);
+    private void adjustCameraParameters() {
         try {
-            camcorderProfile = sizeCalculateStrategy.calCamcorderProfile(configuration, currentCameraId);
-            videoSize = sizeCalculateStrategy.calVideoSize(Size.fromList(supportedVideoSizes), camcorderProfile);
-            photoSize = sizeCalculateStrategy.calPhotoSize(Size.fromList(supportedPictureSizes), camcorderProfile);
-            previewSize = sizeCalculateStrategy.calPreviewSize(Size.fromList(supportedPreviewSizes), camcorderProfile);
+            SizeCalculateStrategy.Result result = sizeCalculateStrategy.calculate(cameraParameters, configuration, this);
+            camcorderProfile = result.camcorderProfile;
+            videoSize = result.videoSize;
+            photoSize = result.photoSize;
+            previewSize = result.previewSize;
+            final Camera.Size currentSize = cameraParameters.getPictureSize();
+            if (currentSize.width != previewSize.getWidth() || currentSize.height != previewSize.getHeight()) {
+                if (showingPreview) {
+                    camera.stopPreview();
+                }
+                if (cameraParameters.getSupportedPreviewFormats().contains(configuration.getPreviewFormat())) {
+                    cameraParameters.setPreviewFormat(configuration.getPreviewFormat());
+                }
+                cameraParameters.setPreviewSize(previewSize.getWidth(), previewSize.getHeight());
+                cameraParameters.setPictureSize(photoSize.getWidth(), photoSize.getHeight());
+
+                try {
+                    camera.setParameters(cameraParameters);
+                    if (showingPreview) {
+                        camera.startPreview();
+                    }
+                } catch (Exception e) {
+                    Log.d(TAG, "adjustCameraParameters: " + e);
+                }
+            }
         } catch (Exception e) {
-            Log.d(TAG, "prepareOutputSize: " + e);
+            Log.d(TAG, "adjustCameraParameters: " + e);
         }
     }
 
     private void setupPreview() {
 
+    }
+
+    private void setAutoFocus(Camera camera, Camera.Parameters parameters) {
+        try {
+            if (parameters.getSupportedFocusModes().contains(Camera.Parameters.FOCUS_MODE_AUTO)) {
+                parameters.setFocusMode(Camera.Parameters.FOCUS_MODE_AUTO);
+                camera.setParameters(parameters);
+            }
+        } catch (Exception ignore) {
+        }
+    }
+
+    private boolean setAutoFocusInternal(boolean autoFocus) {
+        configuration.setAutoFocus(autoFocus);
+        if (isCameraOpened()) {
+            final List<String> modes = cameraParameters.getSupportedFocusModes();
+            if (autoFocus && modes.contains(Camera.Parameters.FOCUS_MODE_CONTINUOUS_PICTURE)) {
+                attachFocusTapListener();
+                cameraParameters.setFocusMode(Camera.Parameters.FOCUS_MODE_CONTINUOUS_PICTURE);
+            } else if (modes.contains(Camera.Parameters.FOCUS_MODE_FIXED)) {
+                detachFocusTapListener();
+                cameraParameters.setFocusMode(Camera.Parameters.FOCUS_MODE_FIXED);
+            } else if (modes.contains(Camera.Parameters.FOCUS_MODE_INFINITY)) {
+                detachFocusTapListener();
+                cameraParameters.setFocusMode(Camera.Parameters.FOCUS_MODE_INFINITY);
+            } else {
+                detachFocusTapListener();
+                cameraParameters.setFocusMode(modes.get(0));
+            }
+            return true;
+        } else {
+            return false;
+        }
     }
 
     private void releaseCamera() {

@@ -737,6 +737,7 @@ class Camera1 extends CameraViewImpl {
 
     float finger_spacing;
 
+    // TODO 触摸
     @TargetApi(14)
     private void attachFocusTapListener() {
         if (mCamera == null)

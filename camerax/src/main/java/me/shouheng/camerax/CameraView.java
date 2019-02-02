@@ -100,6 +100,7 @@ public class CameraView extends FrameLayout {
         }
     }
 
+    // TODO set the param to the camera manger.
     public void setSizeCalculateStrategy(SizeCalculateStrategy sizeCalculateStrategy) {
         this.sizeCalculateStrategy = sizeCalculateStrategy;
     }

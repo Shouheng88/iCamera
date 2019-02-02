@@ -30,6 +30,11 @@ public final class Configuration implements Parcelable {
     @Camera.AdjustType
     private int adjustType = Camera.NONE;
 
+    private boolean autoFocus;
+
+    @Camera.PreviewFormat
+    private int previewFormat;
+
     private int videoDuration = 0;
 
     private long videoFileSize = 0;
@@ -70,6 +75,54 @@ public final class Configuration implements Parcelable {
         }
     };
 
+    public void setCameraFace(int cameraFace) {
+        this.cameraFace = cameraFace;
+    }
+
+    public void setFlashMode(int flashMode) {
+        this.flashMode = flashMode;
+    }
+
+    public void setSensorPosition(int sensorPosition) {
+        this.sensorPosition = sensorPosition;
+    }
+
+    public void setScreenOrientation(int screenOrientation) {
+        this.screenOrientation = screenOrientation;
+    }
+
+    public void setAdjustType(int adjustType) {
+        this.adjustType = adjustType;
+    }
+
+    public void setAutoFocus(boolean autoFocus) {
+        this.autoFocus = autoFocus;
+    }
+
+    public void setPreviewFormat(int previewFormat) {
+        this.previewFormat = previewFormat;
+    }
+
+    public void setVideoDuration(int videoDuration) {
+        this.videoDuration = videoDuration;
+    }
+
+    public void setVideoFileSize(long videoFileSize) {
+        this.videoFileSize = videoFileSize;
+    }
+
+    public void setMinimumVideoDuration(int minimumVideoDuration) {
+        this.minimumVideoDuration = minimumVideoDuration;
+    }
+
+    public void setMediaAction(int mediaAction) {
+        this.mediaAction = mediaAction;
+    }
+
+    public void setMediaQuality(int mediaQuality) {
+        this.mediaQuality = mediaQuality;
+    }
+
     @Camera.CameraFace
     public int getCameraFace() {
         return cameraFace;
@@ -93,6 +146,15 @@ public final class Configuration implements Parcelable {
     @Camera.AdjustType
     public int getAdjustType() {
         return adjustType;
+    }
+
+    public boolean isAutoFocus() {
+        return autoFocus;
+    }
+
+    @Camera.PreviewFormat
+    public int getPreviewFormat() {
+        return previewFormat;
     }
 
     @Media.MediaAction

@@ -8,6 +8,7 @@ import android.support.annotation.NonNull;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * A wrapped class for picture size.
@@ -94,6 +95,20 @@ public class Size {
             result[i] = Size.get(sizes[i]);
         }
         return result;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof Size)) return false;
+        Size size = (Size) o;
+        return width == size.width &&
+                height == size.height;
+    }
+
+    @Override
+    public int hashCode() {
+        return height ^ ((width << (Integer.SIZE / 2)) | (width >>> (Integer.SIZE / 2)));
     }
 
     @NonNull

@@ -26,6 +26,8 @@ public interface CameraManager<CameraId> {
 
     void release();
 
+    boolean isCameraOpened();
+
     CameraId getCurrentCameraId();
 
     CameraId getFaceFrontCameraId();

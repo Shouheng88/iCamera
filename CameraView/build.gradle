@@ -2,7 +2,7 @@ apply plugin: 'com.android.library'
 
 android {
     compileSdkVersion 28
-    buildToolsVersion '28.0.2'
+    buildToolsVersion '28.0.3'
     defaultConfig {
         minSdkVersion 14
         targetSdkVersion 28
@@ -29,15 +29,15 @@ android {
 }
 
 dependencies {
-    compile "com.android.support:support-annotations:28.0.0"
-    compile "com.android.support:support-v4:28.0.0"
+    implementation "com.android.support:support-annotations:28.0.0"
+    implementation "com.android.support:support-v4:28.0.0"
 
     // Tests
-    testCompile 'junit:junit:4.12'
-    androidTestCompile('com.android.support.test:runner:0.5') {
+    testImplementation 'junit:junit:4.12'
+    androidTestImplementation('com.android.support.test:runner:0.5') {
         exclude module: 'support-annotations'
     }
-    androidTestCompile('com.android.support.test.espresso:espresso-core:2.2.2') {
+    androidTestImplementation('com.android.support.test.espresso:espresso-core:2.2.2') {
         exclude module: 'support-annotations'
     }
 }

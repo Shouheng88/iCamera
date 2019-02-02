@@ -23,6 +23,7 @@ public class DefaultManagerCreatorStrategy implements ManagerCreatorStrategy {
     @NonNull
     @Override
     public CameraManager create(CameraManager.Callback callback, CameraPreview cameraPreview) {
+        // TODO enable the logic when camera1 is done.
 //        if (CameraHelper.hasCamera2(context)) {
 //            return Camera2Manager.getInstance(callback, cameraPreview);
 //        } else {

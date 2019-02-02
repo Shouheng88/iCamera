@@ -9,6 +9,11 @@ import android.os.Build;
 import android.text.TextUtils;
 import me.shouheng.camerax.enums.Media;
 
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
+
 public final class CameraHelper {
 
     private CameraHelper() {
@@ -150,5 +155,126 @@ public final class CameraHelper {
 
     private static long calculateMinimumRequiredBitRate(CamcorderProfile camcorderProfile, long maxFileSize, int seconds) {
         return 8 * maxFileSize / seconds - camcorderProfile.audioBitRate;
+    }
+
+    /**
+     * Get closet ratio according to size and height.
+     * <b>Strategy:</b> Ratio first and then the largest image, otherwise then min height difference.
+     *
+     * @param sizes support sizes.
+     * @param width the width desired.
+     * @param height the height desired.
+     * @return the result size.
+     */
+    public static Size getSizeWithClosestRatio(List<Size> sizes, int width, int height) {
+        if (sizes == null || sizes.isEmpty()) return null;
+
+        double targetRatio = (double) height / width;
+        double minTolerance = 100;
+        Size optimalSize = null;
+
+        // TODO check if the size is sorted from smaller to bigger?
+        for (Size size : sizes) {
+            // 1. The same size, return directly;
+            if (size.getWidth() == width && size.getHeight() == height) {
+                return size;
+            }
+
+            // 2. Ratio first;
+            double ratio = (double) size.getHeight() / size.getWidth();
+            if (Math.abs(ratio - targetRatio) < minTolerance) {
+                minTolerance = Math.abs(ratio - targetRatio);
+                optimalSize = size;
+            }
+        }
+
+        // Step 2. Find the Size with min height difference.
+        double minDiff;
+        if (optimalSize == null) {
+            minDiff = Double.MAX_VALUE;
+            for (Size size : sizes) {
+                if (Math.abs(size.getHeight() - height) < minDiff) {
+                    optimalSize = size;
+                    minDiff = Math.abs(size.getHeight() - height);
+                }
+            }
+        }
+        return optimalSize;
+    }
+
+    /**
+     * Get output image size.
+     *
+     * @param sizes support sizes.
+     * @param mediaQuality the media quality.
+     * @return the output picture size.
+     */
+    public static Size getPictureSize(List<Size> sizes, @Media.MediaQuality int mediaQuality) {
+        if (sizes == null || sizes.isEmpty()) return null;
+        if (sizes.size() == 1) return sizes.get(0);
+
+        Size result = null;
+        Size maxPictureSize = Collections.max(sizes, new CompareSizesByArea2());
+        Size minPictureSize = Collections.min(sizes, new CompareSizesByArea2());
+
+        Collections.sort(sizes, new CompareSizesByArea2());
+
+        switch (mediaQuality) {
+            case Media.MEDIA_QUALITY_HIGHEST:
+                result = maxPictureSize;
+                break;
+            case Media.MEDIA_QUALITY_HIGH:
+                if (sizes.size() == 2) {
+                    result = maxPictureSize;
+                } else {
+                    // Approximately, 3/4 maxPictureSize.
+                    int half = sizes.size() / 2;
+                    int highQualityIndex = (sizes.size() - half) / 2;
+                    result = sizes.get(sizes.size() - highQualityIndex - 1);
+                }
+                break;
+            case Media.MEDIA_QUALITY_MEDIUM:
+                if (sizes.size() == 2) {
+                    result = minPictureSize;
+                } else {
+                    // Approximately, 2/4 maxPictureSize.
+                    int mediumQualityIndex = sizes.size() / 2;
+                    result = sizes.get(mediumQualityIndex);
+                }
+                break;
+            case Media.MEDIA_QUALITY_LOW:
+                if (sizes.size() == 2) {
+                    result = minPictureSize;
+                } else {
+                    // Approximately, 1/4 maxPictureSize.
+                    int half = sizes.size() / 2;
+                    int lowQualityIndex = (sizes.size() - half) / 2;
+                    result = sizes.get(lowQualityIndex + 1);
+                }
+            case Media.MEDIA_QUALITY_LOWEST:
+            case Media.MEDIA_QUALITY_AUTO:
+                result = minPictureSize;
+                break;
+        }
+
+        return result;
+    }
+
+    public static Size getPictureSize(Size[] sizes, @Media.MediaQuality int mediaQuality) {
+        if (sizes == null || sizes.length == 0) return null;
+        List<Size> choices = Arrays.asList(sizes);
+        return getPictureSize(choices, mediaQuality);
+    }
+
+    /**
+     * Size comparator by the area2 of the size.
+     */
+    private static class CompareSizesByArea2 implements Comparator<Size> {
+
+        @Override
+        public int compare(Size lhs, Size rhs) {
+            return Long.signum((long) lhs.getWidth() * lhs.getHeight() -
+                    (long) rhs.getWidth() * rhs.getHeight());
+        }
     }
 }

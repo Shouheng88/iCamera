@@ -1,5 +1,6 @@
 package me.shouheng.camerax.enums;
 
+import android.graphics.ImageFormat;
 import android.support.annotation.IntDef;
 
 import java.lang.annotation.Retention;
@@ -31,6 +32,35 @@ public final class Camera {
     public static final int SCALE_SMALLER                   = 3;
     public static final int SCALE_LARGER                    = 4;
 
+    public static final int UNKNOWN          = ImageFormat.UNKNOWN;
+    public static final int RGB_565          = ImageFormat.RGB_565;
+    public static final int YV12             = ImageFormat.YV12;
+    public static final int NV16             = ImageFormat.NV16;
+    public static final int NV21             = ImageFormat.NV21;
+    public static final int YUY2             = ImageFormat.YUY2;
+    public static final int JPEG             = ImageFormat.JPEG;
+    public static final int YUV_420_888      = ImageFormat.YUV_420_888;
+    public static final int YUV_422_888      = ImageFormat.YUV_422_888;
+    public static final int RYUV_444_888     = ImageFormat.YUV_444_888;
+    public static final int FLEX_RGB_888     = ImageFormat.FLEX_RGB_888;
+    public static final int FLEX_RGBA_8888   = ImageFormat.FLEX_RGBA_8888;
+    public static final int RAW_SENSOR       = ImageFormat.RAW_SENSOR;
+    public static final int RAW_PRIVATE      = ImageFormat.RAW_PRIVATE;
+    public static final int RAW10            = ImageFormat.RAW10;
+    public static final int RAW12            = ImageFormat.RAW12;
+    public static final int DEPTH16          = ImageFormat.DEPTH16;
+    public static final int DEPTH_POINT_CLOUD= ImageFormat.DEPTH_POINT_CLOUD;
+    public static final int PRIVATE          = ImageFormat.PRIVATE;
+
+    // TODO add focus mode.
+
+    @IntDef({UNKNOWN, RGB_565, YV12, NV16, NV21, YUY2, JPEG, YUV_420_888, YUV_422_888,
+            RYUV_444_888, FLEX_RGB_888, FLEX_RGBA_8888, RAW_SENSOR, RAW_PRIVATE,
+            RAW10, RAW12, DEPTH16, DEPTH_POINT_CLOUD, PRIVATE})
+    @Retention(RetentionPolicy.SOURCE)
+    public @interface PreviewFormat {
+    }
+    
     @IntDef({FLASH_ON, FLASH_OFF, FLASH_AUTO, FLASH_TORCH, FLASH_RED_EYE})
     @Retention(RetentionPolicy.SOURCE)
     public @interface FlashMode {
