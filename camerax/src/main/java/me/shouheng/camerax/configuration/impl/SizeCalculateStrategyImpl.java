@@ -15,7 +15,7 @@ import java.util.List;
 /**
  * Default implementation for camera output size strategy.
  */
-public class DefaultSizeCalculateStrategy implements SizeCalculateStrategy {
+public class SizeCalculateStrategyImpl implements SizeCalculateStrategy {
 
     private static final String TAG = "DefaultSizeCalculateStr";
 

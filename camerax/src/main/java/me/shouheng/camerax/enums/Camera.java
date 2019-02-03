@@ -52,7 +52,21 @@ public final class Camera {
     public static final int DEPTH_POINT_CLOUD= ImageFormat.DEPTH_POINT_CLOUD;
     public static final int PRIVATE          = ImageFormat.PRIVATE;
 
-    // TODO add focus mode.
+    public static final int FOCUS_MODE_NONE                 = 0;
+    public static final int FOCUS_MODE_AUTO                 = 1;
+    public static final int FOCUS_MODE_INFINITY             = 2;
+    public static final int FOCUS_MODE_MACRO                = 3;
+    public static final int FOCUS_MODE_FIXED                = 4;
+    public static final int FOCUS_MODE_EDOF                 = 5;
+    public static final int FOCUS_MODE_CONTINUOUS_VIDEO     = 6;
+    public static final int FOCUS_MODE_CONTINUOUS_PICTURE   = 7;
+    public static final int FOCUS_MODE_ADAPTION             = 9;
+
+    @IntDef({FOCUS_MODE_NONE, FOCUS_MODE_AUTO, FOCUS_MODE_INFINITY, FOCUS_MODE_MACRO, FOCUS_MODE_FIXED,
+            FOCUS_MODE_EDOF, FOCUS_MODE_CONTINUOUS_VIDEO, FOCUS_MODE_CONTINUOUS_PICTURE, FOCUS_MODE_ADAPTION})
+    @Retention(RetentionPolicy.SOURCE)
+    public @interface FocusMode {
+    }
 
     @IntDef({UNKNOWN, RGB_565, YV12, NV16, NV21, YUY2, JPEG, YUV_420_888, YUV_422_888,
             RYUV_444_888, FLEX_RGB_888, FLEX_RGBA_8888, RAW_SENSOR, RAW_PRIVATE,

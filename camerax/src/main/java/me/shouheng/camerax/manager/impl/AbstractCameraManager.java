@@ -6,7 +6,7 @@ import android.os.HandlerThread;
 import android.os.Looper;
 import android.os.Process;
 import me.shouheng.camerax.configuration.Configuration;
-import me.shouheng.camerax.configuration.impl.DefaultSizeCalculateStrategy;
+import me.shouheng.camerax.configuration.impl.SizeCalculateStrategyImpl;
 import me.shouheng.camerax.configuration.SizeCalculateStrategy;
 import me.shouheng.camerax.enums.Camera;
 import me.shouheng.camerax.manager.CameraManager;
@@ -64,7 +64,7 @@ abstract class AbstractCameraManager<CameraId> implements CameraManager<CameraId
     public void initializeCameraManager(Configuration configuration, SizeCalculateStrategy sizeCalculateStrategy) {
         this.configuration = configuration;
         if (sizeCalculateStrategy == null) {
-            sizeCalculateStrategy = new DefaultSizeCalculateStrategy();
+            sizeCalculateStrategy = new SizeCalculateStrategyImpl();
         }
         this.sizeCalculateStrategy = sizeCalculateStrategy;
     }

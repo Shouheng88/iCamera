@@ -1,13 +1,18 @@
 package me.shouheng.camerax.manager.impl;
 
 import android.hardware.Camera;
+import android.support.v4.util.SparseArrayCompat;
 import android.util.Log;
 import android.view.Surface;
+import android.view.SurfaceView;
 import me.shouheng.camerax.configuration.Configuration;
 import me.shouheng.camerax.configuration.SizeCalculateStrategy;
 import me.shouheng.camerax.preview.CameraPreview;
+import me.shouheng.camerax.utils.CameraHelper;
 
 import java.util.List;
+
+import static me.shouheng.camerax.enums.Camera.*;
 
 public class Camera1Manager extends AbstractCameraManager<Integer> {
 
@@ -15,6 +20,12 @@ public class Camera1Manager extends AbstractCameraManager<Integer> {
 
     private Camera.PreviewCallback previewCallback;
     private Camera.Parameters cameraParameters;
+
+    /**
+     * Map from the constant to string for flash mode, late initialize value.
+     * @see #getFlashModeMap()
+     */
+    private SparseArrayCompat<String> flashModeMap = null;
 
     private Camera camera;
     private Surface surface;
@@ -118,11 +129,13 @@ public class Camera1Manager extends AbstractCameraManager<Integer> {
         camera = Camera.open(cameraId);
         cameraParameters = camera.getParameters();
         adjustCameraParameters();
+        //  TODO Test the {@link Camera#setDisplayOrientation(int)} method for output and preview images.
+        camera.setDisplayOrientation(90);
         callback.onCameraOpened();
     }
 
     /**
-     * TODO Test the {@link Camera#setDisplayOrientation(int)} method for output and preview images.
+     * Adjust parameters of camera.
      *
      * Prepare the preview and output image and video size.
      */
@@ -143,52 +156,151 @@ public class Camera1Manager extends AbstractCameraManager<Integer> {
                 }
                 cameraParameters.setPreviewSize(previewSize.getWidth(), previewSize.getHeight());
                 cameraParameters.setPictureSize(photoSize.getWidth(), photoSize.getHeight());
-
+                setAutoFocusInternal(configuration.getFocusMode());
+                setFlashInternal(configuration.getFlashMode());
+                setZoomInternal(configuration.getZoom());
                 try {
                     camera.setParameters(cameraParameters);
                     if (showingPreview) {
                         camera.startPreview();
                     }
                 } catch (Exception e) {
-                    Log.d(TAG, "adjustCameraParameters: " + e);
+                    Log.e(TAG, "adjustCameraParameters: " + e);
                 }
             }
         } catch (Exception e) {
-            Log.d(TAG, "adjustCameraParameters: " + e);
+            Log.e(TAG, "adjustCameraParameters: " + e);
         }
     }
 
     private void setupPreview() {
-
-    }
-
-    private void setAutoFocus(Camera camera, Camera.Parameters parameters) {
         try {
-            if (parameters.getSupportedFocusModes().contains(Camera.Parameters.FOCUS_MODE_AUTO)) {
-                parameters.setFocusMode(Camera.Parameters.FOCUS_MODE_AUTO);
-                camera.setParameters(parameters);
+            if (isCameraOpened()) {
+                if (cameraPreview.getOutputClass() == SurfaceView.class) {
+                    if (showingPreview) {
+                        camera.stopPreview();
+                    }
+                    camera.setPreviewDisplay();
+                }
+            } else {
+                Log.e(TAG, "setupPreview: ");
             }
-        } catch (Exception ignore) {
+        } catch (Exception e) {
+            Log.e(TAG, "setupPreview: " + e);
         }
     }
 
-    private boolean setAutoFocusInternal(boolean autoFocus) {
-        configuration.setAutoFocus(autoFocus);
+    /**
+     * Set auto focus mode internal.
+     *
+     * @param focusMode focus mode.
+     * @return true if succeed.
+     */
+    private boolean setAutoFocusInternal(@FocusMode int focusMode) {
+        configuration.setFocusMode(focusMode);
         if (isCameraOpened()) {
-            final List<String> modes = cameraParameters.getSupportedFocusModes();
-            if (autoFocus && modes.contains(Camera.Parameters.FOCUS_MODE_CONTINUOUS_PICTURE)) {
-                attachFocusTapListener();
-                cameraParameters.setFocusMode(Camera.Parameters.FOCUS_MODE_CONTINUOUS_PICTURE);
-            } else if (modes.contains(Camera.Parameters.FOCUS_MODE_FIXED)) {
-                detachFocusTapListener();
-                cameraParameters.setFocusMode(Camera.Parameters.FOCUS_MODE_FIXED);
-            } else if (modes.contains(Camera.Parameters.FOCUS_MODE_INFINITY)) {
-                detachFocusTapListener();
-                cameraParameters.setFocusMode(Camera.Parameters.FOCUS_MODE_INFINITY);
-            } else {
-                detachFocusTapListener();
-                cameraParameters.setFocusMode(modes.get(0));
+            if (configuration.getFocusMode() != FOCUS_MODE_NONE) {
+                final List<String> modes = cameraParameters.getSupportedFocusModes();
+                switch (configuration.getFocusMode()) {
+                    case FOCUS_MODE_AUTO:
+                        if (modes.contains(Camera.Parameters.FOCUS_MODE_AUTO)) {
+                            cameraParameters.setFocusMode(Camera.Parameters.FOCUS_MODE_AUTO);
+                        }
+                        break;
+                    case FOCUS_MODE_INFINITY:
+                        if (modes.contains(Camera.Parameters.FOCUS_MODE_INFINITY)) {
+                            cameraParameters.setFocusMode(Camera.Parameters.FOCUS_MODE_INFINITY);
+                        }
+                        break;
+                    case FOCUS_MODE_MACRO:
+                        if (modes.contains(Camera.Parameters.FOCUS_MODE_MACRO)) {
+                            cameraParameters.setFocusMode(Camera.Parameters.FOCUS_MODE_MACRO);
+                        }
+                        break;
+                    case FOCUS_MODE_FIXED:
+                        if (modes.contains(Camera.Parameters.FOCUS_MODE_FIXED)) {
+                            cameraParameters.setFocusMode(Camera.Parameters.FOCUS_MODE_FIXED);
+                        }
+                        break;
+                    case FOCUS_MODE_EDOF:
+                        if (modes.contains(Camera.Parameters.FOCUS_MODE_EDOF)) {
+                            cameraParameters.setFocusMode(Camera.Parameters.FOCUS_MODE_EDOF);
+                        }
+                        break;
+                    case FOCUS_MODE_CONTINUOUS_VIDEO:
+                        if (modes.contains(Camera.Parameters.FOCUS_MODE_CONTINUOUS_VIDEO)) {
+                            cameraParameters.setFocusMode(Camera.Parameters.FOCUS_MODE_CONTINUOUS_VIDEO);
+                        }
+                        break;
+                    case FOCUS_MODE_CONTINUOUS_PICTURE:
+                        if (modes.contains(Camera.Parameters.FOCUS_MODE_CONTINUOUS_PICTURE)) {
+                            cameraParameters.setFocusMode(Camera.Parameters.FOCUS_MODE_CONTINUOUS_PICTURE);
+                        }
+                        break;
+                    case FOCUS_MODE_ADAPTION:
+                    default:
+                        if (modes.contains(Camera.Parameters.FOCUS_MODE_CONTINUOUS_PICTURE)) {
+                            cameraParameters.setFocusMode(Camera.Parameters.FOCUS_MODE_CONTINUOUS_PICTURE);
+                        } else if (modes.contains(Camera.Parameters.FOCUS_MODE_FIXED)) {
+                            cameraParameters.setFocusMode(Camera.Parameters.FOCUS_MODE_FIXED);
+                        } else if (modes.contains(Camera.Parameters.FOCUS_MODE_INFINITY)) {
+                            cameraParameters.setFocusMode(Camera.Parameters.FOCUS_MODE_INFINITY);
+                        } else {
+                            cameraParameters.setFocusMode(modes.get(0));
+                        }
+                        break;
+                }
+                // TODO implement this logic.
+                // attachFocusTapListener();
             }
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    /**
+     * Set flash mode for camera. If the given flash mode exist
+     *
+     * @param flashMode flash mode
+     * @return if set success.
+     */
+    private boolean setFlashInternal(@FlashMode int flashMode) {
+        if (isCameraOpened()) {
+            List<String> modes = cameraParameters.getSupportedFlashModes();
+            String mode = getFlashModeMap().get(flashMode);
+            if (modes != null && modes.contains(mode)) {
+                cameraParameters.setFlashMode(mode);
+                configuration.setFlashMode(flashMode);
+                return true;
+            }
+            String current = getFlashModeMap().get(configuration.getFlashMode());
+            if (modes == null || !modes.contains(current)) {
+                cameraParameters.setFlashMode(Camera.Parameters.FLASH_MODE_OFF);
+                configuration.setFlashMode(FLASH_OFF);
+                return true;
+            }
+            return false;
+        } else {
+            configuration.setFlashMode(flashMode);
+            return false;
+        }
+    }
+
+    /**
+     * Set zoom for camera.
+     *
+     * @param zoom zoom value.
+     * @return is succeed
+     */
+    private boolean setZoomInternal(float zoom) {
+        if (isCameraOpened()) {
+            if (!cameraParameters.isZoomSupported()) {
+                return false;
+            }
+            int zoomIdx = CameraHelper.getZoomIdxForZoomFactor(zoom, cameraParameters.getZoomRatios());
+            cameraParameters.setZoom(zoomIdx);
+            configuration.setZoom(zoom);
             return true;
         } else {
             return false;
@@ -203,6 +315,18 @@ public class Camera1Manager extends AbstractCameraManager<Integer> {
             // Callback.
             callback.onCameraClosed();
         }
+    }
+
+    private SparseArrayCompat<String> getFlashModeMap() {
+        if (flashModeMap == null) {
+            flashModeMap = new SparseArrayCompat<>();
+            flashModeMap.put(FLASH_AUTO, Camera.Parameters.FLASH_MODE_OFF);
+            flashModeMap.put(FLASH_ON, Camera.Parameters.FLASH_MODE_ON);
+            flashModeMap.put(FLASH_TORCH, Camera.Parameters.FLASH_MODE_TORCH);
+            flashModeMap.put(FLASH_AUTO, Camera.Parameters.FLASH_MODE_AUTO);
+            flashModeMap.put(FLASH_RED_EYE, Camera.Parameters.FLASH_MODE_RED_EYE);
+        }
+        return flashModeMap;
     }
 
     @Override

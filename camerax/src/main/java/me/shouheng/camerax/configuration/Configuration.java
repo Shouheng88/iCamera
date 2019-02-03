@@ -30,7 +30,12 @@ public final class Configuration implements Parcelable {
     @Camera.AdjustType
     private int adjustType = Camera.NONE;
 
+    @Camera.FocusMode
+    private int focusMode = Camera.FOCUS_MODE_AUTO;
+
     private boolean autoFocus;
+
+    private float zoom;
 
     @Camera.PreviewFormat
     private int previewFormat;
@@ -74,6 +79,14 @@ public final class Configuration implements Parcelable {
             return new Configuration[size];
         }
     };
+
+    public float getZoom() {
+        return zoom;
+    }
+
+    public void setZoom(float zoom) {
+        this.zoom = zoom;
+    }
 
     public void setCameraFace(int cameraFace) {
         this.cameraFace = cameraFace;
@@ -121,6 +134,14 @@ public final class Configuration implements Parcelable {
 
     public void setMediaQuality(int mediaQuality) {
         this.mediaQuality = mediaQuality;
+    }
+
+    public int getFocusMode() {
+        return focusMode;
+    }
+
+    public void setFocusMode(int focusMode) {
+        this.focusMode = focusMode;
     }
 
     @Camera.CameraFace

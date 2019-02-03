@@ -251,6 +251,7 @@ public final class CameraHelper {
                     int lowQualityIndex = (sizes.size() - half) / 2;
                     result = sizes.get(lowQualityIndex + 1);
                 }
+                break;
             case Media.MEDIA_QUALITY_LOWEST:
             case Media.MEDIA_QUALITY_AUTO:
                 result = minPictureSize;
@@ -264,6 +265,30 @@ public final class CameraHelper {
         if (sizes == null || sizes.length == 0) return null;
         List<Size> choices = Arrays.asList(sizes);
         return getPictureSize(choices, mediaQuality);
+    }
+
+    /**
+     * Get index of given zoom value in zoom ratios got from camera support values.
+     *
+     * @param zoom zoom.
+     * @param zoomRatios support zoom ratios.
+     * @return the index of zoom in zoom ratios.
+     */
+    public static int getZoomIdxForZoomFactor(float zoom, List<Integer> zoomRatios) {
+        int zoomRatioFormat = (int) (zoom * 100);
+
+        int len = zoomRatios.size();
+        int possibleIdx = 0;
+        int minDiff = Integer.MAX_VALUE;
+        int tmp;
+        for (int i = 0; i < len; ++i) {
+            tmp = Math.abs(zoomRatioFormat - zoomRatios.get(i));
+            if (tmp < minDiff) {
+                minDiff = tmp;
+                possibleIdx = i;
+            }
+        }
+        return possibleIdx;
     }
 
     /**
