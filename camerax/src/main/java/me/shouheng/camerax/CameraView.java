@@ -250,7 +250,7 @@ public class CameraView extends FrameLayout {
             stateListeners.remove(stateListener);
         }
 
-        public void setRequestLayoutOnOpen(boolean requestLayoutOnOpen) {
+        void setRequestLayoutOnOpen(boolean requestLayoutOnOpen) {
             this.requestLayoutOnOpen = requestLayoutOnOpen;
         }
 
