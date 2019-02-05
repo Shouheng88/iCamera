@@ -17,7 +17,7 @@ import java.util.List;
  */
 public class SizeCalculateStrategyImpl implements SizeCalculateStrategy {
 
-    private static final String TAG = "DefaultSizeCalculateStr";
+    private static final String TAG = "SizeCalculateStrategy";
 
     @Override
     public Result calculate(Camera.Parameters cameraParameters, Configuration configuration, CameraManager cameraManager) {
@@ -67,6 +67,8 @@ public class SizeCalculateStrategyImpl implements SizeCalculateStrategy {
         } else {
             previewSize = CameraHelper.getSizeWithClosestRatio(previewSizes, videoSize.getWidth(), videoSize.getHeight());
         }
+
+        Log.d(TAG, "calculate: " + photoSize + " " + videoSize + " " + previewSize);
 
         return new Result(camcorderProfile, photoSize, videoSize, previewSize);
     }

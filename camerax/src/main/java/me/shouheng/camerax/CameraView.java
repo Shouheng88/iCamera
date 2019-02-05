@@ -13,11 +13,13 @@ import android.widget.FrameLayout;
 import me.shouheng.camerax.configuration.Configuration;
 import me.shouheng.camerax.configuration.SizeCalculateStrategy;
 import me.shouheng.camerax.enums.Camera;
+import me.shouheng.camerax.enums.Media;
 import me.shouheng.camerax.listeners.StateListener;
 import me.shouheng.camerax.manager.CameraManager;
 import me.shouheng.camerax.manager.CameraManagerFactory;
 import me.shouheng.camerax.preview.CameraPreview;
 import me.shouheng.camerax.preview.CameraPreviewFactory;
+import me.shouheng.camerax.utils.AspectRatio;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -31,6 +33,13 @@ public class CameraView extends FrameLayout {
     private CameraManager cameraManager;
     private Configuration configuration;
     private SizeCalculateStrategy sizeCalculateStrategy = null;
+
+    @Camera.AdjustType
+    private int adjustType = Camera.NONE;
+    private int widthRatio = 4;
+    private int heightRatio = 3;
+    private boolean adjustViewBounds;
+    private boolean clipScreen;
 
     public CameraView(@NonNull Context context) {
         this(context, null);
@@ -55,7 +64,7 @@ public class CameraView extends FrameLayout {
         this.context = context;
 
         callbackBridge = new CallbackBridge();
-        cameraPreview = CameraPreviewFactory.getCameraPreview();
+        cameraPreview = CameraPreviewFactory.getCameraPreview(context, this);
         cameraManager = CameraManagerFactory.getCameraManager(context, callbackBridge, cameraPreview);
         cameraManager.initializeCameraManager(configuration, sizeCalculateStrategy);
 
@@ -63,12 +72,98 @@ public class CameraView extends FrameLayout {
         // TODO define the attributes used for widget in xml.
 //        a.recycle();
 
-        configuration = new Configuration.Builder().build();
+        configuration = new Configuration.Builder()
+                .setMediaQuality(Media.MEDIA_QUALITY_MEDIUM)
+                .build();
     }
 
     @Override
     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
-        super.onMeasure(widthMeasureSpec, heightMeasureSpec);
+        if (clipScreen) {
+            // region handle measure for clip screen mode;
+            int width = MeasureSpec.getSize(widthMeasureSpec);
+            int height = MeasureSpec.getSize(heightMeasureSpec);
+            switch (adjustType) {
+                case Camera.FIXED_WIDTH:
+                    height = width * heightRatio / widthRatio;
+                    break;
+                case Camera.FIXED_HEIGHT:
+                    width = height * widthRatio / heightRatio;
+                    break;
+                case Camera.SCALE_SMALLER:
+                    if (width * heightRatio < height * widthRatio) {
+                        height = width * heightRatio / widthRatio;
+                    } else {
+                        width = height * widthRatio / heightRatio;
+                    }
+                    break;
+                case Camera.SCALE_LARGER:
+                    if (width * heightRatio < height * widthRatio) {
+                        width = height * widthRatio / heightRatio;
+                    } else {
+                        height = width * heightRatio / widthRatio;
+                    }
+                    break;
+                case Camera.NONE:
+                default:
+                    // do nothing
+            }
+            super.onMeasure(MeasureSpec.makeMeasureSpec(width, MeasureSpec.EXACTLY),
+                    MeasureSpec.makeMeasureSpec(height, MeasureSpec.EXACTLY));
+            // endregion handle measure for clip screen.
+        } else {
+            if (adjustViewBounds) {
+                // region handle measure for adjust view bounds
+                if (!isCameraOpened()) {
+                    callbackBridge.setRequestLayoutOnOpen(true);
+                    super.onMeasure(widthMeasureSpec, heightMeasureSpec);
+                    return;
+                }
+                final int widthMode = MeasureSpec.getMode(widthMeasureSpec);
+                final int heightMode = MeasureSpec.getMode(heightMeasureSpec);
+                if (widthMode == MeasureSpec.EXACTLY && heightMode != MeasureSpec.EXACTLY) {
+                    final AspectRatio ratio = getAspectRatio();
+                    assert ratio != null;
+                    int height = (int) (MeasureSpec.getSize(widthMeasureSpec) * ratio.toFloat());
+                    if (heightMode == MeasureSpec.AT_MOST) {
+                        height = Math.min(height, MeasureSpec.getSize(heightMeasureSpec));
+                    }
+                    super.onMeasure(widthMeasureSpec, MeasureSpec.makeMeasureSpec(height, MeasureSpec.EXACTLY));
+                } else if (widthMode != MeasureSpec.EXACTLY && heightMode == MeasureSpec.EXACTLY) {
+                    final AspectRatio ratio = getAspectRatio();
+                    assert ratio != null;
+                    int width = (int) (MeasureSpec.getSize(heightMeasureSpec) * ratio.toFloat());
+                    if (widthMode == MeasureSpec.AT_MOST) {
+                        width = Math.min(width, MeasureSpec.getSize(widthMeasureSpec));
+                    }
+                    super.onMeasure(MeasureSpec.makeMeasureSpec(width, MeasureSpec.EXACTLY), heightMeasureSpec);
+                } else {
+                    super.onMeasure(widthMeasureSpec, heightMeasureSpec);
+                }
+                // endregion
+            } else {
+                super.onMeasure(widthMeasureSpec, heightMeasureSpec);
+            }
+            // region handle measure for left
+            int width = getMeasuredWidth();
+            int height = getMeasuredHeight();
+            AspectRatio ratio = getAspectRatio();
+            // TODO orientation detect logic
+//            if (mDisplayOrientationDetector.getLastKnownDisplayOrientation() % 180 == 0) {
+//                ratio = ratio.inverse();
+//            }
+            assert ratio != null;
+            if (height < width * ratio.getY() / ratio.getX()) {
+                cameraPreview.getView().measure(
+                        MeasureSpec.makeMeasureSpec(width, MeasureSpec.EXACTLY),
+                        MeasureSpec.makeMeasureSpec(width * ratio.getY() / ratio.getX(), MeasureSpec.EXACTLY));
+            } else {
+                cameraPreview.getView().measure(
+                        MeasureSpec.makeMeasureSpec(height * ratio.getX() / ratio.getY(), MeasureSpec.EXACTLY),
+                        MeasureSpec.makeMeasureSpec(height, MeasureSpec.EXACTLY));
+            }
+            // endregion handle measure for left
+        }
     }
 
     @Nullable
@@ -100,9 +195,25 @@ public class CameraView extends FrameLayout {
         }
     }
 
+    public void setWidthHeightRatio(int widthRatio, int heightRatio) {
+        this.widthRatio = widthRatio;
+        this.heightRatio = heightRatio;
+        if (adjustType != Camera.NONE) {
+            requestLayout();
+        }
+    }
+
     // TODO set the param to the camera manger.
     public void setSizeCalculateStrategy(SizeCalculateStrategy sizeCalculateStrategy) {
         this.sizeCalculateStrategy = sizeCalculateStrategy;
+    }
+
+    public boolean isCameraOpened() {
+        return cameraManager.isCameraOpened();
+    }
+
+    public AspectRatio getAspectRatio() {
+        return cameraManager.getAspectRatio();
     }
 
     public void addStateListener(@NonNull StateListener stateListener) {
@@ -147,6 +258,7 @@ public class CameraView extends FrameLayout {
         public void onCameraOpened() {
             if (requestLayoutOnOpen) {
                 requestLayoutOnOpen = false;
+                // change the camera preview layout when camera open.
                 requestLayout();
             }
             for (StateListener stateListener : stateListeners) {

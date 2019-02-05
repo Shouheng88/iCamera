@@ -31,6 +31,8 @@ class CameraFragment : CommonFragment<FragmentCameraBinding>() {
 
     fun testCameraX() {
         // 添加监听方法
+        binding.cvx.setWidthHeightRatio(resources.displayMetrics.widthPixels,
+            resources.displayMetrics.heightPixels);
         binding.cvx.addStateListener(object : StateListener {
             override fun onVideoToken() {
                 // empty

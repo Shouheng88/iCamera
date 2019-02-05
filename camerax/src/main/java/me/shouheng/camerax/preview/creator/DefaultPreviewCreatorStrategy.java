@@ -1,7 +1,9 @@
 package me.shouheng.camerax.preview.creator;
 
+import android.content.Context;
 import android.os.Build;
 import android.support.annotation.NonNull;
+import android.widget.FrameLayout;
 import me.shouheng.camerax.preview.CameraPreview;
 import me.shouheng.camerax.preview.impl.SurfaceViewPreview;
 import me.shouheng.camerax.preview.impl.TextureViewPreview;
@@ -14,10 +16,10 @@ public class DefaultPreviewCreatorStrategy implements PreviewCreatorStrategy {
 
     @NonNull
     @Override
-    public CameraPreview create() {
+    public CameraPreview create(Context context, FrameLayout parent) {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.N) {
             return new TextureViewPreview();
         }
-        return new SurfaceViewPreview();
+        return new SurfaceViewPreview(context, parent);
     }
 }

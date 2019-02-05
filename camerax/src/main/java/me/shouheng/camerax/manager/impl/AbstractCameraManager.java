@@ -11,6 +11,8 @@ import me.shouheng.camerax.configuration.SizeCalculateStrategy;
 import me.shouheng.camerax.enums.Camera;
 import me.shouheng.camerax.manager.CameraManager;
 import me.shouheng.camerax.preview.CameraPreview;
+import me.shouheng.camerax.utils.AspectRatio;
+import me.shouheng.camerax.utils.Constants;
 import me.shouheng.camerax.utils.Size;
 
 /**
@@ -133,6 +135,12 @@ abstract class AbstractCameraManager<CameraId> implements CameraManager<CameraId
     @Override
     public CameraId getFaceBackCameraId() {
         return faceBackCameraId;
+    }
+
+    @Override
+    public AspectRatio getAspectRatio() {
+        return previewSize == null ? Constants.DEFAULT_ASPECT_RATIO :
+                AspectRatio.of(previewSize.getWidth(), previewSize.getHeight());
     }
 
     /**

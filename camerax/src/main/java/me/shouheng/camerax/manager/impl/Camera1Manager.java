@@ -14,6 +14,7 @@ import java.util.List;
 
 import static me.shouheng.camerax.enums.Camera.*;
 
+// TODO Handle permission!
 public class Camera1Manager extends AbstractCameraManager<Integer> {
 
     private static final String TAG = "Camera1Manager";
@@ -109,6 +110,8 @@ public class Camera1Manager extends AbstractCameraManager<Integer> {
                     uiHandler.post(new Runnable() {
                         @Override
                         public void run() {
+                            // Call the callback in ui thread.
+                            callback.onCameraOpened();
                             camera.startPreview();
                         }
                     });
@@ -131,7 +134,6 @@ public class Camera1Manager extends AbstractCameraManager<Integer> {
         adjustCameraParameters();
         //  TODO Test the {@link Camera#setDisplayOrientation(int)} method for output and preview images.
         camera.setDisplayOrientation(90);
-        callback.onCameraOpened();
     }
 
     /**
@@ -180,8 +182,14 @@ public class Camera1Manager extends AbstractCameraManager<Integer> {
                     if (showingPreview) {
                         camera.stopPreview();
                     }
-                    camera.setPreviewDisplay();
+                    camera.setPreviewDisplay(cameraPreview.getSurfaceHolder());
+                    if (showingPreview) {
+                        camera.startPreview();
+                    }
+                } else {
+                    camera.setPreviewTexture(cameraPreview.getSurfaceTexture());
                 }
+                camera.setPreviewCallback(previewCallback);
             } else {
                 Log.e(TAG, "setupPreview: ");
             }
@@ -250,13 +258,19 @@ public class Camera1Manager extends AbstractCameraManager<Integer> {
                         }
                         break;
                 }
-                // TODO implement this logic.
-                // attachFocusTapListener();
+                 attachFocusTapListener();
             }
             return true;
         } else {
             return false;
         }
+    }
+
+    /**
+     * Add touch listener handler to camera preview view, to handle the zoom and focus when touch.
+     */
+    private void attachFocusTapListener() {
+
     }
 
     /**

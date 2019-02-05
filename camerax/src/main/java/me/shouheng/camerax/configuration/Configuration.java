@@ -38,7 +38,7 @@ public final class Configuration implements Parcelable {
     private float zoom;
 
     @Camera.PreviewFormat
-    private int previewFormat;
+    private int previewFormat = Camera.NV21;
 
     private int videoDuration = 0;
 

@@ -19,6 +19,7 @@ public interface SizeCalculateStrategy {
      * @param configuration configuration
      * @param cameraManager camera manager
      * @return result wrapper
+     * @see me.shouheng.camerax.configuration.impl.SizeCalculateStrategyImpl
      */
     Result calculate(Camera.Parameters cameraParameters, Configuration configuration, CameraManager cameraManager);
 

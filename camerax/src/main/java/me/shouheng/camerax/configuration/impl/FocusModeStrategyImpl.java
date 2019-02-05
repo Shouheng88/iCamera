@@ -5,5 +5,5 @@ import me.shouheng.camerax.configuration.FocusModeStrategy;
 /**
  * Default implementation for focus mode.
  */
-public class FocusModeStrategyImpl extends FocusModeStrategy {
+public class FocusModeStrategyImpl implements FocusModeStrategy {
 }

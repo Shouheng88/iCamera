@@ -3,6 +3,7 @@ package me.shouheng.camerax.manager;
 import me.shouheng.camerax.configuration.Configuration;
 import me.shouheng.camerax.configuration.SizeCalculateStrategy;
 import me.shouheng.camerax.enums.Camera;
+import me.shouheng.camerax.utils.AspectRatio;
 
 public interface CameraManager<CameraId> {
 
@@ -39,6 +40,8 @@ public interface CameraManager<CameraId> {
     int getFaceFrontCameraOrientation();
 
     int getFaceBackCameraOrientation();
+
+    public AspectRatio getAspectRatio();
 
     interface Callback {
 

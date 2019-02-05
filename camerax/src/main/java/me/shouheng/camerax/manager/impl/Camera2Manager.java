@@ -18,6 +18,11 @@ public class Camera2Manager extends AbstractCameraManager<String> {
     }
 
     @Override
+    public boolean isCameraOpened() {
+        return false;
+    }
+
+    @Override
     public int getNumberOfCameras() {
         return 0;
     }
