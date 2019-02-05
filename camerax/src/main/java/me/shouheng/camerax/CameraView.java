@@ -8,6 +8,8 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.annotation.RequiresApi;
 import android.util.AttributeSet;
+import android.util.Log;
+import android.view.MotionEvent;
 import android.view.View;
 import android.widget.FrameLayout;
 import me.shouheng.camerax.configuration.Configuration;
@@ -20,6 +22,7 @@ import me.shouheng.camerax.manager.CameraManagerFactory;
 import me.shouheng.camerax.preview.CameraPreview;
 import me.shouheng.camerax.preview.CameraPreviewFactory;
 import me.shouheng.camerax.utils.AspectRatio;
+import me.shouheng.camerax.widget.FocusMarkerLayout;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -27,12 +30,15 @@ import java.util.List;
 public class CameraView extends FrameLayout {
 
     private Context context;
+    private FocusMarkerLayout focusMarkerLayout;
 
     private CallbackBridge callbackBridge;
     private CameraPreview cameraPreview;
     private CameraManager cameraManager;
     private Configuration configuration;
     private SizeCalculateStrategy sizeCalculateStrategy = null;
+    private OnMoveListener moveListener;
+    private OnFocusListener focusListener;
 
     @Camera.AdjustType
     private int adjustType = Camera.NONE;
@@ -72,9 +78,94 @@ public class CameraView extends FrameLayout {
         // TODO define the attributes used for widget in xml.
 //        a.recycle();
 
+        addFocusMarkerLayout();
+
+        // TODO
         configuration = new Configuration.Builder()
                 .setMediaQuality(Media.MEDIA_QUALITY_MEDIUM)
                 .build();
+    }
+
+    private void addFocusMarkerLayout() {
+        focusMarkerLayout = new FocusMarkerLayout(getContext());
+        addView(focusMarkerLayout);
+        OnTouchListener onTouchListener = new OnTouchListener() {
+
+            private int mDownViewX;
+            private int mDownViewY;
+            private int dx;
+            private int dy;
+            private boolean multiTouch;
+            private int touchAngle;
+
+            @Override
+            public boolean onTouch(View view, MotionEvent motionEvent) {
+                int action = motionEvent.getAction();
+                if (motionEvent.getPointerCount() > 1) {
+                    Log.e("camera1", "多指点击");
+                    multiTouch = true;
+                    // TODO 多点触控的时候事件是如何被处理的？？
+                    // 这个方法就是用来实现手势放大和缩小的地方，注释了之后就无效了
+                    cameraPreview.getView().dispatchTouchEvent(motionEvent);
+                } else {
+                    if (motionEvent.getPointerCount() == 1) {
+                        Log.e("camera1", "单指点击");
+                        int x = (int) motionEvent.getRawX();
+                        int y = (int) motionEvent.getRawY();
+                        if (action == MotionEvent.ACTION_DOWN) {
+                            mDownViewX = x;
+                            mDownViewY = y;
+                        }
+                        if (action == MotionEvent.ACTION_MOVE) {
+                            dx = x - mDownViewX;
+                            dy = y - mDownViewY;
+                        }
+                        if (action == MotionEvent.ACTION_UP) {
+                            if (focusListener != null) {
+                                focusListener.onFocus();
+                            }
+                            Log.e("camera1", "手抬起");
+                            if (multiTouch) {
+                                multiTouch = false;
+                            } else {
+                                if (Math.abs(dx) > 100 && touchAngle == 0) {
+                                    if (dx < -100) {//向左
+                                        moveListener.onMove(true);
+                                    } else {//向右1
+                                        moveListener.onMove(false);
+                                    }
+                                    return true;
+                                }
+
+                                if (Math.abs(dy) > 100 && touchAngle == 90){
+                                    if (dy < -100) {//向左
+                                        moveListener.onMove(false);
+                                    } else {//向右
+                                        moveListener.onMove(true);
+                                    }
+                                    return true;
+                                }
+
+                                if (Math.abs(dy) > 100 && touchAngle == -90){
+                                    if (dy > 100) {//向左
+                                        moveListener.onMove(false);
+                                    } else {//向右1
+                                        moveListener.onMove(true);
+                                    }
+                                    return true;
+                                }
+
+                                focusMarkerLayout.focus(motionEvent.getX(), motionEvent.getY());
+                            }
+                        }
+                    }
+                    cameraPreview.getView().dispatchTouchEvent(motionEvent);
+                }
+                return true;
+            }
+        };
+
+        focusMarkerLayout.setOnTouchListener(onTouchListener);
     }
 
     @Override
@@ -222,6 +313,14 @@ public class CameraView extends FrameLayout {
 
     public void removeStateListener(@NonNull StateListener stateListener) {
         callbackBridge.remove(stateListener);
+    }
+
+    public interface OnMoveListener {
+        void onMove(boolean left);
+    }
+
+    public interface OnFocusListener {
+        void onFocus();
     }
 
     /* ========================================== Inner classes ===============================================*/

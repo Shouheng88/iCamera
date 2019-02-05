@@ -7,4 +7,8 @@ package me.shouheng.camerax.utils;
 public interface Constants {
 
     AspectRatio DEFAULT_ASPECT_RATIO = AspectRatio.of(3, 4);
+
+    int FOCUS_AREA_SIZE_DEFAULT = 300;
+    int FOCUS_METERING_AREA_WEIGHT_DEFAULT = 1000;
+    int DELAY_MILLIS_BEFORE_RESETTING_FOCUS = 3000;
 }

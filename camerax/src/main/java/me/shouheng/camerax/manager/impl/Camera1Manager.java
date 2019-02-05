@@ -1,16 +1,21 @@
 package me.shouheng.camerax.manager.impl;
 
+import android.graphics.Rect;
 import android.hardware.Camera;
 import android.support.v4.util.SparseArrayCompat;
 import android.util.Log;
+import android.view.MotionEvent;
 import android.view.Surface;
 import android.view.SurfaceView;
+import android.view.View;
 import me.shouheng.camerax.configuration.Configuration;
 import me.shouheng.camerax.configuration.SizeCalculateStrategy;
+import me.shouheng.camerax.listeners.OnPreviewViewTouchListener;
 import me.shouheng.camerax.preview.CameraPreview;
 import me.shouheng.camerax.utils.CameraHelper;
 import me.shouheng.camerax.utils.LogUtils;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import static me.shouheng.camerax.enums.Camera.*;
@@ -22,6 +27,7 @@ public class Camera1Manager extends AbstractCameraManager<Integer> {
 
     private Camera.PreviewCallback previewCallback;
     private Camera.Parameters cameraParameters;
+    private Camera.AutoFocusCallback autoFocusCallback;
 
     /**
      * Map from the constant to string for flash mode, late initialize value.
@@ -271,7 +277,10 @@ public class Camera1Manager extends AbstractCameraManager<Integer> {
      * Add touch listener handler to camera preview view, to handle the zoom and focus when touch.
      */
     private void attachFocusTapListener() {
-
+        if (isCameraOpened() && configuration.isSupportZoom()) {
+            cameraPreview.getView().setOnTouchListener(
+                    new OnPreviewViewTouchListener(camera, cameraParameters, autoFocusCallback));
+        }
     }
 
     /**

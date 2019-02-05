@@ -35,6 +35,8 @@ public final class Configuration implements Parcelable {
 
     private boolean autoFocus;
 
+    private boolean supportZoom = false;
+
     private float zoom;
 
     @Camera.PreviewFormat
@@ -79,6 +81,15 @@ public final class Configuration implements Parcelable {
             return new Configuration[size];
         }
     };
+
+    // TODO
+    public boolean isSupportZoom() {
+        return true;
+    }
+
+    public void setSupportZoom(boolean supportZoom) {
+        this.supportZoom = supportZoom;
+    }
 
     public float getZoom() {
         return zoom;
@@ -260,6 +271,11 @@ public final class Configuration implements Parcelable {
 
         public Builder setScreenOrientation(@Camera.ScreenOrientation int screenOrientation) {
             this.configuration.screenOrientation = screenOrientation;
+            return this;
+        }
+
+        public Builder setFocusMode(@Camera.FocusMode int focusMode) {
+            this.configuration.focusMode = focusMode;
             return this;
         }
 

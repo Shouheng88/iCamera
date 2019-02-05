@@ -2,11 +2,14 @@ package me.shouheng.camerax.utils;
 
 import android.annotation.TargetApi;
 import android.content.Context;
+import android.graphics.Rect;
 import android.hardware.camera2.CameraCharacteristics;
 import android.hardware.camera2.CameraManager;
 import android.media.CamcorderProfile;
 import android.os.Build;
 import android.text.TextUtils;
+import android.view.MotionEvent;
+import android.view.View;
 import me.shouheng.camerax.enums.Media;
 
 import java.util.Arrays;
@@ -289,6 +292,46 @@ public final class CameraHelper {
             }
         }
         return possibleIdx;
+    }
+
+    /**
+     * Get the spacing between two fingers by calculate the distance.
+     *
+     * @param event motion event
+     * @return spacing
+     */
+    public static float getFingerSpacing(MotionEvent event) {
+        float x = event.getX(0) - event.getX(1);
+        float y = event.getY(0) - event.getY(1);
+        return (float) Math.sqrt(x * x + y * y);
+    }
+
+    /**
+     * Calculate focus area according to the coordinate and preview view.
+     *
+     * @param view the preview view
+     * @param x the x coordinate
+     * @param y the y coordinate
+     * @return the area rectangle
+     */
+    public static Rect calculateFocusArea(View view, float x, float y) {
+        int buffer = Constants.FOCUS_AREA_SIZE_DEFAULT / 2;
+        int centerX = calculateCenter(x, view.getWidth(), buffer);
+        int centerY = calculateCenter(y, view.getHeight(), buffer);
+        return new Rect(centerX - buffer, centerY - buffer, centerX + buffer, centerY + buffer);
+    }
+
+    private static int calculateCenter(float coord, int dimen, int buffer) {
+        int normalized = (int) ((coord / dimen) * 2000 - 1000);
+        if (Math.abs(normalized) + buffer > 1000) {
+            if (normalized > 0) {
+                return 1000 - buffer;
+            } else {
+                return -1000 + buffer;
+            }
+        } else {
+            return normalized;
+        }
     }
 
     /**
