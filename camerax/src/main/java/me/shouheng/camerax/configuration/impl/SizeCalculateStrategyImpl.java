@@ -8,6 +8,7 @@ import me.shouheng.camerax.configuration.SizeCalculateStrategy;
 import me.shouheng.camerax.enums.Media;
 import me.shouheng.camerax.manager.CameraManager;
 import me.shouheng.camerax.utils.CameraHelper;
+import me.shouheng.camerax.utils.LogUtils;
 import me.shouheng.camerax.utils.Size;
 
 import java.util.List;
@@ -68,7 +69,7 @@ public class SizeCalculateStrategyImpl implements SizeCalculateStrategy {
             previewSize = CameraHelper.getSizeWithClosestRatio(previewSizes, videoSize.getWidth(), videoSize.getHeight());
         }
 
-        Log.d(TAG, "calculate: " + photoSize + " " + videoSize + " " + previewSize);
+        LogUtils.d(TAG, "calculate: " + photoSize + " " + videoSize + " " + previewSize);
 
         return new Result(camcorderProfile, photoSize, videoSize, previewSize);
     }

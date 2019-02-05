@@ -9,6 +9,7 @@ import me.shouheng.camerax.configuration.Configuration;
 import me.shouheng.camerax.configuration.SizeCalculateStrategy;
 import me.shouheng.camerax.preview.CameraPreview;
 import me.shouheng.camerax.utils.CameraHelper;
+import me.shouheng.camerax.utils.LogUtils;
 
 import java.util.List;
 
@@ -167,11 +168,11 @@ public class Camera1Manager extends AbstractCameraManager<Integer> {
                         camera.startPreview();
                     }
                 } catch (Exception e) {
-                    Log.e(TAG, "adjustCameraParameters: " + e);
+                    LogUtils.e(TAG, "adjustCameraParameters: " + e);
                 }
             }
         } catch (Exception e) {
-            Log.e(TAG, "adjustCameraParameters: " + e);
+            LogUtils.e(TAG, "adjustCameraParameters: " + e);
         }
     }
 
@@ -191,10 +192,10 @@ public class Camera1Manager extends AbstractCameraManager<Integer> {
                 }
                 camera.setPreviewCallback(previewCallback);
             } else {
-                Log.e(TAG, "setupPreview: ");
+                LogUtils.e(TAG, "setupPreview: ");
             }
         } catch (Exception e) {
-            Log.e(TAG, "setupPreview: " + e);
+            LogUtils.e(TAG, "setupPreview: " + e);
         }
     }
 
