@@ -69,5 +69,4 @@ public class FocusMarkerLayout extends FrameLayout {
 
     }
 
-
 }

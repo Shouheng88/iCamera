@@ -102,8 +102,7 @@ public class Size {
         if (this == o) return true;
         if (!(o instanceof Size)) return false;
         Size size = (Size) o;
-        return width == size.width &&
-                height == size.height;
+        return width == size.width && height == size.height;
     }
 
     @Override
