@@ -119,6 +119,7 @@ public class Camera1Manager extends AbstractCameraManager<Integer> {
                         public void run() {
                             // Call the callback in ui thread.
                             callback.onCameraOpened();
+                            // TODO crash when start preview here!
                             camera.startPreview();
                         }
                     });

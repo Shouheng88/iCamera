@@ -18,7 +18,7 @@ public class DefaultPreviewCreatorStrategy implements PreviewCreatorStrategy {
     @Override
     public CameraPreview create(Context context, FrameLayout parent) {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.N) {
-            return new TextureViewPreview();
+            return new TextureViewPreview(context, parent);
         }
         return new SurfaceViewPreview(context, parent);
     }

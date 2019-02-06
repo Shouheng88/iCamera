@@ -6,7 +6,6 @@ import android.view.Surface;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.ViewGroup;
-import android.widget.FrameLayout;
 
 /**
  * The {@link me.shouheng.camerax.preview.CameraPreview} based on {@link android.view.SurfaceView}.
@@ -15,9 +14,9 @@ public class SurfaceViewPreview extends AbstractCameraPreview<SurfaceView> {
 
     private final SurfaceView surfaceView;
 
-    public SurfaceViewPreview(Context context, FrameLayout parent) {
+    public SurfaceViewPreview(Context context, ViewGroup parent) {
         surfaceView = new SurfaceView(context);
-        FrameLayout.LayoutParams params = new FrameLayout.LayoutParams(
+        ViewGroup.LayoutParams params = new ViewGroup.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
         parent.addView(surfaceView, params);
         final SurfaceHolder holder = surfaceView.getHolder();
