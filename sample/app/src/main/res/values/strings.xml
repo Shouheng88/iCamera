@@ -1,3 +1,10 @@
 <resources>
     <string name="app_name">CameraX</string>
+
+    <string name="main_menu_camera">Open Camera</string>
+
+    <string name="camera_drawer_title">Configuration</string>
+
+    <string name="camera_main_video">Video</string>
+    <string name="camera_main_picture">Picture</string>
 </resources>

@@ -1,4 +1,4 @@
-package me.shouheng.sample
+package me.shouheng.sample.base
 
 import android.databinding.DataBindingUtil
 import android.databinding.ViewDataBinding
@@ -9,7 +9,8 @@ import android.view.View
 import android.view.ViewGroup
 
 /**
- * Created on 2019/2/1.
+ * @author WngShhng (shouheng2015@gmail.com)
+ * @version 2019/4/13 22:09
  */
 abstract class CommonFragment<T : ViewDataBinding> : Fragment() {
 

@@ -1,59 +1,28 @@
 package me.shouheng.sample
 
-import android.annotation.TargetApi
-import android.graphics.Color
-import android.os.Build
+import android.content.Intent
 import android.os.Bundle
-import android.support.annotation.ColorInt
-import android.support.v7.app.AppCompatActivity
+import android.util.Log
 import android.view.View
-import android.view.WindowManager
+import me.shouheng.camerax.config.ConfigurationProvider
+import me.shouheng.sample.base.CommonActivity
+import me.shouheng.sample.databinding.ActivityMainBinding
 
+/**
+ * @author WngShhng (shouheng2015@gmail.com)
+ * @version 2019/4/13 22:42
+ */
+class MainActivity : CommonActivity<ActivityMainBinding>() {
 
-class MainActivity : AppCompatActivity() {
+    override fun getLayoutResId() = R.layout.activity_main
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_main)
-        customStatusBar()
-        findViewById<View>(R.id.btn_camera).setOnClickListener {
-            supportFragmentManager
-                .beginTransaction()
-                .replace(R.id.fragment_container, CameraFragment())
-                .commit()
-        }
+    override fun doCreateView(savedInstanceState: Bundle?) {
+        Log.d("MainActivity", "doCreateView")
+        ConfigurationProvider.get().isDebug = true
+        setSupportActionBar(binding.toolbar)
     }
 
-    private fun customStatusBar() {
-        // 6.0 以上
-        when {
-            Build.VERSION.SDK_INT >= Build.VERSION_CODES.M -> {
-                setStatusBarColor(Color.TRANSPARENT)
-                val decorView = window.decorView
-                val option = View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN or View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR
-                decorView.systemUiVisibility = option
-            }
-            Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP -> {
-                // 5.0 及以上
-                val window = window
-                val decorView = window.decorView
-                val option = View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN or View.SYSTEM_UI_FLAG_LAYOUT_STABLE
-                decorView.systemUiVisibility = option
-                window.statusBarColor = Color.TRANSPARENT
-            }
-            Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT -> {
-                // 4.4 到 5.0
-                val localLayoutParams = window.attributes
-                localLayoutParams.flags = WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS or localLayoutParams.flags
-                theme.applyStyle(R.style.AppTheme444, true)
-            }
-        }
-    }
-
-    @TargetApi(Build.VERSION_CODES.LOLLIPOP)
-    private fun setStatusBarColor(@ColorInt color: Int) {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            window.statusBarColor = color
-        }
+    fun openCamera(v: View) {
+        startActivity(Intent(this, CameraActivity::class.java))
     }
 }
