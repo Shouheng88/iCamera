@@ -1,20 +1,31 @@
 package me.shouheng.camerax.manager.impl;
 
+import android.content.Context;
+import me.shouheng.camerax.listener.CameraOpenListener;
+import me.shouheng.camerax.listener.CameraPhotoListener;
+import me.shouheng.camerax.listener.CameraVideoListener;
 import me.shouheng.camerax.preview.CameraPreview;
 
-public class Camera2Manager extends AbstractCameraManager<String> {
+import java.io.File;
 
-    public static Camera2Manager getInstance(Callback callback, CameraPreview cameraPreview) {
-        return new Camera2Manager(callback, cameraPreview);
-    }
+/**
+ * @author WngShhng (shouheng2015@gmail.com)
+ * @version 2019/4/13 22:52
+ */
+public class Camera2Manager extends BaseCameraManager {
 
-    private Camera2Manager(Callback callback, CameraPreview cameraPreview) {
-        super(callback, cameraPreview);
+    public Camera2Manager(CameraPreview cameraPreview) {
+        super(cameraPreview);
     }
 
     @Override
-    public boolean openCamera(final String cameraId) {
-        return false;
+    public void initialize(Context context) {
+
+    }
+
+    @Override
+    public void openCamera(CameraOpenListener cameraOpenListener) {
+
     }
 
     @Override
@@ -23,17 +34,33 @@ public class Camera2Manager extends AbstractCameraManager<String> {
     }
 
     @Override
-    public int getNumberOfCameras() {
-        return 0;
+    public void setMediaType(int mediaType) {
+
     }
 
     @Override
-    public int getFaceFrontCameraOrientation() {
-        return 0;
+    public void takePicture(CameraPhotoListener cameraPhotoListener) {
+
     }
 
     @Override
-    public int getFaceBackCameraOrientation() {
-        return 0;
+    public void startVideoRecord(File file, CameraVideoListener cameraVideoListener) {
+
     }
+
+    @Override
+    public void stopVideoRecord() {
+
+    }
+
+    @Override
+    public void resumePreview() {
+
+    }
+
+    @Override
+    public void closeCamera() {
+
+    }
+
 }

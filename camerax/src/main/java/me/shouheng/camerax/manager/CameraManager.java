@@ -1,58 +1,36 @@
 package me.shouheng.camerax.manager;
 
-import me.shouheng.camerax.configuration.Configuration;
-import me.shouheng.camerax.configuration.SizeCalculateStrategy;
-import me.shouheng.camerax.enums.Camera;
-import me.shouheng.camerax.utils.AspectRatio;
+import android.content.Context;
+import me.shouheng.camerax.enums.Media;
+import me.shouheng.camerax.listener.CameraOpenListener;
+import me.shouheng.camerax.listener.CameraPhotoListener;
+import me.shouheng.camerax.listener.CameraVideoListener;
 
-public interface CameraManager<CameraId> {
+import java.io.File;
 
-    void initializeCameraManager(Configuration configuration, SizeCalculateStrategy sizeCalculateStrategy);
+/**
+ * @author WngShhng (shouheng2015@gmail.com)
+ * @version 2019/4/13 22:49
+ */
+public interface CameraManager {
 
-    boolean openCamera(@Camera.CameraFace int cameraFace);
+    void initialize(Context context);
 
-    void closeCamera();
-
-    void switchCamera(@Camera.CameraFace int cameraFace);
-
-    void setFlashMode(@Camera.FlashMode int flashMode);
-
-    void resumePreview();
-
-    void takePhoto();
-
-    void startVideoRecord();
-
-    void stopVideoRecord();
-
-    void release();
+    void openCamera(CameraOpenListener cameraOpenListener);
 
     boolean isCameraOpened();
 
-    CameraId getCurrentCameraId();
+    void setMediaType(@Media.Type int mediaType);
 
-    CameraId getFaceFrontCameraId();
+    void takePicture(CameraPhotoListener cameraPhotoListener);
 
-    CameraId getFaceBackCameraId();
+    void startVideoRecord(File file, CameraVideoListener cameraVideoListener);
 
-    int getNumberOfCameras();
+    void stopVideoRecord();
 
-    int getFaceFrontCameraOrientation();
+    void resumePreview();
 
-    int getFaceBackCameraOrientation();
+    void closeCamera();
 
-    public AspectRatio getAspectRatio();
-
-    interface Callback {
-
-        void onCameraOpened();
-
-        void onCameraClosed();
-
-        void onPictureTaken(byte[] data);
-
-        void onPreviewFrame(byte[] data, int width, int height, int format);
-
-        void notPermission();
-    }
+    void releaseCamera();
 }

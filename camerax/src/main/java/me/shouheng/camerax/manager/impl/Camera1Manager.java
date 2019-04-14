@@ -1,100 +1,76 @@
 package me.shouheng.camerax.manager.impl;
 
-import android.graphics.Rect;
-import android.hardware.Camera;
-import android.support.v4.util.SparseArrayCompat;
-import android.util.Log;
-import android.view.MotionEvent;
-import android.view.Surface;
-import android.view.SurfaceView;
-import android.view.View;
-import me.shouheng.camerax.configuration.Configuration;
-import me.shouheng.camerax.configuration.SizeCalculateStrategy;
-import me.shouheng.camerax.listeners.OnPreviewViewTouchListener;
+import android.content.Context;
+import android.media.MediaRecorder;
+import me.shouheng.camerax.config.ConfigurationProvider;
+import me.shouheng.camerax.config.calculator.CameraSizeCalculator;
+import me.shouheng.camerax.enums.Camera;
+import me.shouheng.camerax.enums.Media;
+import me.shouheng.camerax.enums.Preview;
+import me.shouheng.camerax.listener.CameraOpenListener;
+import me.shouheng.camerax.listener.CameraPhotoListener;
+import me.shouheng.camerax.listener.CameraVideoListener;
 import me.shouheng.camerax.preview.CameraPreview;
-import me.shouheng.camerax.utils.CameraHelper;
-import me.shouheng.camerax.utils.LogUtils;
+import me.shouheng.camerax.preview.CameraPreviewCallback;
+import me.shouheng.camerax.util.CameraHelper;
+import me.shouheng.camerax.util.Logger;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.io.File;
+import java.io.IOException;
 
-import static me.shouheng.camerax.enums.Camera.*;
-
-// TODO Handle permission!
-public class Camera1Manager extends AbstractCameraManager<Integer> {
+/**
+ * @author WngShhng (shouheng2015@gmail.com)
+ * @version 2019/4/13 22:51
+ */
+public class Camera1Manager extends BaseCameraManager<Integer> {
 
     private static final String TAG = "Camera1Manager";
 
-    private Camera.PreviewCallback previewCallback;
-    private Camera.Parameters cameraParameters;
-    private Camera.AutoFocusCallback autoFocusCallback;
+    private android.hardware.Camera camera;
 
-    /**
-     * Map from the constant to string for flash mode, late initialize value.
-     * @see #getFlashModeMap()
-     */
-    private SparseArrayCompat<String> flashModeMap = null;
-
-    private Camera camera;
-    private Surface surface;
-
-    /**
-     * Number of available cameras.
-     */
-    private int numberOfCameras = 0;
-
-    /**
-     * The orientation of the camera image. The value is the angle that the
-     * camera image needs to be rotated clockwise so it shows correctly on
-     * the display in its natural orientation. It should be 0, 90, 180, or 270.
-     *
-     * @see Camera.CameraInfo#orientation
-     */
-    private int faceFrontCameraOrientation;
-    private int faceBackCameraOrientation;
-
-    private boolean showingPreview = false;
-
-    public static Camera1Manager getInstance(Callback callback, CameraPreview cameraPreview) {
-        return new Camera1Manager(callback, cameraPreview);
-    }
-
-    private Camera1Manager(final Callback callback, CameraPreview cameraPreview) {
-        super(callback, cameraPreview);
-        previewCallback = new Camera.PreviewCallback() {
+    public Camera1Manager(CameraPreview cameraPreview) {
+        super(cameraPreview);
+        cameraFace = ConfigurationProvider.get().getDefaultCameraFace();
+        cameraPreview.setCameraPreviewCallback(new CameraPreviewCallback() {
             @Override
-            public void onPreviewFrame(byte[] data, Camera camera) {
-                callback.onPreviewFrame(data,
-                        cameraParameters.getPreviewSize().width,
-                        cameraParameters.getPreviewSize().height,
-                        cameraParameters.getPreviewFormat());
-            }
-        };
-        cameraPreview.setCallback(new CameraPreview.Callback() {
-            @Override
-            public void onSurfaceChanged() {
-                // TODO
+            public void onAvailable(CameraPreview cameraPreview) {
+                Logger.d(TAG, "onAvailable : " + cameraPreview.isAvailable());
+                if (camera != null) {
+                    setupPreview();
+                }
             }
         });
     }
 
     @Override
-    public void initializeCameraManager(Configuration configuration, SizeCalculateStrategy sizeCalculateStrategy) {
-        super.initializeCameraManager(configuration, sizeCalculateStrategy);
+    public void initialize(Context context) {
+        super.initialize(context);
+        initCameraInfo();
+    }
 
-        // Get all camera ids for Camera1.
-        numberOfCameras = Camera.getNumberOfCameras();
-        for (int i=0; i<numberOfCameras; i++) {
-            final Camera.CameraInfo cameraInfo = new Camera.CameraInfo();
-            Camera.getCameraInfo(i, cameraInfo);
-            if (cameraInfo.facing == Camera.CameraInfo.CAMERA_FACING_BACK) {
-                faceBackCameraId = i;
-                faceBackCameraOrientation = cameraInfo.orientation;
-            } else if (cameraInfo.facing == Camera.CameraInfo.CAMERA_FACING_FRONT) {
-                faceFrontCameraId = i;
-                faceFrontCameraOrientation = cameraInfo.orientation;
+    @Override
+    public void openCamera(final CameraOpenListener cameraOpenListener) {
+        super.openCamera(cameraOpenListener);
+        backgroundHandler.post(new Runnable() {
+            @Override
+            public void run() {
+                Logger.d(TAG, "openCamera");
+                try {
+                    // TODO test the order of this method with callback from preview
+                    camera = android.hardware.Camera.open(currentCameraId);
+                    prepareCameraOutputs();
+                    adjustCameraParameters(false);
+                    if (cameraPreview.isAvailable()) {
+                        setupPreview();
+                    }
+                    camera.startPreview();
+                    showingPreview = true;
+                } catch (final Exception ex) {
+                    Logger.e(TAG, "error : " + ex);
+                    notifyCameraOpenError(ex);
+                }
             }
-        }
+        });
     }
 
     @Override
@@ -103,269 +79,217 @@ public class Camera1Manager extends AbstractCameraManager<Integer> {
     }
 
     @Override
-    public boolean openCamera(final Integer cameraId) {
-        this.currentCameraId = cameraId;
-        try {
+    public void setMediaType(@Media.Type int mediaType) {
+        if (this.mediaType == mediaType) {
+            return;
+        }
+        this.mediaType = mediaType;
+        backgroundHandler.post(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    adjustCameraParameters(true);
+                } catch (Exception ex) {
+                    Logger.e(TAG, "setMediaType : " + ex);
+                }
+            }
+        });
+    }
+
+    @Override
+    public void takePicture(CameraPhotoListener cameraPhotoListener) {
+        super.takePicture(cameraPhotoListener);
+        if (!isCameraOpened()) {
+            notifyCameraCaptureFailed(new RuntimeException("Camera not open yet!"));
+        }
+        backgroundHandler.post(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    if (!takingPicture) {
+                        takingPicture = true;
+                        camera.takePicture(null, null, new android.hardware.Camera.PictureCallback() {
+                            @Override
+                            public void onPictureTaken(byte[] bytes, android.hardware.Camera camera) {
+                                takingPicture = false;
+                                notifyCameraPictureTaken(bytes);
+                            }
+                        });
+                    } else {
+                        Logger.i(TAG, "takePicture : taking picture");
+                    }
+                } catch (Exception ex) {
+                    takingPicture = false;
+                    Logger.e(TAG, "takePicture error : " + ex);
+                    notifyCameraCaptureFailed(new RuntimeException(ex));
+                }
+            }
+        });
+    }
+
+    @Override
+    public void startVideoRecord(File file, CameraVideoListener cameraVideoListener) {
+        super.startVideoRecord(file, cameraVideoListener);
+        if (videoRecording) {
+            return;
+        }
+        backgroundHandler.post(new Runnable() {
+            @Override
+            public void run() {
+                if (prepareVideoRecorder()) {
+                    videoRecorder.start();
+                    videoRecording = true;
+                    notifyVideoRecordStart();
+                }
+            }
+        });
+    }
+
+    @Override
+    public void stopVideoRecord() {
+        if (videoRecording) {
             backgroundHandler.post(new Runnable() {
                 @Override
                 public void run() {
-                    showingPreview = true;
-                    doOpenCamera(cameraId);
-                    if (cameraPreview.isReady()) {
-                        setupPreview();
-                    }
-                    uiHandler.post(new Runnable() {
-                        @Override
-                        public void run() {
-                            // Call the callback in ui thread.
-                            callback.onCameraOpened();
-                            // TODO crash when start preview here!
-                            camera.startPreview();
-                        }
-                    });
+                    videoRecording = false;
+                    releaseVideoRecorder();
+                    notifyVideoRecordStop(videoOutFile);
                 }
             });
-        } catch (Exception e) {
-            // TODO define and handle exception.
-            e.printStackTrace();
-            return false;
         }
-        return false;
     }
 
-    private void doOpenCamera(final Integer cameraId) {
-        if (camera != null) {
-            releaseCamera();
+    @Override
+    public void resumePreview() {
+        if (isCameraOpened()) {
+            camera.startPreview();
         }
-        camera = Camera.open(cameraId);
-        cameraParameters = camera.getParameters();
-        adjustCameraParameters();
-        //  TODO Test the {@link Camera#setDisplayOrientation(int)} method for output and preview images.
-        camera.setDisplayOrientation(90);
     }
 
-    /**
-     * Adjust parameters of camera.
-     *
-     * Prepare the preview and output image and video size.
-     */
-    private void adjustCameraParameters() {
-        try {
-            SizeCalculateStrategy.Result result = sizeCalculateStrategy.calculate(cameraParameters, configuration, this);
-            camcorderProfile = result.camcorderProfile;
-            videoSize = result.videoSize;
-            photoSize = result.photoSize;
-            previewSize = result.previewSize;
-            final Camera.Size currentSize = cameraParameters.getPictureSize();
-            if (currentSize.width != previewSize.getWidth() || currentSize.height != previewSize.getHeight()) {
-                if (showingPreview) {
-                    camera.stopPreview();
-                }
-                if (cameraParameters.getSupportedPreviewFormats().contains(configuration.getPreviewFormat())) {
-                    cameraParameters.setPreviewFormat(configuration.getPreviewFormat());
-                }
-                cameraParameters.setPreviewSize(previewSize.getWidth(), previewSize.getHeight());
-                cameraParameters.setPictureSize(photoSize.getWidth(), photoSize.getHeight());
-                setAutoFocusInternal(configuration.getFocusMode());
-                setFlashInternal(configuration.getFlashMode());
-                setZoomInternal(configuration.getZoom());
-                try {
-                    camera.setParameters(cameraParameters);
-                    if (showingPreview) {
-                        camera.startPreview();
-                    }
-                } catch (Exception e) {
-                    LogUtils.e(TAG, "adjustCameraParameters: " + e);
-                }
+    @Override
+    public void closeCamera() {
+    }
+
+    /*--------------------------------------inner methods-----------------------------------------*/
+
+    private void initCameraInfo() {
+        numberOfCameras = android.hardware.Camera.getNumberOfCameras();
+        for (int i=0; i<numberOfCameras; i++) {
+            android.hardware.Camera.CameraInfo cameraInfo = new android.hardware.Camera.CameraInfo();
+            android.hardware.Camera.getCameraInfo(i, cameraInfo);
+            if (cameraInfo.facing == android.hardware.Camera.CameraInfo.CAMERA_FACING_BACK) {
+                rearCameraId = i;
+                rearCameraOrientation = cameraInfo.orientation;
+            } else if (cameraInfo.facing == android.hardware.Camera.CameraInfo.CAMERA_FACING_FRONT) {
+                frontCameraId = i;
+                frontCameraOrientation = cameraInfo.orientation;
             }
-        } catch (Exception e) {
-            LogUtils.e(TAG, "adjustCameraParameters: " + e);
+        }
+
+        currentCameraId = cameraFace == Camera.FACE_REAR ? rearCameraId : frontCameraId;
+    }
+
+    private void prepareCameraOutputs() {
+        try {
+            previewSizes = ConfigurationProvider.get().getPreviewSizes(camera);
+            pictureSizes = ConfigurationProvider.get().getPictureSizes(camera);
+            videoSizes = ConfigurationProvider.get().getVideoSizes(camera);
+        } catch (Exception ex) {
+            Logger.e(TAG, "error : " + ex);
+            notifyCameraOpenError(new RuntimeException(ex));
+        }
+    }
+
+    private void adjustCameraParameters(boolean forceCalculateSizes) {
+        CameraSizeCalculator cameraSizeCalculator = ConfigurationProvider.get().getCameraSizeCalculator();
+        android.hardware.Camera.Parameters parameters = camera.getParameters();
+        if (mediaType == Media.TYPE_PICTURE && (pictureSize == null || forceCalculateSizes)) {
+            pictureSize = cameraSizeCalculator.getPictureSize(pictureSizes, aspectRatio, userSize);
+            previewSize = cameraSizeCalculator.getPicturePreviewSize(previewSizes, pictureSize);
+            parameters.setPictureSize(pictureSize.width, pictureSize.height);
+        }
+        if (mediaType == Media.TYPE_VIDEO && (camcorderProfile == null || forceCalculateSizes)) {
+            camcorderProfile = CameraHelper.getCamcorderProfile(mediaQuality, currentCameraId);
+        }
+        if (mediaType == Media.TYPE_VIDEO && (videoSize == null || forceCalculateSizes)) {
+            videoSize = cameraSizeCalculator.getVideoSize(videoSizes, aspectRatio, userSize);
+            previewSize = cameraSizeCalculator.getVideoPreviewSize(previewSizes, videoSize);
+        }
+        parameters.setPreviewSize(previewSize.width, previewSize.height);
+        if (showingPreview) {
+            showingPreview = false;
+            camera.stopPreview();
+        }
+        camera.setParameters(parameters);
+        if (!showingPreview) {
+            showingPreview = true;
+            camera.startPreview();
         }
     }
 
     private void setupPreview() {
         try {
-            if (isCameraOpened()) {
-                if (cameraPreview.getOutputClass() == SurfaceView.class) {
-                    if (showingPreview) {
-                        camera.stopPreview();
-                    }
-                    camera.setPreviewDisplay(cameraPreview.getSurfaceHolder());
-                    if (showingPreview) {
-                        camera.startPreview();
-                    }
-                } else {
-                    camera.setPreviewTexture(cameraPreview.getSurfaceTexture());
+            if (cameraPreview.getPreviewType() == Preview.SURFACE_VIEW) {
+                if (showingPreview) {
+                    showingPreview = false;
+                    camera.stopPreview();
                 }
-                camera.setPreviewCallback(previewCallback);
+                camera.setPreviewDisplay(cameraPreview.getSurfaceHolder());
+                if (!showingPreview) {
+                    showingPreview = true;
+                    camera.startPreview();
+                }
             } else {
-                LogUtils.e(TAG, "setupPreview: ");
+                camera.setPreviewTexture(cameraPreview.getSurfaceTexture());
             }
-        } catch (Exception e) {
-            LogUtils.e(TAG, "setupPreview: " + e);
+
+            camera.setDisplayOrientation(CameraHelper.calDisplayOrientation(context, cameraFace,
+                    cameraFace == Camera.FACE_FRONT ? frontCameraOrientation : rearCameraOrientation));
+        } catch (IOException e) {
+            notifyCameraOpenError(new RuntimeException(e));
         }
     }
 
-    /**
-     * Set auto focus mode internal.
-     *
-     * @param focusMode focus mode.
-     * @return true if succeed.
-     */
-    private boolean setAutoFocusInternal(@FocusMode int focusMode) {
-        configuration.setFocusMode(focusMode);
-        if (isCameraOpened()) {
-            if (configuration.getFocusMode() != FOCUS_MODE_NONE) {
-                final List<String> modes = cameraParameters.getSupportedFocusModes();
-                switch (configuration.getFocusMode()) {
-                    case FOCUS_MODE_AUTO:
-                        if (modes.contains(Camera.Parameters.FOCUS_MODE_AUTO)) {
-                            cameraParameters.setFocusMode(Camera.Parameters.FOCUS_MODE_AUTO);
-                        }
-                        break;
-                    case FOCUS_MODE_INFINITY:
-                        if (modes.contains(Camera.Parameters.FOCUS_MODE_INFINITY)) {
-                            cameraParameters.setFocusMode(Camera.Parameters.FOCUS_MODE_INFINITY);
-                        }
-                        break;
-                    case FOCUS_MODE_MACRO:
-                        if (modes.contains(Camera.Parameters.FOCUS_MODE_MACRO)) {
-                            cameraParameters.setFocusMode(Camera.Parameters.FOCUS_MODE_MACRO);
-                        }
-                        break;
-                    case FOCUS_MODE_FIXED:
-                        if (modes.contains(Camera.Parameters.FOCUS_MODE_FIXED)) {
-                            cameraParameters.setFocusMode(Camera.Parameters.FOCUS_MODE_FIXED);
-                        }
-                        break;
-                    case FOCUS_MODE_EDOF:
-                        if (modes.contains(Camera.Parameters.FOCUS_MODE_EDOF)) {
-                            cameraParameters.setFocusMode(Camera.Parameters.FOCUS_MODE_EDOF);
-                        }
-                        break;
-                    case FOCUS_MODE_CONTINUOUS_VIDEO:
-                        if (modes.contains(Camera.Parameters.FOCUS_MODE_CONTINUOUS_VIDEO)) {
-                            cameraParameters.setFocusMode(Camera.Parameters.FOCUS_MODE_CONTINUOUS_VIDEO);
-                        }
-                        break;
-                    case FOCUS_MODE_CONTINUOUS_PICTURE:
-                        if (modes.contains(Camera.Parameters.FOCUS_MODE_CONTINUOUS_PICTURE)) {
-                            cameraParameters.setFocusMode(Camera.Parameters.FOCUS_MODE_CONTINUOUS_PICTURE);
-                        }
-                        break;
-                    case FOCUS_MODE_ADAPTION:
-                    default:
-                        if (modes.contains(Camera.Parameters.FOCUS_MODE_CONTINUOUS_PICTURE)) {
-                            cameraParameters.setFocusMode(Camera.Parameters.FOCUS_MODE_CONTINUOUS_PICTURE);
-                        } else if (modes.contains(Camera.Parameters.FOCUS_MODE_FIXED)) {
-                            cameraParameters.setFocusMode(Camera.Parameters.FOCUS_MODE_FIXED);
-                        } else if (modes.contains(Camera.Parameters.FOCUS_MODE_INFINITY)) {
-                            cameraParameters.setFocusMode(Camera.Parameters.FOCUS_MODE_INFINITY);
-                        } else {
-                            cameraParameters.setFocusMode(modes.get(0));
-                        }
-                        break;
-                }
-                 attachFocusTapListener();
-            }
+    private boolean prepareVideoRecorder() {
+        videoRecorder = new MediaRecorder();
+        try {
+            camera.lock();
+            camera.unlock();
+            videoRecorder.setCamera(camera);
+
+            videoRecorder.setAudioSource(MediaRecorder.AudioSource.DEFAULT);
+            videoRecorder.setVideoSource(MediaRecorder.VideoSource.DEFAULT);
+
+            videoRecorder.setOutputFormat(camcorderProfile.fileFormat);
+            videoRecorder.setVideoFrameRate(camcorderProfile.videoFrameRate);
+            videoRecorder.setVideoSize(videoSize.width, videoSize.height);
+            videoRecorder.setVideoEncodingBitRate(camcorderProfile.videoBitRate);
+            videoRecorder.setVideoEncoder(camcorderProfile.videoCodec);
+
+            videoRecorder.setAudioEncodingBitRate(camcorderProfile.audioBitRate);
+            videoRecorder.setAudioChannels(camcorderProfile.audioChannels);
+            videoRecorder.setAudioSamplingRate(camcorderProfile.audioSampleRate);
+            videoRecorder.setAudioEncoder(camcorderProfile.audioCodec);
+
+            videoRecorder.setOutputFile(videoOutFile.toString());
+
+            videoRecorder.setPreviewDisplay(cameraPreview.getSurface());
+            videoRecorder.prepare();
+
             return true;
-        } else {
-            return false;
+        } catch (IllegalStateException error) {
+            Logger.e(TAG, "IllegalStateException preparing MediaRecorder: " + error.getMessage());
+            notifyVideoRecordError(error);
+        } catch (IOException error) {
+            Logger.e(TAG, "IOException preparing MediaRecorder: " + error.getMessage());
+            notifyVideoRecordError(error);
+        } catch (Throwable error) {
+            Logger.e(TAG, "Error during preparing MediaRecorder: " + error.getMessage());
+            notifyVideoRecordError(error);
         }
+
+        releaseVideoRecorder();
+        return false;
     }
 
-    /**
-     * Add touch listener handler to camera preview view, to handle the zoom and focus when touch.
-     */
-    private void attachFocusTapListener() {
-        if (isCameraOpened() && configuration.isSupportZoom()) {
-            cameraPreview.getView().setOnTouchListener(
-                    new OnPreviewViewTouchListener(camera, cameraParameters, autoFocusCallback));
-        }
-    }
-
-    /**
-     * Set flash mode for camera. If the given flash mode exist
-     *
-     * @param flashMode flash mode
-     * @return if set success.
-     */
-    private boolean setFlashInternal(@FlashMode int flashMode) {
-        if (isCameraOpened()) {
-            List<String> modes = cameraParameters.getSupportedFlashModes();
-            String mode = getFlashModeMap().get(flashMode);
-            if (modes != null && modes.contains(mode)) {
-                cameraParameters.setFlashMode(mode);
-                configuration.setFlashMode(flashMode);
-                return true;
-            }
-            String current = getFlashModeMap().get(configuration.getFlashMode());
-            if (modes == null || !modes.contains(current)) {
-                cameraParameters.setFlashMode(Camera.Parameters.FLASH_MODE_OFF);
-                configuration.setFlashMode(FLASH_OFF);
-                return true;
-            }
-            return false;
-        } else {
-            configuration.setFlashMode(flashMode);
-            return false;
-        }
-    }
-
-    /**
-     * Set zoom for camera.
-     *
-     * @param zoom zoom value.
-     * @return is succeed
-     */
-    private boolean setZoomInternal(float zoom) {
-        if (isCameraOpened()) {
-            if (!cameraParameters.isZoomSupported()) {
-                return false;
-            }
-            int zoomIdx = CameraHelper.getZoomIdxForZoomFactor(zoom, cameraParameters.getZoomRatios());
-            cameraParameters.setZoom(zoomIdx);
-            configuration.setZoom(zoom);
-            return true;
-        } else {
-            return false;
-        }
-    }
-
-    private void releaseCamera() {
-        if (camera != null) {
-            camera.release();
-            camera = null;
-            cameraParameters = null;
-            // Callback.
-            callback.onCameraClosed();
-        }
-    }
-
-    private SparseArrayCompat<String> getFlashModeMap() {
-        if (flashModeMap == null) {
-            flashModeMap = new SparseArrayCompat<>();
-            flashModeMap.put(FLASH_AUTO, Camera.Parameters.FLASH_MODE_OFF);
-            flashModeMap.put(FLASH_ON, Camera.Parameters.FLASH_MODE_ON);
-            flashModeMap.put(FLASH_TORCH, Camera.Parameters.FLASH_MODE_TORCH);
-            flashModeMap.put(FLASH_AUTO, Camera.Parameters.FLASH_MODE_AUTO);
-            flashModeMap.put(FLASH_RED_EYE, Camera.Parameters.FLASH_MODE_RED_EYE);
-        }
-        return flashModeMap;
-    }
-
-    @Override
-    public int getNumberOfCameras() {
-        return numberOfCameras;
-    }
-
-    @Override
-    public int getFaceFrontCameraOrientation() {
-        return faceFrontCameraOrientation;
-    }
-
-    @Override
-    public int getFaceBackCameraOrientation() {
-        return faceBackCameraOrientation;
-    }
 }

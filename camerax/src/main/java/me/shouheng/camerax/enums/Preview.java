@@ -7,15 +7,15 @@ import java.lang.annotation.RetentionPolicy;
 
 /**
  * @author WngShhng (shouheng2015@gmail.com)
- * @version 2019/4/14 11:57
+ * @version 2019/4/14 11:58
  */
-public final class Camera {
+public final class Preview {
 
-    public static final int FACE_REAR = 0;
-    public static final int FACE_FRONT = 1;
+    public static final int SURFACE_VIEW = 0;
+    public static final int TEXTURE_VIEW = 1;
 
-    @IntDef(value = {FACE_REAR, FACE_FRONT})
+    @IntDef(value = {SURFACE_VIEW, TEXTURE_VIEW})
     @Retention(value = RetentionPolicy.SOURCE)
-    public @interface Face {
+    public @interface Type {
     }
 }
