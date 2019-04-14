@@ -26,6 +26,10 @@ public interface CameraManager {
 
     boolean isVoiceEnable();
 
+    void setAutoFocus(boolean autoFocus);
+
+    boolean isAutoFocus();
+
     void takePicture(CameraPhotoListener cameraPhotoListener);
 
     void startVideoRecord(File file, CameraVideoListener cameraVideoListener);

@@ -17,6 +17,7 @@ import me.shouheng.camerax.util.Logger;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.List;
 
 /**
  * @author WngShhng (shouheng2015@gmail.com)
@@ -59,7 +60,7 @@ public class Camera1Manager extends BaseCameraManager<Integer> {
                     // TODO test the order of this method with callback from preview
                     camera = android.hardware.Camera.open(currentCameraId);
                     prepareCameraOutputs();
-                    adjustCameraParameters(false);
+                    adjustCameraParameters(false, true);
                     if (cameraPreview.isAvailable()) {
                         setupPreview();
                     }
@@ -88,7 +89,7 @@ public class Camera1Manager extends BaseCameraManager<Integer> {
             @Override
             public void run() {
                 try {
-                    adjustCameraParameters(true);
+                    adjustCameraParameters(true, false);
                 } catch (Exception ex) {
                     Logger.e(TAG, "setMediaType : " + ex);
                 }
@@ -106,7 +107,28 @@ public class Camera1Manager extends BaseCameraManager<Integer> {
 
     @Override
     public boolean isVoiceEnable() {
-        return false;
+        return voiceEnabled;
+    }
+
+    @Override
+    public void setAutoFocus(boolean autoFocus) {
+        if (this.isAutoFocus == autoFocus) {
+            return;
+        }
+        this.isAutoFocus = autoFocus;
+        if (isCameraOpened()) {
+            backgroundHandler.post(new Runnable() {
+                @Override
+                public void run() {
+                    adjustCameraParameters(false, true);
+                }
+            });
+        }
+    }
+
+    @Override
+    public boolean isAutoFocus() {
+        return isAutoFocus;
     }
 
     @Override
@@ -217,7 +239,7 @@ public class Camera1Manager extends BaseCameraManager<Integer> {
         }
     }
 
-    private void adjustCameraParameters(boolean forceCalculateSizes) {
+    private void adjustCameraParameters(boolean forceCalculateSizes, boolean changeFocusMode) {
         CameraSizeCalculator cameraSizeCalculator = ConfigurationProvider.get().getCameraSizeCalculator();
         android.hardware.Camera.Parameters parameters = camera.getParameters();
         if (mediaType == Media.TYPE_PICTURE && (pictureSize == null || forceCalculateSizes)) {
@@ -233,6 +255,17 @@ public class Camera1Manager extends BaseCameraManager<Integer> {
             previewSize = cameraSizeCalculator.getVideoPreviewSize(previewSizes, videoSize);
         }
         parameters.setPreviewSize(previewSize.width, previewSize.height);
+        if (changeFocusMode) {
+            if (mediaType == Media.TYPE_VIDEO) {
+                if (!turnVideoCameraFeaturesOn(parameters)) {
+                    setAutoFocusInternal(parameters);
+                }
+            } else if (mediaType == Media.TYPE_PICTURE) {
+                if (!turnPhotoCameraFeaturesOn(parameters)) {
+                    setAutoFocusInternal(parameters);
+                }
+            }
+        }
         if (showingPreview) {
             showingPreview = false;
             camera.stopPreview();
@@ -307,6 +340,41 @@ public class Camera1Manager extends BaseCameraManager<Integer> {
 
         releaseVideoRecorder();
         return false;
+    }
+
+    private boolean turnPhotoCameraFeaturesOn(android.hardware.Camera.Parameters parameters) {
+        if (parameters.getSupportedFocusModes().contains(
+                android.hardware.Camera.Parameters.FOCUS_MODE_CONTINUOUS_PICTURE)) {
+            parameters.setFocusMode(android.hardware.Camera.Parameters.FOCUS_MODE_CONTINUOUS_PICTURE);
+            return true;
+        }
+        return false;
+    }
+
+    private boolean turnVideoCameraFeaturesOn(android.hardware.Camera.Parameters parameters) {
+        if (parameters.getSupportedFocusModes().contains(
+                android.hardware.Camera.Parameters.FOCUS_MODE_CONTINUOUS_VIDEO)) {
+            parameters.setFocusMode(android.hardware.Camera.Parameters.FOCUS_MODE_CONTINUOUS_VIDEO);
+            return true;
+        }
+        return false;
+    }
+
+    private void setAutoFocusInternal(android.hardware.Camera.Parameters parameters) {
+        try {
+            final List<String> modes = parameters.getSupportedFocusModes();
+            if (isAutoFocus && modes.contains(android.hardware.Camera.Parameters.FOCUS_MODE_AUTO)) {
+                parameters.setFocusMode(android.hardware.Camera.Parameters.FOCUS_MODE_AUTO);
+            } else if (modes.contains(android.hardware.Camera.Parameters.FOCUS_MODE_FIXED)) {
+                parameters.setFocusMode(android.hardware.Camera.Parameters.FOCUS_MODE_FIXED);
+            } else if (modes.contains(android.hardware.Camera.Parameters.FOCUS_MODE_INFINITY)) {
+                parameters.setFocusMode(android.hardware.Camera.Parameters.FOCUS_MODE_INFINITY);
+            } else {
+                parameters.setFocusMode(modes.get(0));
+            }
+        } catch (Exception ex) {
+            Logger.e(TAG, "setAutoFocusInternal " + ex);
+        }
     }
 
 }

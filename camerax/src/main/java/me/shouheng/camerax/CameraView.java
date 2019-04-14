@@ -88,6 +88,14 @@ public class CameraView extends FrameLayout {
         return cameraManager.isVoiceEnable();
     }
 
+    public void setAutoFocus(boolean autoFocus) {
+        cameraManager.setAutoFocus(autoFocus);
+    }
+
+    public boolean isAutoFocus() {
+        return cameraManager.isAutoFocus();
+    }
+
     public void takePicture(CameraPhotoListener cameraPhotoListener) {
         cameraManager.takePicture(cameraPhotoListener);
     }

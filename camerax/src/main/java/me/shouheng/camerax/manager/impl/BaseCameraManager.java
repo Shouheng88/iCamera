@@ -51,6 +51,7 @@ abstract class BaseCameraManager<CameraId> implements CameraManager {
     File videoOutFile;
     MediaRecorder videoRecorder;
     boolean voiceEnabled;
+    boolean isAutoFocus;
 
     private CameraOpenListener cameraOpenListener;
     private CameraPhotoListener cameraPhotoListener;
@@ -71,6 +72,7 @@ abstract class BaseCameraManager<CameraId> implements CameraManager {
         mediaType = ConfigurationProvider.get().getDefaultMediaType();
         mediaQuality = ConfigurationProvider.get().getDefaultMediaQuality();
         voiceEnabled = ConfigurationProvider.get().isVoiceEnable();
+        isAutoFocus = ConfigurationProvider.get().isAutoFocus();
     }
 
     @Override

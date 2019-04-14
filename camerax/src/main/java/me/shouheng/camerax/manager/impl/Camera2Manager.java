@@ -49,6 +49,16 @@ public class Camera2Manager extends BaseCameraManager {
     }
 
     @Override
+    public void setAutoFocus(boolean autoFocus) {
+
+    }
+
+    @Override
+    public boolean isAutoFocus() {
+        return false;
+    }
+
+    @Override
     public void takePicture(CameraPhotoListener cameraPhotoListener) {
 
     }
