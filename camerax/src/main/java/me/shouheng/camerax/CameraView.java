@@ -106,6 +106,18 @@ public class CameraView extends FrameLayout {
         return cameraManager.getFlashMode();
     }
 
+    public void setRoom(float zoom) {
+        cameraManager.setRoom(zoom);
+    }
+
+    public float getRoom() {
+        return cameraManager.getRoom();
+    }
+
+    public float getMaxRoom() {
+        return cameraManager.getMaxRoom();
+    }
+
     public void takePicture(CameraPhotoListener cameraPhotoListener) {
         cameraManager.takePicture(cameraPhotoListener);
     }

@@ -2,6 +2,7 @@ package me.shouheng.camerax.manager.impl;
 
 import android.content.Context;
 import android.media.MediaRecorder;
+import android.support.annotation.Nullable;
 import me.shouheng.camerax.config.ConfigurationProvider;
 import me.shouheng.camerax.config.calculator.CameraSizeCalculator;
 import me.shouheng.camerax.enums.Camera;
@@ -152,6 +153,35 @@ public class Camera1Manager extends BaseCameraManager<Integer> {
     @Override
     public int getFlashMode() {
         return flashMode;
+    }
+
+    @Override
+    public void setRoom(float zoom) {
+        if (zoom == this.zoom || zoom > getMaxRoom()) {
+            return;
+        }
+        this.zoom = zoom;
+        if (isCameraOpened()) {
+            backgroundHandler.post(new Runnable() {
+                @Override
+                public void run() {
+                    setZoomInternal(null);
+                }
+            });
+        }
+    }
+
+    @Override
+    public float getRoom() {
+        return zoom;
+    }
+
+    @Override
+    public float getMaxRoom() {
+        if (maxZoom == 0) {
+            maxZoom = zoomRatios.get(zoomRatios.size() - 1);
+        }
+        return maxZoom;
     }
 
     @Override
@@ -309,6 +339,10 @@ public class Camera1Manager extends BaseCameraManager<Integer> {
         Logger.d(TAG, "adjustCameraParameters flash cost : " + (System.currentTimeMillis() - start) + " ms");
 
         start = System.currentTimeMillis();
+        setZoomInternal(parameters);
+        Logger.d(TAG, "adjustCameraParameters zoom cost : " + (System.currentTimeMillis() - start) + " ms");
+
+        start = System.currentTimeMillis();
         if (showingPreview) {
             showingPreview = false;
             camera.stopPreview();
@@ -449,6 +483,17 @@ public class Camera1Manager extends BaseCameraManager<Integer> {
         } else {
             if (supportModes.contains(android.hardware.Camera.Parameters.FLASH_MODE_AUTO)) {
                 parameters.setFlashMode(android.hardware.Camera.Parameters.FLASH_MODE_AUTO);
+            }
+        }
+    }
+
+    private void setZoomInternal(@Nullable android.hardware.Camera.Parameters parameters) {
+        boolean nullParameters = parameters == null;
+        parameters = nullParameters ? camera.getParameters() : parameters;
+        if (parameters.isZoomSupported()) {
+            parameters.setZoom(CameraHelper.getZoomIdxForZoomFactor(parameters.getZoomRatios(), zoom));
+            if (nullParameters) {
+                camera.setParameters(parameters);
             }
         }
     }

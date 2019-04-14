@@ -27,6 +27,7 @@
                     android:layout_height="60dp"/>
 
             <LinearLayout
+                    android:id="@+id/ll"
                     android:orientation="horizontal"
                     android:layout_marginBottom="20dp"
                     android:layout_above="@id/iv_shot"
@@ -56,6 +57,18 @@
                         android:layout_height="match_parent"/>
 
             </LinearLayout>
+
+            <android.support.v7.widget.AppCompatSeekBar
+                    android:id="@+id/sb"
+                    android:layout_above="@id/ll"
+                    android:max="100"
+                    android:progress="0"
+                    tools:progress="50"
+                    android:layout_marginBottom="20dp"
+                    android:layout_marginStart="30dp"
+                    android:layout_marginEnd="30dp"
+                    android:layout_width="match_parent"
+                    android:layout_height="20dp"/>
 
         </RelativeLayout>
 

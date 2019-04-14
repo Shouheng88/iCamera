@@ -55,6 +55,8 @@ abstract class BaseCameraManager<CameraId> implements CameraManager {
     boolean voiceEnabled;
     boolean isAutoFocus;
     @Flash.FlashMode int flashMode;
+    float zoom = 1.0f;
+    float maxZoom;
 
     private CameraOpenListener cameraOpenListener;
     private CameraPhotoListener cameraPhotoListener;

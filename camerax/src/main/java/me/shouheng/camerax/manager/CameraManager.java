@@ -36,6 +36,12 @@ public interface CameraManager {
     @Flash.FlashMode
     int getFlashMode();
 
+    void setRoom(float zoom);
+
+    float getRoom();
+
+    float getMaxRoom();
+
     void takePicture(CameraPhotoListener cameraPhotoListener);
 
     void startVideoRecord(File file, CameraVideoListener cameraVideoListener);

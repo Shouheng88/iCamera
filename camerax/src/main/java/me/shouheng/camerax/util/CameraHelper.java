@@ -193,4 +193,21 @@ public final class CameraHelper {
             }
         }
     }
+
+    public static int getZoomIdxForZoomFactor(List<Integer> zoomRatios, float zoom) {
+        int zoomRatioFormat = (int) (zoom * 100);
+
+        int len = zoomRatios.size();
+        int possibleIdx = 0;
+        int minDiff = Integer.MAX_VALUE;
+        int tmp;
+        for (int i = 0; i < len; ++i) {
+            tmp = Math.abs(zoomRatioFormat - zoomRatios.get(i));
+            if (tmp < minDiff) {
+                minDiff = tmp;
+                possibleIdx = i;
+            }
+        }
+        return possibleIdx;
+    }
 }

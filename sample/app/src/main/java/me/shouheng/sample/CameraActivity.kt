@@ -4,6 +4,7 @@ import android.graphics.Color
 import android.os.Bundle
 import android.util.Log
 import android.view.View
+import android.widget.SeekBar
 import android.widget.TextView
 import android.widget.Toast
 import me.shouheng.camerax.config.ConfigurationProvider
@@ -45,6 +46,18 @@ class CameraActivity : CommonActivity<ActivityCameraBinding>() {
         binding.scFlash.setOnCheckedChangeListener { _, isChecked ->
             binding.cv.flashMode = if (isChecked) Flash.FLASH_ON else Flash.FLASH_OFF
         }
+        binding.sb.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
+            override fun onStartTrackingTouch(seekBar: SeekBar?) {
+            }
+
+            override fun onStopTrackingTouch(seekBar: SeekBar?) {
+            }
+
+            override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
+                val room = 1 + (binding.cv.maxRoom - 1) * (1.0f * progress / seekBar!!.max)
+                binding.cv.room = room
+            }
+        })
     }
 
     override fun onResume() {
