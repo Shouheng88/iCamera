@@ -1,6 +1,7 @@
 package me.shouheng.camerax.manager;
 
 import android.content.Context;
+import me.shouheng.camerax.enums.Flash;
 import me.shouheng.camerax.enums.Media;
 import me.shouheng.camerax.listener.CameraOpenListener;
 import me.shouheng.camerax.listener.CameraPhotoListener;
@@ -29,6 +30,11 @@ public interface CameraManager {
     void setAutoFocus(boolean autoFocus);
 
     boolean isAutoFocus();
+
+    void setFlashMode(@Flash.FlashMode int flashMode);
+
+    @Flash.FlashMode
+    int getFlashMode();
 
     void takePicture(CameraPhotoListener cameraPhotoListener);
 

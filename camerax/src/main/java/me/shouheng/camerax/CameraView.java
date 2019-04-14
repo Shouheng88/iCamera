@@ -8,6 +8,7 @@ import android.support.annotation.RequiresApi;
 import android.util.AttributeSet;
 import android.widget.FrameLayout;
 import me.shouheng.camerax.config.ConfigurationProvider;
+import me.shouheng.camerax.enums.Flash;
 import me.shouheng.camerax.enums.Media;
 import me.shouheng.camerax.listener.CameraOpenListener;
 import me.shouheng.camerax.listener.CameraPhotoListener;
@@ -94,6 +95,15 @@ public class CameraView extends FrameLayout {
 
     public boolean isAutoFocus() {
         return cameraManager.isAutoFocus();
+    }
+
+    public void setFlashMode(@Flash.FlashMode int flashMode) {
+        cameraManager.setFlashMode(flashMode);
+    }
+
+    @Flash.FlashMode
+    public int getFlashMode() {
+        return cameraManager.getFlashMode();
     }
 
     public void takePicture(CameraPhotoListener cameraPhotoListener) {

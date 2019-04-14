@@ -9,6 +9,7 @@ import me.shouheng.camerax.config.creator.impl.CameraPreviewCreatorImpl;
 import me.shouheng.camerax.config.sizes.AspectRatio;
 import me.shouheng.camerax.config.sizes.Size;
 import me.shouheng.camerax.enums.Camera;
+import me.shouheng.camerax.enums.Flash;
 import me.shouheng.camerax.enums.Media;
 
 import java.util.List;
@@ -41,6 +42,8 @@ public class ConfigurationProvider {
     private AspectRatio defaultAspectRatio;
     private boolean isVoiceEnable;
     private boolean isAutoFocus;
+    @Flash.FlashMode
+    private int defaultFlashMode;
 
     private boolean isDebug;
 
@@ -62,6 +65,7 @@ public class ConfigurationProvider {
         defaultAspectRatio = AspectRatio.of(3, 4);
         isVoiceEnable = true;
         isAutoFocus = true;
+        defaultFlashMode = Flash.FLASH_AUTO;
     }
 
     public static ConfigurationProvider get() {
@@ -189,6 +193,15 @@ public class ConfigurationProvider {
 
     public void setAutoFocus(boolean autoFocus) {
         isAutoFocus = autoFocus;
+    }
+
+    @Flash.FlashMode
+    public int getDefaultFlashMode() {
+        return defaultFlashMode;
+    }
+
+    public void setDefaultFlashMode(@Flash.FlashMode int defaultFlashMode) {
+        this.defaultFlashMode = defaultFlashMode;
     }
 
     public boolean isDebug() {

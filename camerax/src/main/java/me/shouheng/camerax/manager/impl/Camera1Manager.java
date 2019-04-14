@@ -5,6 +5,7 @@ import android.media.MediaRecorder;
 import me.shouheng.camerax.config.ConfigurationProvider;
 import me.shouheng.camerax.config.calculator.CameraSizeCalculator;
 import me.shouheng.camerax.enums.Camera;
+import me.shouheng.camerax.enums.Flash;
 import me.shouheng.camerax.enums.Media;
 import me.shouheng.camerax.enums.Preview;
 import me.shouheng.camerax.listener.CameraOpenListener;
@@ -60,7 +61,7 @@ public class Camera1Manager extends BaseCameraManager<Integer> {
                     // TODO test the order of this method with callback from preview
                     camera = android.hardware.Camera.open(currentCameraId);
                     prepareCameraOutputs();
-                    adjustCameraParameters(false, true);
+                    adjustCameraParameters(false, true, true);
                     if (cameraPreview.isAvailable()) {
                         setupPreview();
                     }
@@ -89,7 +90,7 @@ public class Camera1Manager extends BaseCameraManager<Integer> {
             @Override
             public void run() {
                 try {
-                    adjustCameraParameters(true, false);
+                    adjustCameraParameters(true, false, false);
                 } catch (Exception ex) {
                     Logger.e(TAG, "setMediaType : " + ex);
                 }
@@ -120,7 +121,7 @@ public class Camera1Manager extends BaseCameraManager<Integer> {
             backgroundHandler.post(new Runnable() {
                 @Override
                 public void run() {
-                    adjustCameraParameters(false, true);
+                    adjustCameraParameters(false, true, false);
                 }
             });
         }
@@ -129,6 +130,28 @@ public class Camera1Manager extends BaseCameraManager<Integer> {
     @Override
     public boolean isAutoFocus() {
         return isAutoFocus;
+    }
+
+    @Override
+    public void setFlashMode(@Flash.FlashMode int flashMode) {
+        if (this.flashMode == flashMode) {
+            return;
+        }
+        this.flashMode = flashMode;
+        if (isCameraOpened()) {
+            backgroundHandler.post(new Runnable() {
+                @Override
+                public void run() {
+                    adjustCameraParameters(false, false, true);
+                }
+            });
+        }
+    }
+
+    @Flash.FlashMode
+    @Override
+    public int getFlashMode() {
+        return flashMode;
     }
 
     @Override
@@ -239,7 +262,9 @@ public class Camera1Manager extends BaseCameraManager<Integer> {
         }
     }
 
-    private void adjustCameraParameters(boolean forceCalculateSizes, boolean changeFocusMode) {
+    private void adjustCameraParameters(boolean forceCalculateSizes,
+                                        boolean changeFocusMode,
+                                        boolean changeFlashMode) {
         CameraSizeCalculator cameraSizeCalculator = ConfigurationProvider.get().getCameraSizeCalculator();
         android.hardware.Camera.Parameters parameters = camera.getParameters();
         if (mediaType == Media.TYPE_PICTURE && (pictureSize == null || forceCalculateSizes)) {
@@ -255,6 +280,7 @@ public class Camera1Manager extends BaseCameraManager<Integer> {
             previewSize = cameraSizeCalculator.getVideoPreviewSize(previewSizes, videoSize);
         }
         parameters.setPreviewSize(previewSize.width, previewSize.height);
+
         if (changeFocusMode) {
             if (mediaType == Media.TYPE_VIDEO) {
                 if (!turnVideoCameraFeaturesOn(parameters)) {
@@ -266,6 +292,11 @@ public class Camera1Manager extends BaseCameraManager<Integer> {
                 }
             }
         }
+
+        if (changeFlashMode) {
+            setFlashModeInternal(parameters);
+        }
+
         if (showingPreview) {
             showingPreview = false;
             camera.stopPreview();
@@ -374,6 +405,38 @@ public class Camera1Manager extends BaseCameraManager<Integer> {
             }
         } catch (Exception ex) {
             Logger.e(TAG, "setAutoFocusInternal " + ex);
+        }
+    }
+
+    private void setFlashModeInternal(android.hardware.Camera.Parameters parameters) {
+        List<String> modes = parameters.getSupportedFlashModes();
+        try {
+            switch (flashMode) {
+                case Flash.FLASH_ON:
+                    setFlashModeOrAuto(parameters, modes, android.hardware.Camera.Parameters.FLASH_MODE_ON);
+                    break;
+                case Flash.FLASH_OFF:
+                    setFlashModeOrAuto(parameters, modes, android.hardware.Camera.Parameters.FLASH_MODE_OFF);
+                    break;
+                case Flash.FLASH_AUTO:
+                default:
+                    if (modes.contains(android.hardware.Camera.Parameters.FLASH_MODE_AUTO)) {
+                        parameters.setFlashMode(android.hardware.Camera.Parameters.FLASH_MODE_AUTO);
+                    }
+                    break;
+            }
+        } catch (Exception ex) {
+            Logger.e(TAG, "setFlashModeInternal : " + ex);
+        }
+    }
+
+    private void setFlashModeOrAuto(android.hardware.Camera.Parameters parameters, List<String> supportModes, String mode) {
+        if (supportModes.contains(mode)) {
+            parameters.setFlashMode(mode);
+        } else {
+            if (supportModes.contains(android.hardware.Camera.Parameters.FLASH_MODE_AUTO)) {
+                parameters.setFlashMode(android.hardware.Camera.Parameters.FLASH_MODE_AUTO);
+            }
         }
     }
 

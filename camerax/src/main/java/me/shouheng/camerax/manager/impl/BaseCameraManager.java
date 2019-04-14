@@ -9,6 +9,7 @@ import me.shouheng.camerax.config.ConfigurationProvider;
 import me.shouheng.camerax.config.sizes.AspectRatio;
 import me.shouheng.camerax.config.sizes.Size;
 import me.shouheng.camerax.enums.Camera;
+import me.shouheng.camerax.enums.Flash;
 import me.shouheng.camerax.enums.Media;
 import me.shouheng.camerax.listener.CameraOpenListener;
 import me.shouheng.camerax.listener.CameraPhotoListener;
@@ -52,6 +53,7 @@ abstract class BaseCameraManager<CameraId> implements CameraManager {
     MediaRecorder videoRecorder;
     boolean voiceEnabled;
     boolean isAutoFocus;
+    @Flash.FlashMode int flashMode;
 
     private CameraOpenListener cameraOpenListener;
     private CameraPhotoListener cameraPhotoListener;
@@ -73,6 +75,7 @@ abstract class BaseCameraManager<CameraId> implements CameraManager {
         mediaQuality = ConfigurationProvider.get().getDefaultMediaQuality();
         voiceEnabled = ConfigurationProvider.get().isVoiceEnable();
         isAutoFocus = ConfigurationProvider.get().isAutoFocus();
+        flashMode = ConfigurationProvider.get().getDefaultFlashMode();
     }
 
     @Override

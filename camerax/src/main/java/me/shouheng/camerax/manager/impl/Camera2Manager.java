@@ -59,6 +59,16 @@ public class Camera2Manager extends BaseCameraManager {
     }
 
     @Override
+    public void setFlashMode(int flashMode) {
+
+    }
+
+    @Override
+    public int getFlashMode() {
+        return 0;
+    }
+
+    @Override
     public void takePicture(CameraPhotoListener cameraPhotoListener) {
 
     }
