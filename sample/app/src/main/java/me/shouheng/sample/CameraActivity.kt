@@ -23,7 +23,7 @@ class CameraActivity : CommonActivity<ActivityCameraBinding>() {
 
     private var isCapturePicture = true
 
-    private var isCameraRecording = false;
+    private var isCameraRecording = false
 
     companion object {
         const val TAG = "CameraActivity"
@@ -35,6 +35,10 @@ class CameraActivity : CommonActivity<ActivityCameraBinding>() {
         binding.scVoice.isChecked = ConfigurationProvider.get().isVoiceEnable
         binding.scVoice.setOnCheckedChangeListener { _, isChecked ->
             binding.cv.isVoiceEnable = isChecked
+        }
+        binding.scFocus.isChecked = ConfigurationProvider.get().isAutoFocus
+        binding.scFocus.setOnCheckedChangeListener { _, isChecked ->
+            binding.cv.isAutoFocus = isChecked
         }
     }
 
