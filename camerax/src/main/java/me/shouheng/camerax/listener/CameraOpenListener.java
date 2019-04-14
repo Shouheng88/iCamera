@@ -6,15 +6,7 @@ package me.shouheng.camerax.listener;
  */
 public interface CameraOpenListener {
 
-    /**
-     * This method will be called when the camera is opened.
-     */
     void onCameraOpened();
 
-    /**
-     * The method will be called when failed to open camera.
-     *
-     * @param throwable the throwable
-     */
     void onCameraOpenError(Throwable throwable);
 }

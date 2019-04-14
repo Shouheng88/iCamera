@@ -43,14 +43,14 @@ class CameraActivity : CommonActivity<ActivityCameraBinding>() {
         isCapturePicture = true
         (v as TextView).setTextColor(Color.WHITE)
         binding.tvVideo.setTextColor(Color.LTGRAY)
-        binding.cv.switchMediaType(Media.TYPE_PICTURE)
+        binding.cv.setMediaType(Media.TYPE_PICTURE)
     }
 
     fun video(v: View) {
         isCapturePicture = false
         (v as TextView).setTextColor(Color.WHITE)
         binding.tvPicture.setTextColor(Color.LTGRAY)
-        binding.cv.switchMediaType(Media.TYPE_VIDEO)
+        binding.cv.setMediaType(Media.TYPE_VIDEO)
     }
 
     fun shot(v: View) {

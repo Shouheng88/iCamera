@@ -69,7 +69,7 @@ public class CameraView extends FrameLayout {
         });
     }
 
-    public void switchMediaType(@Media.Type int mediaType) {
+    public void setMediaType(@Media.Type int mediaType) {
         cameraManager.setMediaType(mediaType);
     }
 
@@ -89,11 +89,11 @@ public class CameraView extends FrameLayout {
         cameraManager.resumePreview();
     }
 
-    void closeCamera() {
+    public void closeCamera() {
 
     }
 
-    void releaseCamera() {
+    public void releaseCamera() {
 
     }
 }
