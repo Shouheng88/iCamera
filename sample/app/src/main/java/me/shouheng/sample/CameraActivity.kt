@@ -7,6 +7,7 @@ import android.view.View
 import android.widget.TextView
 import android.widget.Toast
 import me.shouheng.camerax.config.ConfigurationProvider
+import me.shouheng.camerax.enums.Flash
 import me.shouheng.camerax.enums.Media
 import me.shouheng.camerax.listener.CameraPhotoListener
 import me.shouheng.camerax.listener.CameraVideoListener
@@ -39,6 +40,10 @@ class CameraActivity : CommonActivity<ActivityCameraBinding>() {
         binding.scFocus.isChecked = ConfigurationProvider.get().isAutoFocus
         binding.scFocus.setOnCheckedChangeListener { _, isChecked ->
             binding.cv.isAutoFocus = isChecked
+        }
+        binding.scFlash.isChecked = ConfigurationProvider.get().defaultFlashMode == Flash.FLASH_ON
+        binding.scFlash.setOnCheckedChangeListener { _, isChecked ->
+            binding.cv.flashMode = if (isChecked) Flash.FLASH_ON else Flash.FLASH_OFF
         }
     }
 

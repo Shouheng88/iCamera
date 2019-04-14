@@ -6,6 +6,7 @@
     <string name="camera_drawer_title">Configuration</string>
     <string name="camera_drawer_shutter">Shutter</string>
     <string name="camera_drawer_focus">Focus</string>
+    <string name="camera_drawer_flash">Flash on</string>
 
     <string name="camera_main_video">Video</string>
     <string name="camera_main_picture">Picture</string>

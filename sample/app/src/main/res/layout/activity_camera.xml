@@ -99,6 +99,16 @@
                     android:layout_width="wrap_content"
                     android:layout_height="?attr/actionBarSize"/>
 
+            <android.support.v7.widget.SwitchCompat
+                    app:switchPadding="20dp"
+                    android:id="@+id/sc_flash"
+                    android:textColor="@android:color/white"
+                    android:text="@string/camera_drawer_flash"
+                    android:paddingStart="20dp"
+                    android:paddingEnd="20dp"
+                    android:layout_width="wrap_content"
+                    android:layout_height="?attr/actionBarSize"/>
+
         </LinearLayout>
 
     </android.support.v4.widget.DrawerLayout>
