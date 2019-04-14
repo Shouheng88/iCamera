@@ -97,6 +97,19 @@ public class Camera1Manager extends BaseCameraManager<Integer> {
     }
 
     @Override
+    public void setVoiceEnable(boolean voiceEnable) {
+        if (voiceEnabled == voiceEnable) {
+            return;
+        }
+        this.voiceEnabled = voiceEnable;
+    }
+
+    @Override
+    public boolean isVoiceEnable() {
+        return false;
+    }
+
+    @Override
     public void takePicture(CameraPhotoListener cameraPhotoListener) {
         super.takePicture(cameraPhotoListener);
         if (!isCameraOpened()) {
@@ -108,7 +121,11 @@ public class Camera1Manager extends BaseCameraManager<Integer> {
                 try {
                     if (!takingPicture) {
                         takingPicture = true;
-                        camera.takePicture(null, null, new android.hardware.Camera.PictureCallback() {
+                        camera.takePicture(voiceEnabled ? new android.hardware.Camera.ShutterCallback() {
+                            @Override
+                            public void onShutter() {
+                            }
+                        } : null, null, new android.hardware.Camera.PictureCallback() {
                             @Override
                             public void onPictureTaken(byte[] bytes, android.hardware.Camera camera) {
                                 takingPicture = false;

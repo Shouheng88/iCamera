@@ -50,6 +50,7 @@ abstract class BaseCameraManager<CameraId> implements CameraManager {
     CamcorderProfile camcorderProfile;
     File videoOutFile;
     MediaRecorder videoRecorder;
+    boolean voiceEnabled;
 
     private CameraOpenListener cameraOpenListener;
     private CameraPhotoListener cameraPhotoListener;
@@ -69,6 +70,7 @@ abstract class BaseCameraManager<CameraId> implements CameraManager {
         aspectRatio = ConfigurationProvider.get().getDefaultAspectRatio();
         mediaType = ConfigurationProvider.get().getDefaultMediaType();
         mediaQuality = ConfigurationProvider.get().getDefaultMediaQuality();
+        voiceEnabled = ConfigurationProvider.get().isVoiceEnable();
     }
 
     @Override

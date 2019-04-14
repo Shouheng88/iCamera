@@ -6,6 +6,7 @@ import android.util.Log
 import android.view.View
 import android.widget.TextView
 import android.widget.Toast
+import me.shouheng.camerax.config.ConfigurationProvider
 import me.shouheng.camerax.enums.Media
 import me.shouheng.camerax.listener.CameraPhotoListener
 import me.shouheng.camerax.listener.CameraVideoListener
@@ -31,7 +32,10 @@ class CameraActivity : CommonActivity<ActivityCameraBinding>() {
     override fun getLayoutResId() = R.layout.activity_camera
 
     override fun doCreateView(savedInstanceState: Bundle?) {
-        // temp do nothing
+        binding.scVoice.isChecked = ConfigurationProvider.get().isVoiceEnable
+        binding.scVoice.setOnCheckedChangeListener { _, isChecked ->
+            binding.cv.isVoiceEnable = isChecked
+        }
     }
 
     override fun onResume() {

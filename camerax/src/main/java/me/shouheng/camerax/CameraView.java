@@ -73,6 +73,21 @@ public class CameraView extends FrameLayout {
         cameraManager.setMediaType(mediaType);
     }
 
+    /**
+     * Whether use shutter when capture. The final result is not only affected by
+     * this value, but also subject to your phone circumstance. If your phone was
+     * in SILENT mode, there will be no voice even you set the voiceEnable true.
+     *
+     * @param voiceEnable true to use the voice
+     */
+    public void setVoiceEnable(boolean voiceEnable) {
+        cameraManager.setVoiceEnable(voiceEnable);
+    }
+
+    public boolean isVoiceEnable() {
+        return cameraManager.isVoiceEnable();
+    }
+
     public void takePicture(CameraPhotoListener cameraPhotoListener) {
         cameraManager.takePicture(cameraPhotoListener);
     }

@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<layout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:tools="http://schemas.android.com/tools">
+<layout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:tools="http://schemas.android.com/tools"
+        xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <android.support.v4.widget.DrawerLayout
             android:layout_width="match_parent"
@@ -59,6 +60,7 @@
         </RelativeLayout>
 
         <LinearLayout
+                android:orientation="vertical"
                 android:gravity="start"
                 android:clickable="true"
                 android:focusable="true"
@@ -76,6 +78,15 @@
                     android:text="@string/camera_drawer_title"
                     android:layout_width="match_parent"
                     android:layout_height="?attr/actionBarSize"/>
+
+            <android.support.v7.widget.SwitchCompat app:switchPadding="20dp"
+                                                    android:id="@+id/sc_voice"
+                                                    android:textColor="@android:color/white"
+                                                    android:text="@string/camera_drawer_shutter"
+                                                    android:paddingStart="20dp"
+                                                    android:paddingEnd="20dp"
+                                                    android:layout_width="wrap_content"
+                                                    android:layout_height="?attr/actionBarSize"/>
 
         </LinearLayout>
 

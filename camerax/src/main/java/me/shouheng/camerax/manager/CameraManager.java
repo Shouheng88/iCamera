@@ -22,6 +22,10 @@ public interface CameraManager {
 
     void setMediaType(@Media.Type int mediaType);
 
+    void setVoiceEnable(boolean voiceEnable);
+
+    boolean isVoiceEnable();
+
     void takePicture(CameraPhotoListener cameraPhotoListener);
 
     void startVideoRecord(File file, CameraVideoListener cameraVideoListener);

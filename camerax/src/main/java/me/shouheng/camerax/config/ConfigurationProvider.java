@@ -39,6 +39,7 @@ public class ConfigurationProvider {
     @Media.Quality
     private int defaultMediaQuality;
     private AspectRatio defaultAspectRatio;
+    private boolean isVoiceEnable;
 
     private boolean isDebug;
 
@@ -58,6 +59,7 @@ public class ConfigurationProvider {
         defaultMediaType = Media.TYPE_PICTURE;
         defaultMediaQuality = Media.QUALITY_HIGH;
         defaultAspectRatio = AspectRatio.of(3, 4);
+        isVoiceEnable = true;
     }
 
     public static ConfigurationProvider get() {
@@ -169,6 +171,14 @@ public class ConfigurationProvider {
 
     public void setDefaultAspectRatio(AspectRatio defaultAspectRatio) {
         this.defaultAspectRatio = defaultAspectRatio;
+    }
+
+    public boolean isVoiceEnable() {
+        return isVoiceEnable;
+    }
+
+    public void setVoiceEnable(boolean voiceEnable) {
+        this.isVoiceEnable = voiceEnable;
     }
 
     public boolean isDebug() {

@@ -39,6 +39,16 @@ public class Camera2Manager extends BaseCameraManager {
     }
 
     @Override
+    public void setVoiceEnable(boolean voiceEnable) {
+
+    }
+
+    @Override
+    public boolean isVoiceEnable() {
+        return false;
+    }
+
+    @Override
     public void takePicture(CameraPhotoListener cameraPhotoListener) {
 
     }
