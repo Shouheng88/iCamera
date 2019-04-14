@@ -195,21 +195,23 @@ public class Camera1Manager extends BaseCameraManager<Integer> {
         if (videoRecording) {
             return;
         }
-        backgroundHandler.post(new Runnable() {
-            @Override
-            public void run() {
-                if (prepareVideoRecorder()) {
-                    videoRecorder.start();
-                    videoRecording = true;
-                    notifyVideoRecordStart();
+        if (isCameraOpened()) {
+            backgroundHandler.post(new Runnable() {
+                @Override
+                public void run() {
+                    if (prepareVideoRecorder()) {
+                        videoRecorder.start();
+                        videoRecording = true;
+                        notifyVideoRecordStart();
+                    }
                 }
-            }
-        });
+            });
+        }
     }
 
     @Override
     public void stopVideoRecord() {
-        if (videoRecording) {
+        if (videoRecording && isCameraOpened()) {
             backgroundHandler.post(new Runnable() {
                 @Override
                 public void run() {
@@ -253,9 +255,12 @@ public class Camera1Manager extends BaseCameraManager<Integer> {
 
     private void prepareCameraOutputs() {
         try {
+            long start = System.currentTimeMillis();
             previewSizes = ConfigurationProvider.get().getPreviewSizes(camera);
             pictureSizes = ConfigurationProvider.get().getPictureSizes(camera);
             videoSizes = ConfigurationProvider.get().getVideoSizes(camera);
+            zoomRatios = ConfigurationProvider.get().getZoomRatios(camera);
+            Logger.d(TAG, "prepareCameraOutputs cost : " + (System.currentTimeMillis() - start) + " ms");
         } catch (Exception ex) {
             Logger.e(TAG, "error : " + ex);
             notifyCameraOpenError(new RuntimeException(ex));
@@ -265,6 +270,7 @@ public class Camera1Manager extends BaseCameraManager<Integer> {
     private void adjustCameraParameters(boolean forceCalculateSizes,
                                         boolean changeFocusMode,
                                         boolean changeFlashMode) {
+        long start = System.currentTimeMillis();
         CameraSizeCalculator cameraSizeCalculator = ConfigurationProvider.get().getCameraSizeCalculator();
         android.hardware.Camera.Parameters parameters = camera.getParameters();
         if (mediaType == Media.TYPE_PICTURE && (pictureSize == null || forceCalculateSizes)) {
@@ -280,7 +286,9 @@ public class Camera1Manager extends BaseCameraManager<Integer> {
             previewSize = cameraSizeCalculator.getVideoPreviewSize(previewSizes, videoSize);
         }
         parameters.setPreviewSize(previewSize.width, previewSize.height);
+        Logger.d(TAG, "adjustCameraParameters size cost : " + (System.currentTimeMillis() - start) + " ms");
 
+        start = System.currentTimeMillis();
         if (changeFocusMode) {
             if (mediaType == Media.TYPE_VIDEO) {
                 if (!turnVideoCameraFeaturesOn(parameters)) {
@@ -292,11 +300,15 @@ public class Camera1Manager extends BaseCameraManager<Integer> {
                 }
             }
         }
+        Logger.d(TAG, "adjustCameraParameters focus cost : " + (System.currentTimeMillis() - start) + " ms");
 
+        start = System.currentTimeMillis();
         if (changeFlashMode) {
             setFlashModeInternal(parameters);
         }
+        Logger.d(TAG, "adjustCameraParameters flash cost : " + (System.currentTimeMillis() - start) + " ms");
 
+        start = System.currentTimeMillis();
         if (showingPreview) {
             showingPreview = false;
             camera.stopPreview();
@@ -306,6 +318,7 @@ public class Camera1Manager extends BaseCameraManager<Integer> {
             showingPreview = true;
             camera.startPreview();
         }
+        Logger.d(TAG, "adjustCameraParameters restart preview cost : " + (System.currentTimeMillis() - start) + " ms");
     }
 
     private void setupPreview() {

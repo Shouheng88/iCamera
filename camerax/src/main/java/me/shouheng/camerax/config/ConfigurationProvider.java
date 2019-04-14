@@ -12,6 +12,7 @@ import me.shouheng.camerax.enums.Camera;
 import me.shouheng.camerax.enums.Flash;
 import me.shouheng.camerax.enums.Media;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -32,6 +33,7 @@ public class ConfigurationProvider {
     private List<Size> previewSizes;
     private List<Size> pictureSizes;
     private List<Size> videoSizes;
+    private List<Float> zoomRatios;
 
     @Camera.Face
     private int defaultCameraFace;
@@ -142,6 +144,21 @@ public class ConfigurationProvider {
             videoSizes = sizes;
         }
         return sizes;
+    }
+
+    public List<Float> getZoomRatios(android.hardware.Camera camera) {
+        if (useCacheSizes && zoomRatios != null) {
+            return zoomRatios;
+        }
+        List<Integer> ratios = camera.getParameters().getZoomRatios();
+        List<Float> result = new ArrayList<>(ratios.size());
+        for (Integer ratio : ratios) {
+            result.add(ratio * 0.01f);
+        }
+        if (useCacheSizes) {
+            zoomRatios = result;
+        }
+        return result;
     }
 
     @Camera.Face

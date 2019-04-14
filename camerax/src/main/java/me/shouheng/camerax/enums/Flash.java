@@ -9,7 +9,7 @@ import java.lang.annotation.RetentionPolicy;
  * @author WngShhng (shouheng2015@gmail.com)
  * @version 2019/4/14 21:57
  */
-public class Flash {
+public final class Flash {
 
     public static final int FLASH_ON = 0;
     public static final int FLASH_OFF = 1;
