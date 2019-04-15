@@ -87,6 +87,7 @@ public class Camera1Manager extends BaseCameraManager<Integer> {
             return;
         }
         this.mediaType = mediaType;
+        // TODO check the camera open
         backgroundHandler.post(new Runnable() {
             @Override
             public void run() {
@@ -122,6 +123,7 @@ public class Camera1Manager extends BaseCameraManager<Integer> {
             backgroundHandler.post(new Runnable() {
                 @Override
                 public void run() {
+                    // TODO use inner method instead of this 
                     adjustCameraParameters(false, true, false);
                 }
             });
@@ -143,6 +145,7 @@ public class Camera1Manager extends BaseCameraManager<Integer> {
             backgroundHandler.post(new Runnable() {
                 @Override
                 public void run() {
+                     // TODO use inner method instead of this 
                     adjustCameraParameters(false, false, true);
                 }
             });
@@ -189,7 +192,9 @@ public class Camera1Manager extends BaseCameraManager<Integer> {
         super.takePicture(cameraPhotoListener);
         if (!isCameraOpened()) {
             notifyCameraCaptureFailed(new RuntimeException("Camera not open yet!"));
+            // TODO should return here?
         }
+        // TODO check camera open
         backgroundHandler.post(new Runnable() {
             @Override
             public void run() {
@@ -245,7 +250,9 @@ public class Camera1Manager extends BaseCameraManager<Integer> {
             backgroundHandler.post(new Runnable() {
                 @Override
                 public void run() {
+                    // TODO the boolean should update until finally stpped
                     videoRecording = false;
+                    // TODO call videoRecorder.stop()
                     releaseVideoRecorder();
                     notifyVideoRecordStop(videoOutFile);
                 }
@@ -359,6 +366,7 @@ public class Camera1Manager extends BaseCameraManager<Integer> {
         try {
             if (cameraPreview.getPreviewType() == Preview.SURFACE_VIEW) {
                 if (showingPreview) {
+                    // TODO boolean state
                     showingPreview = false;
                     camera.stopPreview();
                 }
@@ -399,6 +407,8 @@ public class Camera1Manager extends BaseCameraManager<Integer> {
             videoRecorder.setAudioSamplingRate(camcorderProfile.audioSampleRate);
             videoRecorder.setAudioEncoder(camcorderProfile.audioCodec);
 
+            // TODO max oupt file size and max output duration configuration
+            
             videoRecorder.setOutputFile(videoOutFile.toString());
 
             videoRecorder.setPreviewDisplay(cameraPreview.getSurface());
