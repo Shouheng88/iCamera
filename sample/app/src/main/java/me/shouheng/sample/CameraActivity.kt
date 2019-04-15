@@ -34,6 +34,11 @@ class CameraActivity : CommonActivity<ActivityCameraBinding>() {
     override fun getLayoutResId() = R.layout.activity_camera
 
     override fun doCreateView(savedInstanceState: Bundle?) {
+        configDrawer()
+        configMain()
+    }
+
+    private fun configDrawer() {
         binding.scVoice.isChecked = ConfigurationProvider.get().isVoiceEnable
         binding.scVoice.setOnCheckedChangeListener { _, isChecked ->
             binding.cv.isVoiceEnable = isChecked
@@ -46,6 +51,17 @@ class CameraActivity : CommonActivity<ActivityCameraBinding>() {
         binding.scFlash.setOnCheckedChangeListener { _, isChecked ->
             binding.cv.flashMode = if (isChecked) Flash.FLASH_ON else Flash.FLASH_OFF
         }
+        binding.scTouchFocus.isChecked = true
+        binding.scTouchFocus.setOnCheckedChangeListener { _, isChecked ->
+            binding.cv.setUseTouchFocus(isChecked)
+        }
+        binding.scTouchZoom.isChecked = true
+        binding.scTouchZoom.setOnCheckedChangeListener { _, isChecked ->
+            binding.cv.setTouchZoomEnable(isChecked)
+        }
+    }
+
+    private fun configMain() {
         binding.sb.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
             override fun onStartTrackingTouch(seekBar: SeekBar?) {
             }
@@ -54,12 +70,12 @@ class CameraActivity : CommonActivity<ActivityCameraBinding>() {
             }
 
             override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
-                val room = 1 + (binding.cv.maxRoom - 1) * (1.0f * progress / seekBar!!.max)
-                binding.cv.room = room
+                val room = 1 + (binding.cv.maxZoom - 1) * (1.0f * progress / seekBar!!.max)
+                binding.cv.zoom = room
             }
         })
         binding.cv.setOnMoveListener {
-            Log.d(TAG, "On move : $it")
+            Toast.makeText(this@CameraActivity, if (it) "LEFT" else "RIGHT", Toast.LENGTH_SHORT).show()
         }
     }
 

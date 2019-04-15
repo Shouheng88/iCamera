@@ -32,9 +32,7 @@ public class CameraView extends FrameLayout {
 
     private CameraManager cameraManager;
 
-    private CameraPreview cameraPreview;
     private FocusMarkerLayout focusMarkerLayout;
-    private OnMoveListener onMoveListener;
 
     public CameraView(@NonNull Context context) {
         this(context, null);
@@ -56,11 +54,12 @@ public class CameraView extends FrameLayout {
     }
 
     private void initCameraView(@NonNull Context context, @Nullable AttributeSet attrs, int defStyleAttr, int defStyleRes) {
-        cameraPreview = ConfigurationProvider.get().getCameraPreviewCreator().create(getContext(), this);
+        CameraPreview cameraPreview = ConfigurationProvider.get().getCameraPreviewCreator().create(getContext(), this);
         cameraManager = ConfigurationProvider.get().getCameraManagerCreator().create(cameraPreview);
         cameraManager.initialize(context);
 
         focusMarkerLayout = new FocusMarkerLayout(context);
+        focusMarkerLayout.setCameraView(this);
         focusMarkerLayout.setLayoutParams(new FrameLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
         this.addView(focusMarkerLayout);
@@ -116,16 +115,16 @@ public class CameraView extends FrameLayout {
         return cameraManager.getFlashMode();
     }
 
-    public void setRoom(float zoom) {
-        cameraManager.setRoom(zoom);
+    public void setZoom(float zoom) {
+        cameraManager.setZoom(zoom);
     }
 
-    public float getRoom() {
-        return cameraManager.getRoom();
+    public float getZoom() {
+        return cameraManager.getZoom();
     }
 
-    public float getMaxRoom() {
-        return cameraManager.getMaxRoom();
+    public float getMaxZoom() {
+        return cameraManager.getMaxZoom();
     }
 
     public void takePicture(CameraPhotoListener cameraPhotoListener) {
@@ -153,9 +152,25 @@ public class CameraView extends FrameLayout {
     }
 
     public void setOnMoveListener(OnMoveListener onMoveListener) {
-        this.onMoveListener = onMoveListener;
+        focusMarkerLayout.setOnMoveListener(onMoveListener);
+    }
+
+    public void setTouchAngle(int touchAngle) {
         if (focusMarkerLayout != null) {
-            focusMarkerLayout.setOnMoveListener(onMoveListener);
+            focusMarkerLayout.setTouchAngle(touchAngle);
         }
     }
+
+    public void setScaleRate(int scaleRate) {
+        focusMarkerLayout.setScaleRate(scaleRate);
+    }
+
+    public void setTouchZoomEnable(boolean touchZoomEnable) {
+        focusMarkerLayout.setTouchZoomEnable(touchZoomEnable);
+    }
+
+    public void setUseTouchFocus(boolean useTouchFocus) {
+        focusMarkerLayout.setUseTouchFocus(useTouchFocus);
+    }
+
 }

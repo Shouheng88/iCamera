@@ -69,17 +69,17 @@ public class Camera2Manager extends BaseCameraManager {
     }
 
     @Override
-    public void setRoom(float zoom) {
+    public void setZoom(float zoom) {
 
     }
 
     @Override
-    public float getRoom() {
+    public float getZoom() {
         return 0;
     }
 
     @Override
-    public float getMaxRoom() {
+    public float getMaxZoom() {
         return 0;
     }
 

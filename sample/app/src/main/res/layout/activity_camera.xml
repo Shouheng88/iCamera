@@ -122,6 +122,26 @@
                     android:layout_width="wrap_content"
                     android:layout_height="?attr/actionBarSize"/>
 
+            <android.support.v7.widget.SwitchCompat
+                    app:switchPadding="20dp"
+                    android:id="@+id/sc_touch_zoom"
+                    android:textColor="@android:color/white"
+                    android:text="@string/camera_drawer_touch_zoom"
+                    android:paddingStart="20dp"
+                    android:paddingEnd="20dp"
+                    android:layout_width="wrap_content"
+                    android:layout_height="?attr/actionBarSize"/>
+
+            <android.support.v7.widget.SwitchCompat
+                    app:switchPadding="20dp"
+                    android:id="@+id/sc_touch_focus"
+                    android:textColor="@android:color/white"
+                    android:text="@string/camera_drawer_touch_focus"
+                    android:paddingStart="20dp"
+                    android:paddingEnd="20dp"
+                    android:layout_width="wrap_content"
+                    android:layout_height="?attr/actionBarSize"/>
+
         </LinearLayout>
 
     </android.support.v4.widget.DrawerLayout>

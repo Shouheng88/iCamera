@@ -11,8 +11,10 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
+import me.shouheng.camerax.CameraView;
 import me.shouheng.camerax.R;
 import me.shouheng.camerax.listener.OnMoveListener;
+import me.shouheng.camerax.util.Logger;
 import me.shouheng.camerax.util.Utils;
 
 /**
@@ -21,14 +23,21 @@ import me.shouheng.camerax.util.Utils;
  */
 public class FocusMarkerLayout extends FrameLayout implements View.OnTouchListener {
 
+    private static final String TAG = "FocusMarkerLayout";
+
     private FrameLayout focusMarkerContainer;
     private AppCompatImageView ivFill;
 
-    private boolean multiTouch;
-    private int mDownViewX, mDownViewY, dx, dy;
+    private boolean useTouchFocus = true;
+    private boolean touchZoomEnable = true;
     private int touchAngle = 0;
-    private TouchEventDispatcher touchEventDispatcher;
+    private int scaleRate = 10;
     private OnMoveListener onMoveListener;
+    private CameraView cameraView;
+
+    private boolean multiTouch;
+    private float fingerSpacing;
+    private int mDownViewX, mDownViewY, dx, dy;
 
     public FocusMarkerLayout(@NonNull Context context) {
         this(context, null);
@@ -44,6 +53,7 @@ public class FocusMarkerLayout extends FrameLayout implements View.OnTouchListen
         int dp55 = Utils.dp2Px(context, 55);
         focusMarkerContainer = new FrameLayout(context);
         focusMarkerContainer.setLayoutParams(new FrameLayout.LayoutParams(dp55, dp55));
+        focusMarkerContainer.setAlpha(0);
         addView(focusMarkerContainer);
 
         ivFill = new AppCompatImageView(context);
@@ -99,22 +109,56 @@ public class FocusMarkerLayout extends FrameLayout implements View.OnTouchListen
 
     }
 
-    public void setTouchEventDispatcher(TouchEventDispatcher touchEventDispatcher) {
-        this.touchEventDispatcher = touchEventDispatcher;
-    }
-
     public void setOnMoveListener(OnMoveListener onMoveListener) {
         this.onMoveListener = onMoveListener;
     }
 
+    public void setCameraView(CameraView cameraView) {
+        this.cameraView = cameraView;
+    }
+
+    public void setTouchAngle(int touchAngle) {
+        this.touchAngle = touchAngle;
+    }
+
+    public void setScaleRate(int scaleRate) {
+        this.scaleRate = scaleRate;
+    }
+
+    public void setTouchZoomEnable(boolean touchZoomEnable) {
+        this.touchZoomEnable = touchZoomEnable;
+    }
+
+    public void setUseTouchFocus(boolean useTouchFocus) {
+        this.useTouchFocus = useTouchFocus;
+    }
+
     @Override
     public boolean onTouch(View v, MotionEvent event) {
-        if (this.touchEventDispatcher != null) {
-            touchEventDispatcher.onTouch(event);
-        }
         int action = event.getAction();
         if (event.getPointerCount() > 1) {
             multiTouch = true;
+            if (!touchZoomEnable) {
+                return true;
+            }
+            float currentFingerSpacing = getFingerSpacing(event);
+            if (fingerSpacing != 0) {
+                try {
+                    if (cameraView != null) {
+                        int maxZoom = (int) (cameraView.getMaxZoom() * 100);
+                        int zoom = (int) (cameraView.getZoom() * 100);
+                        if (fingerSpacing < currentFingerSpacing && zoom < maxZoom) {
+                            zoom += scaleRate;
+                        } else if (currentFingerSpacing < fingerSpacing && zoom > 0) {
+                            zoom -= scaleRate;
+                        }
+                        cameraView.setZoom(zoom * 0.01f);
+                    }
+                } catch (Exception e) {
+                    Logger.e(TAG, "onTouch error : " + e);
+                }
+            }
+            fingerSpacing = currentFingerSpacing;
         } else {
             if (event.getPointerCount() == 1) {
                 int x = (int) event.getRawX();
@@ -132,27 +176,20 @@ public class FocusMarkerLayout extends FrameLayout implements View.OnTouchListen
                         multiTouch = false;
                     } else {
                         if (Math.abs(dx) > 100 && touchAngle == 0) {
-                            if (onMoveListener != null) {
-                                onMoveListener.onMove(dx < -100);
-                            }
+                            notifyMove(dx < -100);
                             return true;
                         }
-
                         if (Math.abs(dy) > 100 && touchAngle == 90){
-                            if (onMoveListener != null) {
-                                onMoveListener.onMove(dx >= -100);
-                            }
+                            notifyMove(dx >= -100);
                             return true;
                         }
-
                         if (Math.abs(dy) > 100 && touchAngle == -90){
-                            if (onMoveListener != null) {
-                                onMoveListener.onMove(dx <= -100);
-                            }
+                            notifyMove(dx <= -100);
                             return true;
                         }
-
-                        focus(event.getX(), event.getY());
+                        if (useTouchFocus) {
+                            focus(event.getX(), event.getY());
+                        }
                     }
                 }
             }
@@ -160,8 +197,16 @@ public class FocusMarkerLayout extends FrameLayout implements View.OnTouchListen
         return true;
     }
 
-    public interface TouchEventDispatcher {
-        void onTouch(MotionEvent event);
+    private void notifyMove(boolean left) {
+        if (onMoveListener != null) {
+            onMoveListener.onMove(left);
+        }
+    }
+
+    private float getFingerSpacing(MotionEvent event) {
+        float x = event.getX(0) - event.getX(1);
+        float y = event.getY(0) - event.getY(1);
+        return (float) Math.sqrt(x * x + y * y);
     }
 
 }

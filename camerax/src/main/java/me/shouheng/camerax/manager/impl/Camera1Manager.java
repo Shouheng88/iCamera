@@ -39,7 +39,7 @@ public class Camera1Manager extends BaseCameraManager<Integer> {
             @Override
             public void onAvailable(CameraPreview cameraPreview) {
                 Logger.d(TAG, "onAvailable : " + cameraPreview.isAvailable());
-                if (camera != null) {
+                if (isCameraOpened()) {
                     setupPreview();
                 }
             }
@@ -160,8 +160,8 @@ public class Camera1Manager extends BaseCameraManager<Integer> {
     }
 
     @Override
-    public void setRoom(float zoom) {
-        if (zoom == this.zoom || zoom > getMaxRoom()) {
+    public void setZoom(float zoom) {
+        if (zoom == this.zoom || zoom > getMaxZoom()) {
             return;
         }
         this.zoom = zoom;
@@ -176,12 +176,12 @@ public class Camera1Manager extends BaseCameraManager<Integer> {
     }
 
     @Override
-    public float getRoom() {
+    public float getZoom() {
         return zoom;
     }
 
     @Override
-    public float getMaxRoom() {
+    public float getMaxZoom() {
         if (maxZoom == 0) {
             maxZoom = zoomRatios.get(zoomRatios.size() - 1);
         }
