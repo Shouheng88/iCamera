@@ -9,8 +9,10 @@ import android.util.AttributeSet;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
 import me.shouheng.camerax.config.ConfigurationProvider;
+import me.shouheng.camerax.config.sizes.AspectRatio;
 import me.shouheng.camerax.enums.Flash;
 import me.shouheng.camerax.enums.Media;
+import me.shouheng.camerax.enums.Preview;
 import me.shouheng.camerax.listener.CameraOpenListener;
 import me.shouheng.camerax.listener.CameraPhotoListener;
 import me.shouheng.camerax.listener.CameraVideoListener;
@@ -22,6 +24,8 @@ import me.shouheng.camerax.widget.FocusMarkerLayout;
 
 import java.io.File;
 
+import static me.shouheng.camerax.enums.Preview.*;
+
 /**
  * @author WngShhng (shouheng2015@gmail.com)
  * @version 2019/4/13 22:43
@@ -32,6 +36,10 @@ public class CameraView extends FrameLayout {
 
     private CameraManager cameraManager;
 
+    private boolean clipScreen;
+    @Preview.AdjustType
+    private int adjustType;
+    private AspectRatio aspectRatio;
     private FocusMarkerLayout focusMarkerLayout;
 
     public CameraView(@NonNull Context context) {
@@ -58,11 +66,55 @@ public class CameraView extends FrameLayout {
         cameraManager = ConfigurationProvider.get().getCameraManagerCreator().create(cameraPreview);
         cameraManager.initialize(context);
 
+        // prepare parameters
+        clipScreen = true;
+        aspectRatio = ConfigurationProvider.get().getDefaultAspectRatio();
+        adjustType = SCALE_SMALLER;
+
         focusMarkerLayout = new FocusMarkerLayout(context);
         focusMarkerLayout.setCameraView(this);
         focusMarkerLayout.setLayoutParams(new FrameLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
         this.addView(focusMarkerLayout);
+    }
+
+    @Override
+    protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
+        if (isInEditMode()) {
+            super.onMeasure(widthMeasureSpec, heightMeasureSpec);
+            return;
+        }
+        if (clipScreen) {
+            int width = MeasureSpec.getSize(widthMeasureSpec);
+            int height = MeasureSpec.getSize(heightMeasureSpec);
+            switch (adjustType) {
+                case FIXED_WIDTH:
+                    height = width * aspectRatio.heightRatio / aspectRatio.widthRatio;
+                    break;
+                case FIXED_HEIGHT:
+                    width = height * aspectRatio.widthRatio / aspectRatio.heightRatio;
+                    break;
+                case SCALE_SMALLER:
+                    if (width * aspectRatio.heightRatio < height * aspectRatio.widthRatio) {
+                        height = width * aspectRatio.heightRatio /aspectRatio. widthRatio;
+                    } else {
+                        width = height * aspectRatio.widthRatio / aspectRatio.heightRatio;
+                    }
+                    break;
+                case SCALE_LARGER:
+                    if (width * aspectRatio.heightRatio < height * aspectRatio.widthRatio) {
+                        width = height * aspectRatio.widthRatio / aspectRatio.heightRatio;
+                    } else {
+                        height = width * aspectRatio.heightRatio / aspectRatio.widthRatio;
+                    }
+                    break;
+                case NONE:
+                default:
+            }
+            super.onMeasure(MeasureSpec.makeMeasureSpec(width, MeasureSpec.EXACTLY),
+                    MeasureSpec.makeMeasureSpec(height, MeasureSpec.EXACTLY));
+            return;
+        }
     }
 
     public void openCamera() {
