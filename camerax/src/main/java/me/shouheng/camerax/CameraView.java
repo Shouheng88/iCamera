@@ -6,6 +6,7 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.annotation.RequiresApi;
 import android.util.AttributeSet;
+import android.view.ViewGroup;
 import android.widget.FrameLayout;
 import me.shouheng.camerax.config.ConfigurationProvider;
 import me.shouheng.camerax.enums.Flash;
@@ -13,9 +14,11 @@ import me.shouheng.camerax.enums.Media;
 import me.shouheng.camerax.listener.CameraOpenListener;
 import me.shouheng.camerax.listener.CameraPhotoListener;
 import me.shouheng.camerax.listener.CameraVideoListener;
+import me.shouheng.camerax.listener.OnMoveListener;
 import me.shouheng.camerax.manager.CameraManager;
 import me.shouheng.camerax.preview.CameraPreview;
 import me.shouheng.camerax.util.Logger;
+import me.shouheng.camerax.widget.FocusMarkerLayout;
 
 import java.io.File;
 
@@ -30,6 +33,8 @@ public class CameraView extends FrameLayout {
     private CameraManager cameraManager;
 
     private CameraPreview cameraPreview;
+    private FocusMarkerLayout focusMarkerLayout;
+    private OnMoveListener onMoveListener;
 
     public CameraView(@NonNull Context context) {
         this(context, null);
@@ -54,6 +59,11 @@ public class CameraView extends FrameLayout {
         cameraPreview = ConfigurationProvider.get().getCameraPreviewCreator().create(getContext(), this);
         cameraManager = ConfigurationProvider.get().getCameraManagerCreator().create(cameraPreview);
         cameraManager.initialize(context);
+
+        focusMarkerLayout = new FocusMarkerLayout(context);
+        focusMarkerLayout.setLayoutParams(new FrameLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
+        this.addView(focusMarkerLayout);
     }
 
     public void openCamera() {
@@ -140,5 +150,12 @@ public class CameraView extends FrameLayout {
 
     public void releaseCamera() {
 
+    }
+
+    public void setOnMoveListener(OnMoveListener onMoveListener) {
+        this.onMoveListener = onMoveListener;
+        if (focusMarkerLayout != null) {
+            focusMarkerLayout.setOnMoveListener(onMoveListener);
+        }
     }
 }

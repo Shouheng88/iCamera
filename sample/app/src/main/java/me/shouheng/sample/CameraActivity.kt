@@ -58,6 +58,9 @@ class CameraActivity : CommonActivity<ActivityCameraBinding>() {
                 binding.cv.room = room
             }
         })
+        binding.cv.setOnMoveListener {
+            Log.d(TAG, "On move : $it")
+        }
     }
 
     override fun onResume() {
