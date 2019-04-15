@@ -2,6 +2,7 @@ package me.shouheng.camerax.manager.impl;
 
 import android.content.Context;
 import android.media.MediaRecorder;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import me.shouheng.camerax.config.ConfigurationProvider;
 import me.shouheng.camerax.config.calculator.CameraSizeCalculator;
@@ -68,6 +69,7 @@ public class Camera1Manager extends BaseCameraManager<Integer> {
                     }
                     camera.startPreview();
                     showingPreview = true;
+                    notifyCameraOpened();
                 } catch (final Exception ex) {
                     Logger.e(TAG, "error : " + ex);
                     notifyCameraOpenError(ex);
@@ -87,17 +89,18 @@ public class Camera1Manager extends BaseCameraManager<Integer> {
             return;
         }
         this.mediaType = mediaType;
-        // TODO check the camera open
-        backgroundHandler.post(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    adjustCameraParameters(true, false, false);
-                } catch (Exception ex) {
-                    Logger.e(TAG, "setMediaType : " + ex);
+        if (isCameraOpened()) {
+            backgroundHandler.post(new Runnable() {
+                @Override
+                public void run() {
+                    try {
+                        adjustCameraParameters(true, false, false);
+                    } catch (Exception ex) {
+                        Logger.e(TAG, "setMediaType : " + ex);
+                    }
                 }
-            }
-        });
+            });
+        }
     }
 
     @Override
@@ -123,8 +126,7 @@ public class Camera1Manager extends BaseCameraManager<Integer> {
             backgroundHandler.post(new Runnable() {
                 @Override
                 public void run() {
-                    // TODO use inner method instead of this 
-                    adjustCameraParameters(false, true, false);
+                    setFocusModeInternal(null);
                 }
             });
         }
@@ -145,8 +147,7 @@ public class Camera1Manager extends BaseCameraManager<Integer> {
             backgroundHandler.post(new Runnable() {
                 @Override
                 public void run() {
-                     // TODO use inner method instead of this 
-                    adjustCameraParameters(false, false, true);
+                    setFlashModeInternal(null);
                 }
             });
         }
@@ -192,36 +193,37 @@ public class Camera1Manager extends BaseCameraManager<Integer> {
         super.takePicture(cameraPhotoListener);
         if (!isCameraOpened()) {
             notifyCameraCaptureFailed(new RuntimeException("Camera not open yet!"));
-            // TODO should return here?
+            return;
         }
-        // TODO check camera open
-        backgroundHandler.post(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    if (!takingPicture) {
-                        takingPicture = true;
-                        camera.takePicture(voiceEnabled ? new android.hardware.Camera.ShutterCallback() {
-                            @Override
-                            public void onShutter() {
-                            }
-                        } : null, null, new android.hardware.Camera.PictureCallback() {
-                            @Override
-                            public void onPictureTaken(byte[] bytes, android.hardware.Camera camera) {
-                                takingPicture = false;
-                                notifyCameraPictureTaken(bytes);
-                            }
-                        });
-                    } else {
-                        Logger.i(TAG, "takePicture : taking picture");
+        if (isCameraOpened()) {
+            backgroundHandler.post(new Runnable() {
+                @Override
+                public void run() {
+                    try {
+                        if (!takingPicture) {
+                            takingPicture = true;
+                            camera.takePicture(voiceEnabled ? new android.hardware.Camera.ShutterCallback() {
+                                @Override
+                                public void onShutter() {
+                                }
+                            } : null, null, new android.hardware.Camera.PictureCallback() {
+                                @Override
+                                public void onPictureTaken(byte[] bytes, android.hardware.Camera camera) {
+                                    takingPicture = false;
+                                    notifyCameraPictureTaken(bytes);
+                                }
+                            });
+                        } else {
+                            Logger.i(TAG, "takePicture : taking picture");
+                        }
+                    } catch (Exception ex) {
+                        takingPicture = false;
+                        Logger.e(TAG, "takePicture error : " + ex);
+                        notifyCameraCaptureFailed(new RuntimeException(ex));
                     }
-                } catch (Exception ex) {
-                    takingPicture = false;
-                    Logger.e(TAG, "takePicture error : " + ex);
-                    notifyCameraCaptureFailed(new RuntimeException(ex));
                 }
-            }
-        });
+            });
+        }
     }
 
     @Override
@@ -250,10 +252,9 @@ public class Camera1Manager extends BaseCameraManager<Integer> {
             backgroundHandler.post(new Runnable() {
                 @Override
                 public void run() {
-                    // TODO the boolean should update until finally stpped
-                    videoRecording = false;
-                    // TODO call videoRecorder.stop()
+                    safeStopVideoRecorder();
                     releaseVideoRecorder();
+                    videoRecording = false;
                     notifyVideoRecordStop(videoOutFile);
                 }
             });
@@ -327,15 +328,7 @@ public class Camera1Manager extends BaseCameraManager<Integer> {
 
         start = System.currentTimeMillis();
         if (changeFocusMode) {
-            if (mediaType == Media.TYPE_VIDEO) {
-                if (!turnVideoCameraFeaturesOn(parameters)) {
-                    setAutoFocusInternal(parameters);
-                }
-            } else if (mediaType == Media.TYPE_PICTURE) {
-                if (!turnPhotoCameraFeaturesOn(parameters)) {
-                    setAutoFocusInternal(parameters);
-                }
-            }
+            setFocusModeInternal(parameters);
         }
         Logger.d(TAG, "adjustCameraParameters focus cost : " + (System.currentTimeMillis() - start) + " ms");
 
@@ -366,14 +359,13 @@ public class Camera1Manager extends BaseCameraManager<Integer> {
         try {
             if (cameraPreview.getPreviewType() == Preview.SURFACE_VIEW) {
                 if (showingPreview) {
-                    // TODO boolean state
-                    showingPreview = false;
                     camera.stopPreview();
+                    showingPreview = false;
                 }
                 camera.setPreviewDisplay(cameraPreview.getSurfaceHolder());
                 if (!showingPreview) {
-                    showingPreview = true;
                     camera.startPreview();
+                    showingPreview = true;
                 }
             } else {
                 camera.setPreviewTexture(cameraPreview.getSurfaceTexture());
@@ -430,7 +422,24 @@ public class Camera1Manager extends BaseCameraManager<Integer> {
         return false;
     }
 
-    private boolean turnPhotoCameraFeaturesOn(android.hardware.Camera.Parameters parameters) {
+    private void setFocusModeInternal(@Nullable android.hardware.Camera.Parameters parameters) {
+        boolean nullParameters = parameters == null;
+        parameters = nullParameters ? camera.getParameters() : parameters;
+        if (mediaType == Media.TYPE_VIDEO) {
+            if (!turnVideoCameraFeaturesOn(parameters)) {
+                setAutoFocusInternal(parameters);
+            }
+        } else if (mediaType == Media.TYPE_PICTURE) {
+            if (!turnPhotoCameraFeaturesOn(parameters)) {
+                setAutoFocusInternal(parameters);
+            }
+        }
+        if (nullParameters) {
+            camera.setParameters(parameters);
+        }
+    }
+
+    private boolean turnPhotoCameraFeaturesOn(@NonNull android.hardware.Camera.Parameters parameters) {
         if (parameters.getSupportedFocusModes().contains(
                 android.hardware.Camera.Parameters.FOCUS_MODE_CONTINUOUS_PICTURE)) {
             parameters.setFocusMode(android.hardware.Camera.Parameters.FOCUS_MODE_CONTINUOUS_PICTURE);
@@ -439,7 +448,7 @@ public class Camera1Manager extends BaseCameraManager<Integer> {
         return false;
     }
 
-    private boolean turnVideoCameraFeaturesOn(android.hardware.Camera.Parameters parameters) {
+    private boolean turnVideoCameraFeaturesOn(@NonNull android.hardware.Camera.Parameters parameters) {
         if (parameters.getSupportedFocusModes().contains(
                 android.hardware.Camera.Parameters.FOCUS_MODE_CONTINUOUS_VIDEO)) {
             parameters.setFocusMode(android.hardware.Camera.Parameters.FOCUS_MODE_CONTINUOUS_VIDEO);
@@ -448,7 +457,7 @@ public class Camera1Manager extends BaseCameraManager<Integer> {
         return false;
     }
 
-    private void setAutoFocusInternal(android.hardware.Camera.Parameters parameters) {
+    private void setAutoFocusInternal(@NonNull android.hardware.Camera.Parameters parameters) {
         try {
             final List<String> modes = parameters.getSupportedFocusModes();
             if (isAutoFocus && modes.contains(android.hardware.Camera.Parameters.FOCUS_MODE_AUTO)) {
@@ -465,7 +474,9 @@ public class Camera1Manager extends BaseCameraManager<Integer> {
         }
     }
 
-    private void setFlashModeInternal(android.hardware.Camera.Parameters parameters) {
+    private void setFlashModeInternal(@Nullable android.hardware.Camera.Parameters parameters) {
+        boolean nullParameters = parameters == null;
+        parameters = nullParameters ? camera.getParameters() : parameters;
         List<String> modes = parameters.getSupportedFlashModes();
         try {
             switch (flashMode) {
@@ -481,6 +492,9 @@ public class Camera1Manager extends BaseCameraManager<Integer> {
                         parameters.setFlashMode(android.hardware.Camera.Parameters.FLASH_MODE_AUTO);
                     }
                     break;
+            }
+            if (nullParameters) {
+                camera.setParameters(parameters);
             }
         } catch (Exception ex) {
             Logger.e(TAG, "setFlashModeInternal : " + ex);

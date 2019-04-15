@@ -187,6 +187,16 @@ abstract class BaseCameraManager<CameraId> implements CameraManager {
         }
     }
 
+    void safeStopVideoRecorder() {
+        try {
+            if (videoRecorder != null) {
+                videoRecorder.stop();
+            }
+        } catch (Exception ex) {
+            notifyVideoRecordError(new RuntimeException(ex));
+        }
+    }
+
     void releaseVideoRecorder() {
         try {
             if (videoRecorder != null) {
