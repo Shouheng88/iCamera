@@ -2,16 +2,23 @@ package me.shouheng.sample
 
 import android.graphics.Color
 import android.os.Bundle
+import android.support.v7.widget.PopupMenu
 import android.util.Log
+import android.view.Gravity
 import android.view.View
 import android.widget.SeekBar
 import android.widget.TextView
 import android.widget.Toast
 import me.shouheng.camerax.config.ConfigurationProvider
+import me.shouheng.camerax.config.sizes.Size
+import me.shouheng.camerax.config.sizes.SizeMap
+import me.shouheng.camerax.enums.Camera
 import me.shouheng.camerax.enums.Flash
 import me.shouheng.camerax.enums.Media
 import me.shouheng.camerax.listener.CameraPhotoListener
+import me.shouheng.camerax.listener.CameraSizeListener
 import me.shouheng.camerax.listener.CameraVideoListener
+import me.shouheng.camerax.util.Logger
 import me.shouheng.sample.base.CommonActivity
 import me.shouheng.sample.databinding.ActivityCameraBinding
 import me.shouheng.sample.utils.FileUtils
@@ -59,6 +66,15 @@ class CameraActivity : CommonActivity<ActivityCameraBinding>() {
         binding.scTouchZoom.setOnCheckedChangeListener { _, isChecked ->
             binding.cv.setTouchZoomEnable(isChecked)
         }
+        binding.tvPreviewSizes.setOnClickListener {
+            showPopDialog(it, binding.cv.getSizes(Camera.SIZE_FOR_PREVIEW))
+        }
+        binding.tvPictureSizes.setOnClickListener {
+            showPopDialog(it, binding.cv.getSizes(Camera.SIZE_FOR_PICTURE))
+        }
+        binding.tvVideoSizes.setOnClickListener {
+            showPopDialog(it, binding.cv.getSizes(Camera.SIZE_FOR_VIDEO))
+        }
     }
 
     private fun configMain() {
@@ -77,6 +93,32 @@ class CameraActivity : CommonActivity<ActivityCameraBinding>() {
         binding.cv.setOnMoveListener {
             Toast.makeText(this@CameraActivity, if (it) "LEFT" else "RIGHT", Toast.LENGTH_SHORT).show()
         }
+        binding.cv.setCameraSizeListener(object : CameraSizeListener {
+            override fun onPreviewSizeUpdated(previewSize: Size?) {
+                Logger.d(TAG, "onPreviewSizeUpdated : $previewSize")
+            }
+
+            override fun onVideoSizeUpdated(videoSize: Size?) {
+                Logger.d(TAG, "onVideoSizeUpdated : $videoSize")
+            }
+
+            override fun onPictureSizeUpdated(pictureSize: Size?) {
+                Logger.d(TAG, "onPictureSizeUpdated : $pictureSize")
+            }
+        })
+    }
+
+    private fun showPopDialog(view: View, sizes: SizeMap) {
+        val pop = PopupMenu(this, view)
+        val list = mutableListOf<Size>()
+        sizes.values.forEach {
+            list.addAll(it)
+        }
+        list.forEach {
+            pop.menu.add(it.toString())
+        }
+        pop.gravity = Gravity.END
+        pop.show()
     }
 
     override fun onResume() {

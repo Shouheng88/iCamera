@@ -9,6 +9,9 @@
     <string name="camera_drawer_flash">Enable flash</string>
     <string name="camera_drawer_touch_zoom">Enable touch zoom</string>
     <string name="camera_drawer_touch_focus">Enable touch focus</string>
+    <string name="camera_drawer_preview_sizes">Get Preview Sizes</string>
+    <string name="camera_drawer_picture_sizes">Get Picture Sizes</string>
+    <string name="camera_drawer_video_sizes">Get Video Sizes</string>
 
     <string name="camera_main_video">Video</string>
     <string name="camera_main_picture">Picture</string>
