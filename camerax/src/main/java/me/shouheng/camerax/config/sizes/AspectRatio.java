@@ -1,18 +1,20 @@
 package me.shouheng.camerax.config.sizes;
 
+import android.support.annotation.IntRange;
+
 /**
  * @author WngShhng (shouheng2015@gmail.com)
  * @version 2019/4/13 23:08
  */
 public class AspectRatio {
 
-    private float ratio;
+    private double ratio;
 
     public final int widthRatio;
 
     public final int heightRatio;
 
-    public static AspectRatio of(int widthRatio, int heightRatio) {
+    public static AspectRatio of(@IntRange(from = 1) int widthRatio, @IntRange(from = 0) int heightRatio) {
         return new AspectRatio(widthRatio, heightRatio);
     }
 
@@ -33,5 +35,28 @@ public class AspectRatio {
     private AspectRatio(int widthRatio, int heightRatio) {
         this.widthRatio = widthRatio;
         this.heightRatio = heightRatio;
+    }
+
+    public double ratio() {
+        if (ratio == 0) {
+            ratio = (double) heightRatio / widthRatio;
+        }
+        return ratio;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        AspectRatio that = (AspectRatio) o;
+
+        return Double.compare(that.ratio(), ratio()) == 0;
+    }
+
+    @Override
+    public int hashCode() {
+        long temp = Double.doubleToLongBits(ratio());
+        return (int) (temp ^ (temp >>> 32));
     }
 }

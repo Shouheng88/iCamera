@@ -19,6 +19,8 @@ import java.util.List;
  */
 public final class CameraHelper {
 
+    private static final String TAG = "CameraHelper";
+
     private CameraHelper() {
         throw new UnsupportedOperationException("U can't initialize me!");
     }
@@ -55,39 +57,34 @@ public final class CameraHelper {
     public static Size getSizeWithClosestRatio(List<Size> sizes, Size expectSize) {
         if (sizes == null) return null;
 
-        double MIN_TOLERANCE = 100;
-        double targetRatio = expectSize.ratio();
         Size optimalSize = null;
-        double minDiff;
-
-        int targetHeight = expectSize.height;
+        double targetRatio = expectSize.ratio();
+        double minRatioDiff = Double.MAX_VALUE;
 
         for (Size size : sizes) {
-            if (size.width == expectSize.width && size.height == expectSize.height)
+            if (size.equals(expectSize)) {
                 return size;
-
-            double diff = Math.abs(size.ratio() - targetRatio);
-            if (diff < MIN_TOLERANCE) {
-                MIN_TOLERANCE = diff;
-                minDiff = Double.MAX_VALUE;
-            } else {
-                continue;
             }
-
-            if (Math.abs(size.height - targetHeight) < minDiff) {
+            double ratioDiff = Math.abs(size.ratio() - targetRatio);
+            if (ratioDiff < minRatioDiff) {
                 optimalSize = size;
+                minRatioDiff = ratioDiff;
             }
         }
 
-        if (optimalSize == null) {
-            minDiff = Double.MAX_VALUE;
-            for (Size size : sizes) {
-                if (Math.abs(size.height - targetHeight) < minDiff) {
+        int minHeightDiff = Integer.MAX_VALUE;
+        int targetHeight = expectSize.height;
+        for (Size size : sizes) {
+            if (size.ratio() == minHeightDiff) {
+                int heightDiff = Math.abs(size.height - targetHeight);
+                if (heightDiff <= minHeightDiff) {
+                    minHeightDiff = heightDiff;
                     optimalSize = size;
-                    minDiff = Math.abs(size.height - targetHeight);
                 }
             }
         }
+
+        Logger.d(TAG, "getSizeWithClosestRatio : expected " + expectSize + ", result " + optimalSize);
         return optimalSize;
     }
 

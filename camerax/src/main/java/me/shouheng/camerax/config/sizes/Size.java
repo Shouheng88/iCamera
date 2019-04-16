@@ -21,7 +21,7 @@ public class Size {
 
     private double ratio;
 
-    public static Size of(@IntRange(from = 0) int width, @IntRange(from = 0) int height) {
+    public static Size of(@IntRange(from = 1) int width, @IntRange(from = 0) int height) {
         return new Size(width, height);
     }
 
@@ -33,7 +33,7 @@ public class Size {
         return sizes;
     }
 
-    private Size(@IntRange(from = 0) int width, @IntRange(from = 0) int height) {
+    private Size(@IntRange(from = 1) int width, @IntRange(from = 0) int height) {
         this.width = width;
         this.height = height;
     }
@@ -50,5 +50,29 @@ public class Size {
             ratio = (double) height / width;
         }
         return ratio;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        Size size = (Size) o;
+
+        if (width != size.width) return false;
+        return height == size.height;
+    }
+
+    @Override
+    public int hashCode() {
+        int result = width;
+        result = 31 * result + height;
+        return result;
+    }
+
+    @NonNull
+    @Override
+    public String toString() {
+        return "(" + width +  ", " + height + ")";
     }
 }
