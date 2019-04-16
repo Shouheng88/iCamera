@@ -4,13 +4,17 @@ import android.annotation.TargetApi;
 import android.content.Context;
 import android.media.CamcorderProfile;
 import android.os.Build;
+import android.support.annotation.NonNull;
 import android.text.TextUtils;
 import android.view.Surface;
 import android.view.WindowManager;
+import me.shouheng.camerax.config.sizes.AspectRatio;
 import me.shouheng.camerax.config.sizes.Size;
+import me.shouheng.camerax.config.sizes.SizeMap;
 import me.shouheng.camerax.enums.Camera;
 import me.shouheng.camerax.enums.Media;
 
+import java.util.LinkedList;
 import java.util.List;
 
 /**
@@ -52,6 +56,22 @@ public final class CameraHelper {
         }
 
         return displayRotation;
+    }
+
+    public static SizeMap getSizeMapFromSizes(@NonNull List<Size> sizes) {
+        SizeMap sizeMap = new SizeMap();
+        for (Size size : sizes) {
+            AspectRatio aspectRatio = AspectRatio.of(size);
+            List<Size> list = sizeMap.get(aspectRatio);
+            if (list == null) {
+                list = new LinkedList<>();
+                list.add(size);
+                sizeMap.put(aspectRatio, list);
+            } else {
+                list.add(size);
+            }
+        }
+        return sizeMap;
     }
 
     public static Size getSizeWithClosestRatio(List<Size> sizes, Size expectSize) {

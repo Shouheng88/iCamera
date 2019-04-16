@@ -1,10 +1,14 @@
 package me.shouheng.camerax.manager;
 
 import android.content.Context;
+import me.shouheng.camerax.config.sizes.Size;
+import me.shouheng.camerax.config.sizes.SizeMap;
+import me.shouheng.camerax.enums.Camera;
 import me.shouheng.camerax.enums.Flash;
 import me.shouheng.camerax.enums.Media;
 import me.shouheng.camerax.listener.CameraOpenListener;
 import me.shouheng.camerax.listener.CameraPhotoListener;
+import me.shouheng.camerax.listener.CameraSizeListener;
 import me.shouheng.camerax.listener.CameraVideoListener;
 
 import java.io.File;
@@ -41,6 +45,12 @@ public interface CameraManager {
     float getZoom();
 
     float getMaxZoom();
+
+    Size getSize(@Camera.SizeFor int sizeFor);
+
+    SizeMap getSizes(@Camera.SizeFor int sizeFor);
+
+    void setCameraSizeListener(CameraSizeListener cameraSizeListener);
 
     void takePicture(CameraPhotoListener cameraPhotoListener);
 

@@ -6,6 +6,8 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import me.shouheng.camerax.config.ConfigurationProvider;
 import me.shouheng.camerax.config.calculator.CameraSizeCalculator;
+import me.shouheng.camerax.config.sizes.Size;
+import me.shouheng.camerax.config.sizes.SizeMap;
 import me.shouheng.camerax.enums.Camera;
 import me.shouheng.camerax.enums.Flash;
 import me.shouheng.camerax.enums.Media;
@@ -189,6 +191,41 @@ public class Camera1Manager extends BaseCameraManager<Integer> {
     }
 
     @Override
+    public Size getSize(@Camera.SizeFor int sizeFor) {
+        switch (sizeFor) {
+            case Camera.SIZE_FOR_PREVIEW:
+                return previewSize;
+            case Camera.SIZE_FOR_PICTURE:
+                return pictureSize;
+            case Camera.SIZE_FOR_VIDEO:
+                return videoSize;
+        }
+        return null;
+    }
+
+    @Override
+    public SizeMap getSizes(@Camera.SizeFor int sizeFor) {
+        switch (sizeFor) {
+            case Camera.SIZE_FOR_PREVIEW:
+                if (previewSizeMap == null) {
+                    previewSizeMap = CameraHelper.getSizeMapFromSizes(previewSizes);
+                }
+                return previewSizeMap;
+            case Camera.SIZE_FOR_PICTURE:
+                if (pictureSizeMap == null) {
+                    pictureSizeMap = CameraHelper.getSizeMapFromSizes(pictureSizes);
+                }
+                return pictureSizeMap;
+            case Camera.SIZE_FOR_VIDEO:
+                if (videoSizeMap == null) {
+                    videoSizeMap = CameraHelper.getSizeMapFromSizes(videoSizes);
+                }
+                return videoSizeMap;
+        }
+        return null;
+    }
+
+    @Override
     public void takePicture(CameraPhotoListener cameraPhotoListener) {
         super.takePicture(cameraPhotoListener);
         if (!isCameraOpened()) {
@@ -308,6 +345,7 @@ public class Camera1Manager extends BaseCameraManager<Integer> {
     private void adjustCameraParameters(boolean forceCalculateSizes,
                                         boolean changeFocusMode,
                                         boolean changeFlashMode) {
+        Size oldPreview = previewSize;
         long start = System.currentTimeMillis();
         CameraSizeCalculator cameraSizeCalculator = ConfigurationProvider.get().getCameraSizeCalculator();
         android.hardware.Camera.Parameters parameters = camera.getParameters();
@@ -315,6 +353,7 @@ public class Camera1Manager extends BaseCameraManager<Integer> {
             pictureSize = cameraSizeCalculator.getPictureSize(pictureSizes, aspectRatio, userSize);
             previewSize = cameraSizeCalculator.getPicturePreviewSize(previewSizes, pictureSize);
             parameters.setPictureSize(pictureSize.width, pictureSize.height);
+            notifyPictureSizeUpdated(pictureSize);
         }
         if (mediaType == Media.TYPE_VIDEO && (camcorderProfile == null || forceCalculateSizes)) {
             camcorderProfile = CameraHelper.getCamcorderProfile(mediaQuality, currentCameraId);
@@ -322,8 +361,12 @@ public class Camera1Manager extends BaseCameraManager<Integer> {
         if (mediaType == Media.TYPE_VIDEO && (videoSize == null || forceCalculateSizes)) {
             videoSize = cameraSizeCalculator.getVideoSize(videoSizes, aspectRatio, userSize);
             previewSize = cameraSizeCalculator.getVideoPreviewSize(previewSizes, videoSize);
+            notifyVideoSizeUpdated(previewSize);
         }
-        parameters.setPreviewSize(previewSize.width, previewSize.height);
+        if (!previewSize.equals(oldPreview)) {
+            parameters.setPreviewSize(previewSize.width, previewSize.height);
+            notifyPreviewSizeUpdated(previewSize);
+        }
         Logger.d(TAG, "adjustCameraParameters size cost : " + (System.currentTimeMillis() - start) + " ms");
 
         start = System.currentTimeMillis();

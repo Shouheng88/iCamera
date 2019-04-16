@@ -1,6 +1,7 @@
 package me.shouheng.camerax.config.sizes;
 
 import android.support.annotation.IntRange;
+import android.support.annotation.NonNull;
 
 /**
  * @author WngShhng (shouheng2015@gmail.com)
@@ -13,6 +14,10 @@ public class AspectRatio {
     public final int widthRatio;
 
     public final int heightRatio;
+
+    public static AspectRatio of(@NonNull Size size) {
+        return new AspectRatio(size.width, size.height);
+    }
 
     public static AspectRatio of(@IntRange(from = 1) int widthRatio, @IntRange(from = 0) int heightRatio) {
         return new AspectRatio(widthRatio, heightRatio);

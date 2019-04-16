@@ -1,6 +1,8 @@
 package me.shouheng.camerax.manager.impl;
 
 import android.content.Context;
+import me.shouheng.camerax.config.sizes.Size;
+import me.shouheng.camerax.config.sizes.SizeMap;
 import me.shouheng.camerax.listener.CameraOpenListener;
 import me.shouheng.camerax.listener.CameraPhotoListener;
 import me.shouheng.camerax.listener.CameraVideoListener;
@@ -81,6 +83,16 @@ public class Camera2Manager extends BaseCameraManager {
     @Override
     public float getMaxZoom() {
         return 0;
+    }
+
+    @Override
+    public Size getSize(int sizeFor) {
+        return null;
+    }
+
+    @Override
+    public SizeMap getSizes(int sizeFor) {
+        return null;
     }
 
     @Override

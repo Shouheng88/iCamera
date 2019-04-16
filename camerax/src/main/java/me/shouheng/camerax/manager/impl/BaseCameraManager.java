@@ -8,11 +8,13 @@ import android.os.Process;
 import me.shouheng.camerax.config.ConfigurationProvider;
 import me.shouheng.camerax.config.sizes.AspectRatio;
 import me.shouheng.camerax.config.sizes.Size;
+import me.shouheng.camerax.config.sizes.SizeMap;
 import me.shouheng.camerax.enums.Camera;
 import me.shouheng.camerax.enums.Flash;
 import me.shouheng.camerax.enums.Media;
 import me.shouheng.camerax.listener.CameraOpenListener;
 import me.shouheng.camerax.listener.CameraPhotoListener;
+import me.shouheng.camerax.listener.CameraSizeListener;
 import me.shouheng.camerax.listener.CameraVideoListener;
 import me.shouheng.camerax.manager.CameraManager;
 import me.shouheng.camerax.preview.CameraPreview;
@@ -45,6 +47,9 @@ abstract class BaseCameraManager<CameraId> implements CameraManager {
     List<Size> videoSizes;
     List<Float> zoomRatios;
     AspectRatio aspectRatio;
+    SizeMap previewSizeMap;
+    SizeMap pictureSizeMap;
+    SizeMap videoSizeMap;
     Size userSize;
     Size previewSize;
     Size pictureSize;
@@ -61,6 +66,7 @@ abstract class BaseCameraManager<CameraId> implements CameraManager {
     private CameraOpenListener cameraOpenListener;
     private CameraPhotoListener cameraPhotoListener;
     private CameraVideoListener cameraVideoListener;
+    private CameraSizeListener cameraSizeListener;
 
     CameraPreview cameraPreview;
     volatile boolean showingPreview;
@@ -90,6 +96,11 @@ abstract class BaseCameraManager<CameraId> implements CameraManager {
     @Override
     public void openCamera(CameraOpenListener cameraOpenListener) {
         this.cameraOpenListener = cameraOpenListener;
+    }
+
+    @Override
+    public void setCameraSizeListener(CameraSizeListener cameraSizeListener) {
+        this.cameraSizeListener = cameraSizeListener;
     }
 
     @Override
@@ -207,6 +218,39 @@ abstract class BaseCameraManager<CameraId> implements CameraManager {
             notifyVideoRecordError(new RuntimeException(ex));
         } finally {
             videoRecorder = null;
+        }
+    }
+
+    void notifyPreviewSizeUpdated(final Size previewSize) {
+        if (cameraSizeListener != null) {
+            uiHandler.post(new Runnable() {
+                @Override
+                public void run() {
+                    cameraSizeListener.onPreviewSizeUpdated(previewSize);
+                }
+            });
+        }
+    }
+
+    void notifyPictureSizeUpdated(final Size pictureSize) {
+        if (cameraSizeListener != null) {
+            uiHandler.post(new Runnable() {
+                @Override
+                public void run() {
+                    cameraSizeListener.onPictureSizeUpdated(pictureSize);
+                }
+            });
+        }
+    }
+
+    void notifyVideoSizeUpdated(final Size videoSize) {
+        if (cameraSizeListener != null) {
+            uiHandler.post(new Runnable() {
+                @Override
+                public void run() {
+                    cameraSizeListener.onVideoSizeUpdated(videoSize);
+                }
+            });
         }
     }
 

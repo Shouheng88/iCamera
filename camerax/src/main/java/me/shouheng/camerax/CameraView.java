@@ -10,13 +10,13 @@ import android.view.ViewGroup;
 import android.widget.FrameLayout;
 import me.shouheng.camerax.config.ConfigurationProvider;
 import me.shouheng.camerax.config.sizes.AspectRatio;
+import me.shouheng.camerax.config.sizes.Size;
+import me.shouheng.camerax.config.sizes.SizeMap;
+import me.shouheng.camerax.enums.Camera;
 import me.shouheng.camerax.enums.Flash;
 import me.shouheng.camerax.enums.Media;
 import me.shouheng.camerax.enums.Preview;
-import me.shouheng.camerax.listener.CameraOpenListener;
-import me.shouheng.camerax.listener.CameraPhotoListener;
-import me.shouheng.camerax.listener.CameraVideoListener;
-import me.shouheng.camerax.listener.OnMoveListener;
+import me.shouheng.camerax.listener.*;
 import me.shouheng.camerax.manager.CameraManager;
 import me.shouheng.camerax.preview.CameraPreview;
 import me.shouheng.camerax.util.Logger;
@@ -177,6 +177,18 @@ public class CameraView extends FrameLayout {
 
     public float getMaxZoom() {
         return cameraManager.getMaxZoom();
+    }
+
+    public Size getSize(@Camera.SizeFor int sizeFor) {
+        return cameraManager.getSize(sizeFor);
+    }
+
+    public SizeMap getSizes(@Camera.SizeFor int sizeFor) {
+        return cameraManager.getSizes(sizeFor);
+    }
+
+    public void setCameraSizeListener(CameraSizeListener cameraSizeListener) {
+        cameraManager.setCameraSizeListener(cameraSizeListener);
     }
 
     public void takePicture(CameraPhotoListener cameraPhotoListener) {
