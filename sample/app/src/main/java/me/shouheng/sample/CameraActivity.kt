@@ -46,6 +46,8 @@ class CameraActivity : CommonActivity<ActivityCameraBinding>() {
         configMain()
     }
 
+    override fun useTransparentStatusBarForLollipop(): Boolean = true
+
     private fun configDrawer() {
         binding.scVoice.isChecked = ConfigurationProvider.get().isVoiceEnable
         binding.scVoice.setOnCheckedChangeListener { _, isChecked ->
