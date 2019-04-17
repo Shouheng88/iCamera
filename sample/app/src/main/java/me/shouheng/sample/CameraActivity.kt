@@ -23,6 +23,7 @@ import me.shouheng.camerax.util.Logger
 import me.shouheng.sample.base.CommonActivity
 import me.shouheng.sample.databinding.ActivityCameraBinding
 import me.shouheng.sample.utils.FileUtils
+import me.shouheng.sample.utils.ThemeUtils
 import java.io.File
 
 /**
@@ -42,6 +43,7 @@ class CameraActivity : CommonActivity<ActivityCameraBinding>() {
     override fun getLayoutResId() = R.layout.activity_camera
 
     override fun doCreateView(savedInstanceState: Bundle?) {
+        ThemeUtils.setStatusBarLightMode(window, false)
         configDrawer()
         configMain()
     }

@@ -1,9 +1,10 @@
 <resources>
 
-    <style name="AppTheme" parent="Theme.AppCompat.Light.NoActionBar">
+    <style name="AppTheme" parent="Theme.AppCompat.NoActionBar">
         <item name="colorPrimary">@color/colorPrimary</item>
         <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
         <item name="colorAccent">@color/colorAccent</item>
+        <item name="android:windowBackground">@android:color/black</item>
     </style>
 
     <style name="AppTheme444" parent="Theme.AppCompat.Light.NoActionBar">
@@ -11,6 +12,7 @@
         <item name="colorPrimary">@color/colorPrimary</item>
         <item name="colorPrimaryDark">@android:color/darker_gray</item>
         <item name="colorAccent">@color/colorAccent</item>
+        <item name="android:windowBackground">@android:color/black</item>
     </style>
 
     <style name="AppTheme.AppBarOverlay" parent="@style/ThemeOverlay.AppCompat.Light" />

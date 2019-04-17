@@ -7,6 +7,7 @@ import android.view.View
 import me.shouheng.camerax.config.ConfigurationProvider
 import me.shouheng.sample.base.CommonActivity
 import me.shouheng.sample.databinding.ActivityMainBinding
+import me.shouheng.sample.utils.ThemeUtils
 
 /**
  * @author WngShhng (shouheng2015@gmail.com)
@@ -18,6 +19,7 @@ class MainActivity : CommonActivity<ActivityMainBinding>() {
 
     override fun doCreateView(savedInstanceState: Bundle?) {
         Log.d("MainActivity", "doCreateView")
+        ThemeUtils.setStatusBarLightMode(window, false)
         ConfigurationProvider.get().isDebug = true
         setSupportActionBar(binding.toolbar)
     }

@@ -13,7 +13,6 @@ import android.view.View
 import android.view.WindowManager
 
 
-
 /**
  * @author WngShhng (shouheng2015@gmail.com)
  * @version 2019/4/13 22:10
@@ -28,11 +27,11 @@ abstract class CommonActivity<T : ViewDataBinding> : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        customStatusBar()
         binding = DataBindingUtil.inflate(LayoutInflater.from(this),
             getLayoutResId(), null, false)
         setContentView(binding.root)
         doCreateView(savedInstanceState)
-        customStatusBar()
     }
 
     @TargetApi(Build.VERSION_CODES.LOLLIPOP)
