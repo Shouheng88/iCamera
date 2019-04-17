@@ -15,6 +15,7 @@ import me.shouheng.camerax.config.sizes.SizeMap
 import me.shouheng.camerax.enums.Camera
 import me.shouheng.camerax.enums.Flash
 import me.shouheng.camerax.enums.Media
+import me.shouheng.camerax.listener.CameraOpenListener
 import me.shouheng.camerax.listener.CameraPhotoListener
 import me.shouheng.camerax.listener.CameraSizeListener
 import me.shouheng.camerax.listener.CameraVideoListener
@@ -93,7 +94,7 @@ class CameraActivity : CommonActivity<ActivityCameraBinding>() {
         binding.cv.setOnMoveListener {
             Toast.makeText(this@CameraActivity, if (it) "LEFT" else "RIGHT", Toast.LENGTH_SHORT).show()
         }
-        binding.cv.setCameraSizeListener(object : CameraSizeListener {
+        binding.cv.addCameraSizeListener(object : CameraSizeListener {
             override fun onPreviewSizeUpdated(previewSize: Size?) {
                 Logger.d(TAG, "onPreviewSizeUpdated : $previewSize")
             }
@@ -118,12 +119,26 @@ class CameraActivity : CommonActivity<ActivityCameraBinding>() {
             pop.menu.add(it.toString())
         }
         pop.gravity = Gravity.END
+        pop.setOnMenuItemClickListener {
+            val txt = it.title.substring(1, it.title.length-1)
+            val arr = txt.split(",")
+            binding.cv.setExpectSize(Size.of(arr[0].trim().toInt(), arr[1].trim().toInt()))
+            return@setOnMenuItemClickListener true
+        }
         pop.show()
     }
 
     override fun onResume() {
         super.onResume()
-        binding.cv.openCamera()
+        binding.cv.openCamera(object : CameraOpenListener {
+            override fun onCameraOpened() {
+                Logger.d(TAG, "onCameraOpened")
+            }
+
+            override fun onCameraOpenError(throwable: Throwable?) {
+                Logger.d(TAG, "error : $throwable")
+            }
+        })
     }
 
     fun picture(v: View) {
