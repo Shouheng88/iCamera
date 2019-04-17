@@ -17,6 +17,8 @@ import me.shouheng.camerax.enums.Media;
 import java.util.LinkedList;
 import java.util.List;
 
+import static android.view.OrientationEventListener.ORIENTATION_UNKNOWN;
+
 /**
  * @author WngShhng (shouheng2015@gmail.com)
  * @version 2019/4/14 9:34
@@ -27,6 +29,20 @@ public final class CameraHelper {
 
     private CameraHelper() {
         throw new UnsupportedOperationException("U can't initialize me!");
+    }
+
+    public static void onOrientationChanged(int cameraId, int orientation, android.hardware.Camera.Parameters parameters) {
+        if (orientation == ORIENTATION_UNKNOWN) return;
+        android.hardware.Camera.CameraInfo info = new android.hardware.Camera.CameraInfo();
+        android.hardware.Camera.getCameraInfo(cameraId, info);
+        orientation = (orientation + 45) / 90 * 90;
+        int rotation;
+        if (info.facing == android.hardware.Camera.CameraInfo.CAMERA_FACING_FRONT) {
+            rotation = (info.orientation - orientation + 360) % 360;
+        } else {  // back-facing camera
+            rotation = (info.orientation + orientation) % 360;
+        }
+        parameters.setRotation(rotation);
     }
 
     public static int calDisplayOrientation(Context context, @Camera.Face int cameraFace, int cameraOrientation) {

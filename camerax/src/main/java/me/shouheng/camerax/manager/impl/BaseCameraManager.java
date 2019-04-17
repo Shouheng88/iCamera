@@ -21,6 +21,7 @@ import me.shouheng.camerax.preview.CameraPreview;
 import me.shouheng.camerax.util.Logger;
 
 import java.io.File;
+import java.util.LinkedList;
 import java.util.List;
 
 /**
@@ -46,11 +47,11 @@ abstract class BaseCameraManager<CameraId> implements CameraManager {
     List<Size> pictureSizes;
     List<Size> videoSizes;
     List<Float> zoomRatios;
-    AspectRatio aspectRatio;
+    AspectRatio expectAspectRatio;
     SizeMap previewSizeMap;
     SizeMap pictureSizeMap;
     SizeMap videoSizeMap;
-    Size userSize;
+    Size expectSize;
     Size previewSize;
     Size pictureSize;
     Size videoSize;
@@ -62,11 +63,12 @@ abstract class BaseCameraManager<CameraId> implements CameraManager {
     @Flash.FlashMode int flashMode;
     float zoom = 1.0f;
     float maxZoom;
+    int displayOrientation;
 
     private CameraOpenListener cameraOpenListener;
     private CameraPhotoListener cameraPhotoListener;
     private CameraVideoListener cameraVideoListener;
-    private CameraSizeListener cameraSizeListener;
+    private List<CameraSizeListener> cameraSizeListeners;
 
     CameraPreview cameraPreview;
     volatile boolean showingPreview;
@@ -75,16 +77,17 @@ abstract class BaseCameraManager<CameraId> implements CameraManager {
 
     private HandlerThread backgroundThread;
     Handler backgroundHandler;
-    Handler uiHandler = new Handler(Looper.getMainLooper());
+    private Handler uiHandler = new Handler(Looper.getMainLooper());
 
     BaseCameraManager(CameraPreview cameraPreview) {
         this.cameraPreview = cameraPreview;
-        aspectRatio = ConfigurationProvider.get().getDefaultAspectRatio();
+        expectAspectRatio = ConfigurationProvider.get().getDefaultAspectRatio();
         mediaType = ConfigurationProvider.get().getDefaultMediaType();
         mediaQuality = ConfigurationProvider.get().getDefaultMediaQuality();
         voiceEnabled = ConfigurationProvider.get().isVoiceEnable();
         isAutoFocus = ConfigurationProvider.get().isAutoFocus();
         flashMode = ConfigurationProvider.get().getDefaultFlashMode();
+        cameraSizeListeners = new LinkedList<>();
     }
 
     @Override
@@ -99,8 +102,23 @@ abstract class BaseCameraManager<CameraId> implements CameraManager {
     }
 
     @Override
-    public void setCameraSizeListener(CameraSizeListener cameraSizeListener) {
-        this.cameraSizeListener = cameraSizeListener;
+    public void setExpectSize(Size expectSize) {
+        this.expectSize = expectSize;
+    }
+
+    @Override
+    public void setExpectAspectRatio(AspectRatio expectAspectRatio) {
+        this.expectAspectRatio = expectAspectRatio;
+    }
+
+    @Override
+    public AspectRatio getAspectRatio() {
+        return AspectRatio.of(previewSize);
+    }
+
+    @Override
+    public void addCameraSizeListener(CameraSizeListener cameraSizeListener) {
+        this.cameraSizeListeners.add(cameraSizeListener);
     }
 
     @Override
@@ -222,36 +240,36 @@ abstract class BaseCameraManager<CameraId> implements CameraManager {
     }
 
     void notifyPreviewSizeUpdated(final Size previewSize) {
-        if (cameraSizeListener != null) {
-            uiHandler.post(new Runnable() {
-                @Override
-                public void run() {
+        uiHandler.post(new Runnable() {
+            @Override
+            public void run() {
+                for (CameraSizeListener cameraSizeListener : cameraSizeListeners) {
                     cameraSizeListener.onPreviewSizeUpdated(previewSize);
                 }
-            });
-        }
+            }
+        });
     }
 
     void notifyPictureSizeUpdated(final Size pictureSize) {
-        if (cameraSizeListener != null) {
-            uiHandler.post(new Runnable() {
-                @Override
-                public void run() {
+        uiHandler.post(new Runnable() {
+            @Override
+            public void run() {
+                for (CameraSizeListener cameraSizeListener : cameraSizeListeners) {
                     cameraSizeListener.onPictureSizeUpdated(pictureSize);
                 }
-            });
-        }
+            }
+        });
     }
 
     void notifyVideoSizeUpdated(final Size videoSize) {
-        if (cameraSizeListener != null) {
-            uiHandler.post(new Runnable() {
-                @Override
-                public void run() {
+        uiHandler.post(new Runnable() {
+            @Override
+            public void run() {
+                for (CameraSizeListener cameraSizeListener : cameraSizeListeners) {
                     cameraSizeListener.onVideoSizeUpdated(videoSize);
                 }
-            });
-        }
+            }
+        });
     }
 
     /*-----------------------------------private methods-----------------------------------*/

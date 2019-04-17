@@ -96,6 +96,11 @@ public class Camera2Manager extends BaseCameraManager {
     }
 
     @Override
+    public void setDisplayOrientation(int displayOrientation) {
+
+    }
+
+    @Override
     public void takePicture(CameraPhotoListener cameraPhotoListener) {
 
     }

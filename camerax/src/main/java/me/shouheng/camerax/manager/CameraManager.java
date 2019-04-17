@@ -1,6 +1,7 @@
 package me.shouheng.camerax.manager;
 
 import android.content.Context;
+import me.shouheng.camerax.config.sizes.AspectRatio;
 import me.shouheng.camerax.config.sizes.Size;
 import me.shouheng.camerax.config.sizes.SizeMap;
 import me.shouheng.camerax.enums.Camera;
@@ -46,11 +47,19 @@ public interface CameraManager {
 
     float getMaxZoom();
 
+    void setExpectSize(Size expectSize);
+
+    void setExpectAspectRatio(AspectRatio expectAspectRatio);
+
     Size getSize(@Camera.SizeFor int sizeFor);
 
     SizeMap getSizes(@Camera.SizeFor int sizeFor);
 
-    void setCameraSizeListener(CameraSizeListener cameraSizeListener);
+    AspectRatio getAspectRatio();
+
+    void setDisplayOrientation(int displayOrientation);
+
+    void addCameraSizeListener(CameraSizeListener cameraSizeListener);
 
     void takePicture(CameraPhotoListener cameraPhotoListener);
 

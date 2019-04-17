@@ -49,6 +49,10 @@ public class AspectRatio {
         return ratio;
     }
 
+    public AspectRatio inverse() {
+        return AspectRatio.of(heightRatio, widthRatio);
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;

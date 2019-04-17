@@ -18,6 +18,9 @@ public class CameraSizeCalculatorImpl implements CameraSizeCalculator {
 
     private static final String TAG = "CameraSizeCalculatorImp";
 
+    private Size lastPictureSizeForPreview;
+    private Size lastVideoSizeForPreview;
+
     private Size lastPictureSize;
     private Size lastVideoSize;
     private Size picturePreviewSize;
@@ -28,8 +31,8 @@ public class CameraSizeCalculatorImpl implements CameraSizeCalculator {
 
     @Override
     public Size getPicturePreviewSize(@NonNull List<Size> previewSizes, @NonNull Size pictureSize) {
-        if (picturePreviewSize == null || !lastPictureSize.equals(pictureSize)) {
-            lastPictureSize = pictureSize;
+        if (picturePreviewSize == null || !lastPictureSizeForPreview.equals(pictureSize)) {
+            lastPictureSizeForPreview = pictureSize;
             picturePreviewSize = CameraHelper.getSizeWithClosestRatio(previewSizes, pictureSize);
         }
         return picturePreviewSize;
@@ -37,8 +40,8 @@ public class CameraSizeCalculatorImpl implements CameraSizeCalculator {
 
     @Override
     public Size getVideoPreviewSize(@NonNull List<Size> previewSizes, @NonNull Size videoSize) {
-        if (videoPreviewSize == null || !lastVideoSize.equals(videoSize)) {
-            lastVideoSize = videoSize;
+        if (videoPreviewSize == null || !lastVideoSizeForPreview.equals(videoSize)) {
+            lastVideoSizeForPreview = videoSize;
             videoPreviewSize = CameraHelper.getSizeWithClosestRatio(previewSizes, videoSize);
         }
         return videoPreviewSize;

@@ -6,6 +6,7 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import me.shouheng.camerax.config.ConfigurationProvider;
 import me.shouheng.camerax.config.calculator.CameraSizeCalculator;
+import me.shouheng.camerax.config.sizes.AspectRatio;
 import me.shouheng.camerax.config.sizes.Size;
 import me.shouheng.camerax.config.sizes.SizeMap;
 import me.shouheng.camerax.enums.Camera;
@@ -191,6 +192,18 @@ public class Camera1Manager extends BaseCameraManager<Integer> {
     }
 
     @Override
+    public void setExpectSize(Size expectSize) {
+        super.setExpectSize(expectSize);
+        adjustCameraParameters(true, false, false);
+    }
+
+    @Override
+    public void setExpectAspectRatio(AspectRatio expectAspectRatio) {
+        super.setExpectAspectRatio(expectAspectRatio);
+        adjustCameraParameters(true, false, false);
+    }
+
+    @Override
     public Size getSize(@Camera.SizeFor int sizeFor) {
         switch (sizeFor) {
             case Camera.SIZE_FOR_PREVIEW:
@@ -223,6 +236,29 @@ public class Camera1Manager extends BaseCameraManager<Integer> {
                 return videoSizeMap;
         }
         return null;
+    }
+
+    @Override
+    public void setDisplayOrientation(int displayOrientation) {
+        if (this.displayOrientation == displayOrientation) {
+            return;
+        }
+        this.displayOrientation = displayOrientation;
+        if (isCameraOpened()) {
+            android.hardware.Camera.Parameters parameters = camera.getParameters();
+            CameraHelper.onOrientationChanged(currentCameraId, displayOrientation, parameters);
+            camera.setParameters(parameters);
+            if (showingPreview) {
+                camera.stopPreview();
+                showingPreview = false;
+            }
+            camera.setDisplayOrientation(CameraHelper.calDisplayOrientation(context, cameraFace,
+                    cameraFace == Camera.FACE_FRONT ? frontCameraOrientation : rearCameraOrientation));
+            if (!showingPreview) {
+                camera.startPreview();
+                showingPreview = true;
+            }
+        }
     }
 
     @Override
@@ -342,15 +378,13 @@ public class Camera1Manager extends BaseCameraManager<Integer> {
         }
     }
 
-    private void adjustCameraParameters(boolean forceCalculateSizes,
-                                        boolean changeFocusMode,
-                                        boolean changeFlashMode) {
+    private void adjustCameraParameters(boolean forceCalculateSizes, boolean changeFocusMode, boolean changeFlashMode) {
         Size oldPreview = previewSize;
         long start = System.currentTimeMillis();
         CameraSizeCalculator cameraSizeCalculator = ConfigurationProvider.get().getCameraSizeCalculator();
         android.hardware.Camera.Parameters parameters = camera.getParameters();
         if (mediaType == Media.TYPE_PICTURE && (pictureSize == null || forceCalculateSizes)) {
-            pictureSize = cameraSizeCalculator.getPictureSize(pictureSizes, aspectRatio, userSize);
+            pictureSize = cameraSizeCalculator.getPictureSize(pictureSizes, expectAspectRatio, expectSize);
             previewSize = cameraSizeCalculator.getPicturePreviewSize(previewSizes, pictureSize);
             parameters.setPictureSize(pictureSize.width, pictureSize.height);
             notifyPictureSizeUpdated(pictureSize);
@@ -359,7 +393,7 @@ public class Camera1Manager extends BaseCameraManager<Integer> {
             camcorderProfile = CameraHelper.getCamcorderProfile(mediaQuality, currentCameraId);
         }
         if (mediaType == Media.TYPE_VIDEO && (videoSize == null || forceCalculateSizes)) {
-            videoSize = cameraSizeCalculator.getVideoSize(videoSizes, aspectRatio, userSize);
+            videoSize = cameraSizeCalculator.getVideoSize(videoSizes, expectAspectRatio, expectSize);
             previewSize = cameraSizeCalculator.getVideoPreviewSize(previewSizes, videoSize);
             notifyVideoSizeUpdated(previewSize);
         }

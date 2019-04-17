@@ -5,6 +5,7 @@ import android.os.Build;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.annotation.RequiresApi;
+import android.support.v4.view.ViewCompat;
 import android.util.AttributeSet;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
@@ -19,7 +20,6 @@ import me.shouheng.camerax.enums.Preview;
 import me.shouheng.camerax.listener.*;
 import me.shouheng.camerax.manager.CameraManager;
 import me.shouheng.camerax.preview.CameraPreview;
-import me.shouheng.camerax.util.Logger;
 import me.shouheng.camerax.widget.FocusMarkerLayout;
 
 import java.io.File;
@@ -41,6 +41,7 @@ public class CameraView extends FrameLayout {
     private int adjustType;
     private AspectRatio aspectRatio;
     private FocusMarkerLayout focusMarkerLayout;
+    private DisplayOrientationDetector displayOrientationDetector;
 
     public CameraView(@NonNull Context context) {
         this(context, null);
@@ -62,20 +63,61 @@ public class CameraView extends FrameLayout {
     }
 
     private void initCameraView(@NonNull Context context, @Nullable AttributeSet attrs, int defStyleAttr, int defStyleRes) {
-        CameraPreview cameraPreview = ConfigurationProvider.get().getCameraPreviewCreator().create(getContext(), this);
+        final CameraPreview cameraPreview = ConfigurationProvider.get().getCameraPreviewCreator().create(getContext(), this);
         cameraManager = ConfigurationProvider.get().getCameraManagerCreator().create(cameraPreview);
         cameraManager.initialize(context);
+        cameraManager.addCameraSizeListener(new CameraSizeListener() {
+            @Override
+            public void onPreviewSizeUpdated(Size previewSize) {
+                aspectRatio = cameraManager.getAspectRatio();
+                if (displayOrientationDetector.getLastKnownDisplayOrientation() % 180 == 0) {
+                    aspectRatio = aspectRatio.inverse();
+                }
+                requestLayout();
+            }
+
+            @Override
+            public void onVideoSizeUpdated(Size videoSize) {
+            }
+
+            @Override
+            public void onPictureSizeUpdated(Size pictureSize) {
+            }
+        });
 
         // prepare parameters
         clipScreen = true;
         aspectRatio = ConfigurationProvider.get().getDefaultAspectRatio();
         adjustType = SCALE_SMALLER;
 
+        displayOrientationDetector = new DisplayOrientationDetector(context) {
+            @Override
+            public void onDisplayOrientationChanged(int displayOrientation) {
+                cameraManager.setDisplayOrientation(displayOrientation);
+            }
+        };
+
         focusMarkerLayout = new FocusMarkerLayout(context);
         focusMarkerLayout.setCameraView(this);
         focusMarkerLayout.setLayoutParams(new FrameLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
         this.addView(focusMarkerLayout);
+    }
+
+    @Override
+    protected void onAttachedToWindow() {
+        super.onAttachedToWindow();
+        if (!isInEditMode()) {
+            displayOrientationDetector.enable(ViewCompat.getDisplay(this));
+        }
+    }
+
+    @Override
+    protected void onDetachedFromWindow() {
+        if (!isInEditMode()) {
+            displayOrientationDetector.disable();
+        }
+        super.onDetachedFromWindow();
     }
 
     @Override
@@ -117,18 +159,8 @@ public class CameraView extends FrameLayout {
         }
     }
 
-    public void openCamera() {
-        cameraManager.openCamera(new CameraOpenListener() {
-            @Override
-            public void onCameraOpened() {
-
-            }
-
-            @Override
-            public void onCameraOpenError(Throwable throwable) {
-                Logger.d(TAG, "error : " + throwable);
-            }
-        });
+    public void openCamera(CameraOpenListener cameraOpenListener) {
+        cameraManager.openCamera(cameraOpenListener);
     }
 
     public void setMediaType(@Media.Type int mediaType) {
@@ -179,6 +211,14 @@ public class CameraView extends FrameLayout {
         return cameraManager.getMaxZoom();
     }
 
+    public void setExpectSize(Size expectSize) {
+        cameraManager.setExpectSize(expectSize);
+    }
+
+    public void setExpectAspectRatio(AspectRatio aspectRatio) {
+        cameraManager.setExpectAspectRatio(aspectRatio);
+    }
+
     public Size getSize(@Camera.SizeFor int sizeFor) {
         return cameraManager.getSize(sizeFor);
     }
@@ -187,8 +227,12 @@ public class CameraView extends FrameLayout {
         return cameraManager.getSizes(sizeFor);
     }
 
-    public void setCameraSizeListener(CameraSizeListener cameraSizeListener) {
-        cameraManager.setCameraSizeListener(cameraSizeListener);
+    public AspectRatio getAspectRatio() {
+        return cameraManager.getAspectRatio();
+    }
+
+    public void addCameraSizeListener(CameraSizeListener cameraSizeListener) {
+        cameraManager.addCameraSizeListener(cameraSizeListener);
     }
 
     public void takePicture(CameraPhotoListener cameraPhotoListener) {
@@ -208,11 +252,11 @@ public class CameraView extends FrameLayout {
     }
 
     public void closeCamera() {
-
+        cameraManager.closeCamera();
     }
 
     public void releaseCamera() {
-
+        cameraManager.releaseCamera();
     }
 
     public void setOnMoveListener(OnMoveListener onMoveListener) {
