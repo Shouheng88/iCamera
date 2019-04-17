@@ -29,7 +29,7 @@ public class ConfigurationProvider {
     private CameraPreviewCreator cameraPreviewCreator;
     private CameraSizeCalculator cameraSizeCalculator;
 
-    private boolean useCacheSizes;
+    private boolean useCacheValues;
     private List<Size> previewSizes;
     private List<Size> pictureSizes;
     private List<Size> videoSizes;
@@ -60,7 +60,7 @@ public class ConfigurationProvider {
         cameraManagerCreator = new CameraManagerCreatorImpl();
         cameraPreviewCreator = new CameraPreviewCreatorImpl();
         cameraSizeCalculator = new CameraSizeCalculatorImpl();
-        useCacheSizes = true;
+        useCacheValues = true;
         defaultCameraFace = Camera.FACE_REAR;
         defaultMediaType = Media.TYPE_PICTURE;
         defaultMediaQuality = Media.QUALITY_HIGH;
@@ -105,49 +105,56 @@ public class ConfigurationProvider {
         this.cameraSizeCalculator = cameraSizeCalculator;
     }
 
-    public boolean isUseCacheSizes() {
-        return useCacheSizes;
+    public boolean isUseCacheValues() {
+        return useCacheValues;
     }
 
-    public void setUseCacheSizes(boolean useCacheSizes) {
-        this.useCacheSizes = useCacheSizes;
+    public void setUseCacheValues(boolean useCacheValues) {
+        this.useCacheValues = useCacheValues;
+    }
+
+    public void clearCacchedValues() {
+        previewSizes = null;
+        pictureSizes = null;
+        videoSizes = null;
+        zoomRatios = null;
     }
 
     public List<Size> getPreviewSizes(android.hardware.Camera camera) {
-        if (useCacheSizes && previewSizes != null) {
+        if (useCacheValues && previewSizes != null) {
             return previewSizes;
         }
         List<Size> sizes = Size.fromList(camera.getParameters().getSupportedPreviewSizes());
-        if (useCacheSizes) {
+        if (useCacheValues) {
             previewSizes = sizes;
         }
         return sizes;
     }
 
     public List<Size> getPictureSizes(android.hardware.Camera camera) {
-        if (useCacheSizes && pictureSizes != null) {
+        if (useCacheValues && pictureSizes != null) {
             return pictureSizes;
         }
         List<Size> sizes = Size.fromList(camera.getParameters().getSupportedPictureSizes());
-        if (useCacheSizes) {
+        if (useCacheValues) {
             pictureSizes = sizes;
         }
         return sizes;
     }
 
     public List<Size> getVideoSizes(android.hardware.Camera camera) {
-        if (useCacheSizes && videoSizes != null) {
+        if (useCacheValues && videoSizes != null) {
             return videoSizes;
         }
         List<Size> sizes = Size.fromList(camera.getParameters().getSupportedVideoSizes());
-        if (useCacheSizes) {
+        if (useCacheValues) {
             videoSizes = sizes;
         }
         return sizes;
     }
 
     public List<Float> getZoomRatios(android.hardware.Camera camera) {
-        if (useCacheSizes && zoomRatios != null) {
+        if (useCacheValues && zoomRatios != null) {
             return zoomRatios;
         }
         List<Integer> ratios = camera.getParameters().getZoomRatios();
@@ -155,7 +162,7 @@ public class ConfigurationProvider {
         for (Integer ratio : ratios) {
             result.add(ratio * 0.01f);
         }
-        if (useCacheSizes) {
+        if (useCacheValues) {
             zoomRatios = result;
         }
         return result;

@@ -65,7 +65,7 @@ abstract class BaseCameraManager<CameraId> implements CameraManager {
     float maxZoom;
     int displayOrientation;
 
-    private CameraOpenListener cameraOpenListener;
+    CameraOpenListener cameraOpenListener;
     private CameraPhotoListener cameraPhotoListener;
     private CameraVideoListener cameraVideoListener;
     private List<CameraSizeListener> cameraSizeListeners;
@@ -77,10 +77,11 @@ abstract class BaseCameraManager<CameraId> implements CameraManager {
 
     private HandlerThread backgroundThread;
     Handler backgroundHandler;
-    private Handler uiHandler = new Handler(Looper.getMainLooper());
+    Handler uiHandler = new Handler(Looper.getMainLooper());
 
     BaseCameraManager(CameraPreview cameraPreview) {
         this.cameraPreview = cameraPreview;
+        cameraFace = ConfigurationProvider.get().getDefaultCameraFace();
         expectAspectRatio = ConfigurationProvider.get().getDefaultAspectRatio();
         mediaType = ConfigurationProvider.get().getDefaultMediaType();
         mediaQuality = ConfigurationProvider.get().getDefaultMediaQuality();
@@ -99,6 +100,20 @@ abstract class BaseCameraManager<CameraId> implements CameraManager {
     @Override
     public void openCamera(CameraOpenListener cameraOpenListener) {
         this.cameraOpenListener = cameraOpenListener;
+    }
+
+    @Override
+    public int getCameraFace() {
+        return cameraFace;
+    }
+
+    @Override
+    public void switchCamera(int cameraFace) {
+        if (cameraFace == this.cameraFace) {
+            return;
+        }
+        this.cameraFace = cameraFace;
+        currentCameraId = cameraFace == Camera.FACE_FRONT ? frontCameraId : rearCameraId;
     }
 
     @Override

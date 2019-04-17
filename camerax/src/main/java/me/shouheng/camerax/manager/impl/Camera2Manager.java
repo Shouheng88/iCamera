@@ -36,6 +36,11 @@ public class Camera2Manager extends BaseCameraManager {
     }
 
     @Override
+    public void switchCamera(int cameraFace) {
+        super.switchCamera(cameraFace);
+    }
+
+    @Override
     public void setMediaType(int mediaType) {
 
     }

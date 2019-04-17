@@ -163,6 +163,19 @@ public class CameraView extends FrameLayout {
         cameraManager.openCamera(cameraOpenListener);
     }
 
+    public boolean isCameraOpened() {
+        return cameraManager.isCameraOpened();
+    }
+
+    @Camera.Face
+    public int getCameraFace() {
+        return cameraManager.getCameraFace();
+    }
+
+    public void switchCamera(@Camera.Face int cameraFace) {
+        cameraManager.switchCamera(cameraFace);
+    }
+
     public void setMediaType(@Media.Type int mediaType) {
         cameraManager.setMediaType(mediaType);
     }

@@ -37,7 +37,6 @@ public class Camera1Manager extends BaseCameraManager<Integer> {
 
     public Camera1Manager(CameraPreview cameraPreview) {
         super(cameraPreview);
-        cameraFace = ConfigurationProvider.get().getDefaultCameraFace();
         cameraPreview.setCameraPreviewCallback(new CameraPreviewCallback() {
             @Override
             public void onAvailable(CameraPreview cameraPreview) {
@@ -84,6 +83,16 @@ public class Camera1Manager extends BaseCameraManager<Integer> {
     @Override
     public boolean isCameraOpened() {
         return camera != null;
+    }
+
+    @Override
+    public void switchCamera(int cameraFace) {
+        super.switchCamera(cameraFace);
+        if (isCameraOpened()) {
+            closeCamera();
+            ConfigurationProvider.get().clearCacchedValues();
+            openCamera(cameraOpenListener);
+        }
     }
 
     @Override
@@ -343,6 +352,18 @@ public class Camera1Manager extends BaseCameraManager<Integer> {
 
     @Override
     public void closeCamera() {
+        if (isCameraOpened()) {
+            camera.setPreviewCallback(null);
+            camera.stopPreview();
+        }
+        showingPreview = false;
+        if (uiHandler != null) {
+            uiHandler.removeCallbacksAndMessages(null);
+        }
+        if (backgroundHandler != null) {
+            backgroundHandler.removeCallbacksAndMessages(null);
+        }
+        releaseCameraInternal();
     }
 
     /*--------------------------------------inner methods-----------------------------------------*/
@@ -596,6 +617,17 @@ public class Camera1Manager extends BaseCameraManager<Integer> {
             if (nullParameters) {
                 camera.setParameters(parameters);
             }
+        }
+    }
+
+    private void releaseCameraInternal() {
+        if (camera != null) {
+            camera.release();
+            camera = null;
+            previewSize = null;
+            pictureSize = null;
+            videoSize = null;
+            // TODO camera close callback
         }
     }
 

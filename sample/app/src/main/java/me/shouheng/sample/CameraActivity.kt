@@ -76,6 +76,9 @@ class CameraActivity : CommonActivity<ActivityCameraBinding>() {
         binding.tvVideoSizes.setOnClickListener {
             showPopDialog(it, binding.cv.getSizes(Camera.SIZE_FOR_VIDEO))
         }
+        binding.tvSwitchCamera.setOnClickListener {
+            binding.cv.switchCamera(if (binding.cv.cameraFace == Camera.FACE_FRONT) Camera.FACE_REAR else Camera.FACE_FRONT)
+        }
     }
 
     private fun configMain() {

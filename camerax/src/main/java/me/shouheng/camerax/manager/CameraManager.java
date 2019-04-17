@@ -26,6 +26,10 @@ public interface CameraManager {
 
     boolean isCameraOpened();
 
+    @Camera.Face int getCameraFace();
+
+    void switchCamera(@Camera.Face int cameraFace);
+
     void setMediaType(@Media.Type int mediaType);
 
     void setVoiceEnable(boolean voiceEnable);

@@ -6,6 +6,7 @@ package me.shouheng.camerax.listener;
  */
 public interface CameraOpenListener {
 
+    // TODO add camera id to this method
     void onCameraOpened();
 
     void onCameraOpenError(Throwable throwable);

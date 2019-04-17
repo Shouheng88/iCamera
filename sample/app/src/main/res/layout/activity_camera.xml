@@ -142,6 +142,11 @@
                         android:text="@string/camera_drawer_video_sizes"
                         style="@style/CameraDrawerText"/>
 
+                <android.support.v7.widget.AppCompatTextView
+                        android:id="@+id/tv_switch_camera"
+                        android:text="@string/camera_drawer_switch_camera"
+                        style="@style/CameraDrawerText"/>
+
             </LinearLayout>
 
         </android.support.v4.widget.NestedScrollView>
