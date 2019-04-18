@@ -34,6 +34,7 @@ public class Camera1Manager extends BaseCameraManager<Integer> {
     private static final String TAG = "Camera1Manager";
 
     private android.hardware.Camera camera;
+    private List<Float> zoomRatios;
 
     public Camera1Manager(CameraPreview cameraPreview) {
         super(cameraPreview);
@@ -90,7 +91,7 @@ public class Camera1Manager extends BaseCameraManager<Integer> {
         super.switchCamera(cameraFace);
         if (isCameraOpened()) {
             closeCamera();
-            ConfigurationProvider.get().clearCacchedValues();
+            ConfigurationProvider.get().clearCachedValues();
             openCamera(cameraOpenListener);
         }
     }

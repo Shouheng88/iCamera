@@ -1,6 +1,8 @@
 package me.shouheng.camerax.config.sizes;
 
+import android.annotation.TargetApi;
 import android.hardware.Camera;
+import android.os.Build;
 import android.support.annotation.IntRange;
 import android.support.annotation.NonNull;
 
@@ -29,6 +31,15 @@ public class Size {
         List<Size> sizes = new ArrayList<>(cameraSizes.size());
         for (Camera.Size size : cameraSizes) {
             sizes.add(of(size.width, size.height));
+        }
+        return sizes;
+    }
+
+    @TargetApi(Build.VERSION_CODES.LOLLIPOP)
+    public static List<Size> fromList(@NonNull android.util.Size[] cameraSizes) {
+        List<Size> sizes = new ArrayList<>(cameraSizes.length);
+        for (android.util.Size size : cameraSizes) {
+            sizes.add(of(size.getWidth(), size.getHeight()));
         }
         return sizes;
     }

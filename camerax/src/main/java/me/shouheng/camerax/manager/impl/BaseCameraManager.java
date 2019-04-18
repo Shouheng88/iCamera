@@ -46,7 +46,6 @@ abstract class BaseCameraManager<CameraId> implements CameraManager {
     List<Size> previewSizes;
     List<Size> pictureSizes;
     List<Size> videoSizes;
-    List<Float> zoomRatios;
     AspectRatio expectAspectRatio;
     SizeMap previewSizeMap;
     SizeMap pictureSizeMap;

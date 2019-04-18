@@ -1,5 +1,6 @@
 package me.shouheng.camerax.config.creator;
 
+import android.content.Context;
 import me.shouheng.camerax.manager.CameraManager;
 import me.shouheng.camerax.preview.CameraPreview;
 
@@ -12,8 +13,9 @@ public interface CameraManagerCreator {
     /**
      * Method used to create {@link CameraManager}.
      *
+     * @param context the context
      * @param cameraPreview the {@link CameraPreview}
      * @return CameraManager object.
      */
-    CameraManager create(CameraPreview cameraPreview);
+    CameraManager create(Context context, CameraPreview cameraPreview);
 }

@@ -1,5 +1,11 @@
 package me.shouheng.camerax.config;
 
+import android.annotation.TargetApi;
+import android.graphics.ImageFormat;
+import android.graphics.SurfaceTexture;
+import android.hardware.camera2.params.StreamConfigurationMap;
+import android.media.MediaRecorder;
+import android.os.Build;
 import me.shouheng.camerax.config.calculator.CameraSizeCalculator;
 import me.shouheng.camerax.config.calculator.impl.CameraSizeCalculatorImpl;
 import me.shouheng.camerax.config.creator.CameraManagerCreator;
@@ -113,7 +119,7 @@ public class ConfigurationProvider {
         this.useCacheValues = useCacheValues;
     }
 
-    public void clearCacchedValues() {
+    public void clearCachedValues() {
         previewSizes = null;
         pictureSizes = null;
         videoSizes = null;
@@ -166,6 +172,42 @@ public class ConfigurationProvider {
             zoomRatios = result;
         }
         return result;
+    }
+
+    @TargetApi(Build.VERSION_CODES.LOLLIPOP)
+    public List<Size> getPreviewSizes(StreamConfigurationMap configurationMap) {
+        if (useCacheValues && previewSizes != null) {
+            return previewSizes;
+        }
+        List<Size> sizes = Size.fromList(configurationMap.getOutputSizes(SurfaceTexture.class));
+        if (useCacheValues) {
+            previewSizes = sizes;
+        }
+        return sizes;
+    }
+
+    @TargetApi(Build.VERSION_CODES.LOLLIPOP)
+    public List<Size> getPictureSizes(StreamConfigurationMap configurationMap) {
+        if (useCacheValues && pictureSizes != null) {
+            return pictureSizes;
+        }
+        List<Size> sizes = Size.fromList(configurationMap.getOutputSizes(ImageFormat.JPEG));
+        if (useCacheValues) {
+            pictureSizes = sizes;
+        }
+        return sizes;
+    }
+
+    @TargetApi(Build.VERSION_CODES.LOLLIPOP)
+    public List<Size> getVideoSizes(StreamConfigurationMap configurationMap) {
+        if (useCacheValues && videoSizes != null) {
+            return videoSizes;
+        }
+        List<Size> sizes = Size.fromList(configurationMap.getOutputSizes(MediaRecorder.class));
+        if (useCacheValues) {
+            videoSizes = sizes;
+        }
+        return sizes;
     }
 
     @Camera.Face

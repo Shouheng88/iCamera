@@ -64,7 +64,7 @@ public class CameraView extends FrameLayout {
 
     private void initCameraView(@NonNull Context context, @Nullable AttributeSet attrs, int defStyleAttr, int defStyleRes) {
         final CameraPreview cameraPreview = ConfigurationProvider.get().getCameraPreviewCreator().create(getContext(), this);
-        cameraManager = ConfigurationProvider.get().getCameraManagerCreator().create(cameraPreview);
+        cameraManager = ConfigurationProvider.get().getCameraManagerCreator().create(context, cameraPreview);
         cameraManager.initialize(context);
         cameraManager.addCameraSizeListener(new CameraSizeListener() {
             @Override
