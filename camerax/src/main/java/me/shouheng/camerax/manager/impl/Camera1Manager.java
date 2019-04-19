@@ -35,6 +35,7 @@ public class Camera1Manager extends BaseCameraManager<Integer> {
 
     private android.hardware.Camera camera;
     private List<Float> zoomRatios;
+    private volatile boolean showingPreview;
 
     public Camera1Manager(CameraPreview cameraPreview) {
         super(cameraPreview);
@@ -174,7 +175,7 @@ public class Camera1Manager extends BaseCameraManager<Integer> {
 
     @Override
     public void setZoom(float zoom) {
-        if (zoom == this.zoom || zoom > getMaxZoom()) {
+        if (zoom == this.zoom || zoom > getMaxZoom() || zoom < 1.f) {
             return;
         }
         this.zoom = zoom;
@@ -628,6 +629,7 @@ public class Camera1Manager extends BaseCameraManager<Integer> {
             previewSize = null;
             pictureSize = null;
             videoSize = null;
+            maxZoom = 0;
             // TODO camera close callback
         }
     }
