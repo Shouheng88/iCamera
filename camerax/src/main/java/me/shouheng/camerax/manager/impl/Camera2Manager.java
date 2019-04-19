@@ -8,6 +8,7 @@ import android.hardware.camera2.*;
 import android.hardware.camera2.params.StreamConfigurationMap;
 import android.media.ImageReader;
 import android.os.Build;
+import android.support.annotation.IntDef;
 import android.support.annotation.NonNull;
 import android.support.annotation.RequiresApi;
 import android.view.Surface;
@@ -28,6 +29,8 @@ import me.shouheng.camerax.util.CameraHelper;
 import me.shouheng.camerax.util.Logger;
 
 import java.io.File;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
 import java.util.Arrays;
 
 /**
@@ -38,6 +41,31 @@ import java.util.Arrays;
 public class Camera2Manager extends BaseCameraManager<String> {
 
     private static final String TAG = "Camera2Manager";
+
+    /**
+     * Camera state: Showing camera preview.
+     */
+    private static final int STATE_PREVIEW                      = 0;
+
+    /**
+     * Camera state: Waiting for the focus to be locked.
+     */
+    private static final int STATE_WAITING_LOCK                 = 1;
+
+    /**
+     * Camera state: Waiting for the exposure to be precapture state.
+     */
+    private static final int STATE_WAITING_PRE_CAPTURE          = 2;
+
+    /**
+     * Camera state: Waiting for the exposure state to be something other than precapture.
+     */
+    private static final int STATE_WAITING_NON_PRE_CAPTURE      = 3;
+
+    /**
+     * Camera state: Picture was taken.
+     */
+    private static final int STATE_PICTURE_TAKEN                = 4;
 
     private CameraManager cameraManager;
     private CameraDevice cameraDevice;
@@ -57,6 +85,9 @@ public class Camera2Manager extends BaseCameraManager<String> {
     private CaptureRequest.Builder previewRequestBuilder;
     private CaptureRequest previewRequest;
 
+    @CameraState
+    private int cameraState;
+
     private ImageReader.OnImageAvailableListener onImageAvailableListener = new ImageReader.OnImageAvailableListener() {
         @Override
         public void onImageAvailable(ImageReader reader) {
@@ -65,44 +96,32 @@ public class Camera2Manager extends BaseCameraManager<String> {
     };
 
     private CameraCaptureSession.CaptureCallback captureCallback = new CameraCaptureSession.CaptureCallback() {
-        @Override
-        public void onCaptureStarted(@NonNull CameraCaptureSession session,
-                                     @NonNull CaptureRequest request, long timestamp, long frameNumber) {
-            super.onCaptureStarted(session, request, timestamp, frameNumber);
+
+        private void process(@NonNull CaptureResult result) {
+            switch (cameraState) {
+                case STATE_PREVIEW:
+                    break;
+                case STATE_WAITING_LOCK:
+                    break;
+                case STATE_WAITING_PRE_CAPTURE:
+                    break;
+                case STATE_WAITING_NON_PRE_CAPTURE:
+                    break;
+                case STATE_PICTURE_TAKEN:
+                    break;
+            }
         }
 
         @Override
         public void onCaptureProgressed(@NonNull CameraCaptureSession session,
                                         @NonNull CaptureRequest request, @NonNull CaptureResult partialResult) {
-            super.onCaptureProgressed(session, request, partialResult);
+            process(partialResult);
         }
 
         @Override
         public void onCaptureCompleted(@NonNull CameraCaptureSession session,
                                        @NonNull CaptureRequest request, @NonNull TotalCaptureResult result) {
-            super.onCaptureCompleted(session, request, result);
-        }
-
-        @Override
-        public void onCaptureFailed(@NonNull CameraCaptureSession session,
-                                    @NonNull CaptureRequest request, @NonNull CaptureFailure failure) {
-            super.onCaptureFailed(session, request, failure);
-        }
-
-        @Override
-        public void onCaptureSequenceCompleted(@NonNull CameraCaptureSession session, int sequenceId, long frameNumber) {
-            super.onCaptureSequenceCompleted(session, sequenceId, frameNumber);
-        }
-
-        @Override
-        public void onCaptureSequenceAborted(@NonNull CameraCaptureSession session, int sequenceId) {
-            super.onCaptureSequenceAborted(session, sequenceId);
-        }
-
-        @Override
-        public void onCaptureBufferLost(@NonNull CameraCaptureSession session,
-                                        @NonNull CaptureRequest request, @NonNull Surface target, long frameNumber) {
-            super.onCaptureBufferLost(session, request, target, frameNumber);
+            process(result);
         }
     };
 
@@ -267,6 +286,18 @@ public class Camera2Manager extends BaseCameraManager<String> {
     @Override
     public void takePicture(CameraPhotoListener cameraPhotoListener) {
         super.takePicture(cameraPhotoListener);
+        backgroundHandler.post(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    previewRequestBuilder.set(CaptureRequest.CONTROL_AF_TRIGGER, CameraMetadata.CONTROL_AF_TRIGGER_START);
+                    cameraState = STATE_WAITING_LOCK;
+                    captureSession.capture(previewRequestBuilder.build(), captureCallback, backgroundHandler);
+                } catch (Exception ex) {
+                    notifyCameraCaptureFailed(ex);
+                }
+            }
+        });
     }
 
     @Override
@@ -405,5 +436,8 @@ public class Camera2Manager extends BaseCameraManager<String> {
         }
     }
 
-
+    @IntDef({STATE_PREVIEW, STATE_WAITING_LOCK, STATE_WAITING_PRE_CAPTURE, STATE_WAITING_NON_PRE_CAPTURE, STATE_PICTURE_TAKEN})
+    @Retention(RetentionPolicy.SOURCE)
+    @interface CameraState {
+    }
 }
