@@ -43,7 +43,7 @@ import java.util.Arrays;
  */
 @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
 @SuppressLint("MissingPermission")
-public class Camera2Manager extends BaseCameraManager<String> {
+public class Camera2Manager extends BaseCameraManager<String> implements ImageReader.OnImageAvailableListener {
 
     private static final String TAG = "Camera2Manager";
 
@@ -92,30 +92,6 @@ public class Camera2Manager extends BaseCameraManager<String> {
 
     @CameraState
     private int cameraPreviewState;
-
-    private ImageReader.OnImageAvailableListener onImageAvailableListener = new ImageReader.OnImageAvailableListener() {
-        @Override
-        public void onImageAvailable(ImageReader reader) {
-            try {
-                try (Image image = reader.acquireNextImage()) {
-                    ByteBuffer buffer = image.getPlanes()[0].getBuffer();
-                    byte[] bytes = new byte[buffer.remaining()];
-                    buffer.get(bytes);
-                    notifyCameraPictureTaken(bytes);
-                } catch (IllegalStateException e) {
-                    Logger.e(TAG, "onImageAvailable error" + e);
-                    notifyCameraCaptureFailed(e);
-                }
-                previewRequestBuilder.set(CaptureRequest.CONTROL_AF_TRIGGER, CameraMetadata.CONTROL_AF_TRIGGER_CANCEL);
-                captureSession.capture(previewRequestBuilder.build(), captureCallback, backgroundHandler);
-                cameraPreviewState = STATE_PREVIEW;
-                captureSession.setRepeatingRequest(previewRequest, captureCallback, backgroundHandler);
-            } catch (Exception e) {
-                Logger.e(TAG, "onImageAvailable error " + e);
-                notifyCameraCaptureFailed(e);
-            }
-        }
-    };
 
     private CameraCaptureSession.CaptureCallback captureCallback = new CameraCaptureSession.CaptureCallback() {
 
@@ -454,10 +430,42 @@ public class Camera2Manager extends BaseCameraManager<String> {
 
     @Override
     public void resumePreview() {
+        if (isCameraOpened()) {
+            try {
+                previewRequestBuilder.set(CaptureRequest.CONTROL_AF_TRIGGER, CameraMetadata.CONTROL_AF_TRIGGER_CANCEL);
+                captureSession.capture(previewRequestBuilder.build(), captureCallback, backgroundHandler);
+                cameraPreviewState = STATE_PREVIEW;
+                captureSession.setRepeatingRequest(previewRequest, captureCallback, backgroundHandler);
+            } catch (Exception e) {
+                Logger.e(TAG, "resumePreview : error during focus unlocking");
+            }
+        }
     }
 
     @Override
     public void closeCamera() {
+    }
+
+    @Override
+    public void onImageAvailable(ImageReader reader) {
+        try {
+            try (Image image = reader.acquireNextImage()) {
+                ByteBuffer buffer = image.getPlanes()[0].getBuffer();
+                byte[] bytes = new byte[buffer.remaining()];
+                buffer.get(bytes);
+                notifyCameraPictureTaken(bytes);
+            } catch (IllegalStateException e) {
+                Logger.e(TAG, "onImageAvailable error" + e);
+                notifyCameraCaptureFailed(e);
+            }
+            previewRequestBuilder.set(CaptureRequest.CONTROL_AF_TRIGGER, CameraMetadata.CONTROL_AF_TRIGGER_CANCEL);
+            captureSession.capture(previewRequestBuilder.build(), captureCallback, backgroundHandler);
+            cameraPreviewState = STATE_PREVIEW;
+            captureSession.setRepeatingRequest(previewRequest, captureCallback, backgroundHandler);
+        } catch (Exception e) {
+            Logger.e(TAG, "onImageAvailable error " + e);
+            notifyCameraCaptureFailed(e);
+        }
     }
 
     /*---------------------------------inner methods------------------------------------*/
@@ -536,7 +544,7 @@ public class Camera2Manager extends BaseCameraManager<String> {
         notifyPreviewSizeUpdated(previewSize);
 
         imageReader = ImageReader.newInstance(pictureSize.width, pictureSize.height, ImageFormat.JPEG, /*maxImages*/2);
-        imageReader.setOnImageAvailableListener(onImageAvailableListener, backgroundHandler);
+        imageReader.setOnImageAvailableListener(this, backgroundHandler);
     }
 
     private void setupPreview() {
