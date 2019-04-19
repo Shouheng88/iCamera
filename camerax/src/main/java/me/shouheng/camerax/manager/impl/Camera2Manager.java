@@ -3,9 +3,11 @@ package me.shouheng.camerax.manager.impl;
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.graphics.ImageFormat;
+import android.graphics.Rect;
 import android.graphics.SurfaceTexture;
 import android.hardware.camera2.*;
 import android.hardware.camera2.params.StreamConfigurationMap;
+import android.media.Image;
 import android.media.ImageReader;
 import android.os.Build;
 import android.support.annotation.IntDef;
@@ -18,6 +20,7 @@ import me.shouheng.camerax.config.calculator.CameraSizeCalculator;
 import me.shouheng.camerax.config.sizes.Size;
 import me.shouheng.camerax.config.sizes.SizeMap;
 import me.shouheng.camerax.enums.Camera;
+import me.shouheng.camerax.enums.Flash;
 import me.shouheng.camerax.enums.Media;
 import me.shouheng.camerax.enums.Preview;
 import me.shouheng.camerax.listener.CameraOpenListener;
@@ -31,6 +34,7 @@ import me.shouheng.camerax.util.Logger;
 import java.io.File;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
+import java.nio.ByteBuffer;
 import java.util.Arrays;
 
 /**
@@ -38,6 +42,7 @@ import java.util.Arrays;
  * @version 2019/4/13 22:52
  */
 @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
+@SuppressLint("MissingPermission")
 public class Camera2Manager extends BaseCameraManager<String> {
 
     private static final String TAG = "Camera2Manager";
@@ -86,27 +91,73 @@ public class Camera2Manager extends BaseCameraManager<String> {
     private CaptureRequest previewRequest;
 
     @CameraState
-    private int cameraState;
+    private int cameraPreviewState;
 
     private ImageReader.OnImageAvailableListener onImageAvailableListener = new ImageReader.OnImageAvailableListener() {
         @Override
         public void onImageAvailable(ImageReader reader) {
-
+            try {
+                try (Image image = reader.acquireNextImage()) {
+                    ByteBuffer buffer = image.getPlanes()[0].getBuffer();
+                    byte[] bytes = new byte[buffer.remaining()];
+                    buffer.get(bytes);
+                    notifyCameraPictureTaken(bytes);
+                } catch (IllegalStateException e) {
+                    Logger.e(TAG, "onImageAvailable error" + e);
+                    notifyCameraCaptureFailed(e);
+                }
+                previewRequestBuilder.set(CaptureRequest.CONTROL_AF_TRIGGER, CameraMetadata.CONTROL_AF_TRIGGER_CANCEL);
+                captureSession.capture(previewRequestBuilder.build(), captureCallback, backgroundHandler);
+                cameraPreviewState = STATE_PREVIEW;
+                captureSession.setRepeatingRequest(previewRequest, captureCallback, backgroundHandler);
+            } catch (Exception e) {
+                Logger.e(TAG, "onImageAvailable error " + e);
+                notifyCameraCaptureFailed(e);
+            }
         }
     };
 
     private CameraCaptureSession.CaptureCallback captureCallback = new CameraCaptureSession.CaptureCallback() {
 
-        private void process(@NonNull CaptureResult result) {
-            switch (cameraState) {
+        private void processCaptureResult(@NonNull CaptureResult result) {
+            switch (cameraPreviewState) {
                 case STATE_PREVIEW:
                     break;
-                case STATE_WAITING_LOCK:
+                case STATE_WAITING_LOCK: {
+                    final Integer afState = result.get(CaptureResult.CONTROL_AF_STATE);
+                    if (afState == null) {
+                        captureStillPicture();
+                    } else if (CaptureResult.CONTROL_AF_STATE_FOCUSED_LOCKED == afState
+                            || CaptureResult.CONTROL_AF_STATE_NOT_FOCUSED_LOCKED == afState
+                            || CaptureResult.CONTROL_AF_STATE_INACTIVE == afState
+                            || CaptureResult.CONTROL_AF_STATE_PASSIVE_SCAN == afState) {
+                        Integer aeState = result.get(CaptureResult.CONTROL_AE_STATE);
+                        if (aeState == null || aeState == CaptureResult.CONTROL_AE_STATE_CONVERGED) {
+                            cameraPreviewState = STATE_PICTURE_TAKEN;
+                            captureStillPicture();
+                        } else {
+                            runPreCaptureSequence();
+                        }
+                    }
                     break;
-                case STATE_WAITING_PRE_CAPTURE:
+                }
+                case STATE_WAITING_PRE_CAPTURE: {
+                    final Integer aeState = result.get(CaptureResult.CONTROL_AE_STATE);
+                    if (aeState == null ||
+                            aeState == CaptureResult.CONTROL_AE_STATE_PRECAPTURE ||
+                            aeState == CaptureRequest.CONTROL_AE_STATE_FLASH_REQUIRED) {
+                        cameraPreviewState = STATE_WAITING_NON_PRE_CAPTURE;
+                    }
                     break;
-                case STATE_WAITING_NON_PRE_CAPTURE:
+                }
+                case STATE_WAITING_NON_PRE_CAPTURE: {
+                    final Integer aeState = result.get(CaptureResult.CONTROL_AE_STATE);
+                    if (aeState == null || aeState != CaptureResult.CONTROL_AE_STATE_PRECAPTURE) {
+                        cameraPreviewState = STATE_PICTURE_TAKEN;
+                        captureStillPicture();
+                    }
                     break;
+                }
                 case STATE_PICTURE_TAKEN:
                     break;
             }
@@ -114,14 +165,16 @@ public class Camera2Manager extends BaseCameraManager<String> {
 
         @Override
         public void onCaptureProgressed(@NonNull CameraCaptureSession session,
-                                        @NonNull CaptureRequest request, @NonNull CaptureResult partialResult) {
-            process(partialResult);
+                                        @NonNull CaptureRequest request,
+                                        @NonNull CaptureResult partialResult) {
+            processCaptureResult(partialResult);
         }
 
         @Override
         public void onCaptureCompleted(@NonNull CameraCaptureSession session,
-                                       @NonNull CaptureRequest request, @NonNull TotalCaptureResult result) {
-            process(result);
+                                       @NonNull CaptureRequest request,
+                                       @NonNull TotalCaptureResult result) {
+            processCaptureResult(result);
         }
     };
 
@@ -144,13 +197,11 @@ public class Camera2Manager extends BaseCameraManager<String> {
     }
 
     @Override
-    @SuppressLint("MissingPermission")
     public void openCamera(CameraOpenListener cameraOpenListener) {
         super.openCamera(cameraOpenListener);
         backgroundHandler.post(new Runnable() {
             @Override
             public void run() {
-                Logger.d(TAG, "openCamera");
                 prepareCameraOutputs();
                 adjustCameraConfiguration();
                 try {
@@ -201,28 +252,78 @@ public class Camera2Manager extends BaseCameraManager<String> {
 
     @Override
     public void setMediaType(int mediaType) {
+        if (this.mediaType == mediaType) {
+            return;
+        }
+        this.mediaType = mediaType;
     }
 
     @Override
     public void setVoiceEnable(boolean voiceEnable) {
+        if (this.voiceEnabled == voiceEnable) {
+            return;
+        }
+        this.voiceEnabled = voiceEnable;
     }
 
     @Override
     public boolean isVoiceEnable() {
-        return false;
+        return voiceEnabled;
     }
 
     @Override
     public void setAutoFocus(boolean autoFocus) {
+        if (this.isAutoFocus == autoFocus) {
+            return;
+        }
+        this.isAutoFocus = autoFocus;
+        if (isCameraOpened() && previewRequestBuilder != null) {
+            setAutoFocusInternal();
+            previewRequest = previewRequestBuilder.build();
+            if (captureSession != null) {
+                try {
+                    captureSession.setRepeatingRequest(previewRequest, captureCallback, backgroundHandler);
+                } catch (CameraAccessException e) {
+                    Logger.e(TAG, "setAutoFocus error : " + e);
+                }
+            } else {
+                Logger.i(TAG, "setAutoFocus captureSession is null.");
+            }
+        } else {
+            Logger.i(TAG, "setAutoFocus camera not open or previewRequestBuilder is null");
+        }
     }
 
     @Override
     public boolean isAutoFocus() {
-        return false;
+        return isAutoFocus;
     }
 
     @Override
-    public void setFlashMode(int flashMode) {
+    public void setFlashMode(@Flash.FlashMode int flashMode) {
+        if (this.flashMode == flashMode) {
+            return;
+        }
+        this.flashMode = flashMode;
+        if (isCameraOpened() && previewRequestBuilder != null) {
+            boolean succeed = setFlashModeInternal();
+            if (succeed) {
+                previewRequest = previewRequestBuilder.build();
+                if (captureSession != null) {
+                    try {
+                        captureSession.setRepeatingRequest(previewRequest, captureCallback, backgroundHandler);
+                    } catch (CameraAccessException e) {
+                        Logger.e(TAG, "setFlashMode error : " + e);
+                    }
+                } else {
+                    Logger.i(TAG, "setFlashMode captureSession is null.");
+                }
+            } else {
+                Logger.i(TAG, "setFlashMode failed.");
+            }
+        } else {
+            Logger.i(TAG, "setFlashMode camera not open or previewRequestBuilder is null");
+        }
     }
 
     @Override
@@ -232,16 +333,49 @@ public class Camera2Manager extends BaseCameraManager<String> {
 
     @Override
     public void setZoom(float zoom) {
+        if (zoom == this.zoom || zoom > getMaxZoom() || zoom < 1.f) {
+            return;
+        }
+        this.zoom = zoom;
+        if (isCameraOpened()) {
+            boolean succeed = setZoomInternal();
+            if (succeed) {
+                previewRequest = previewRequestBuilder.build();
+                if (captureSession != null) {
+                    try {
+                        captureSession.setRepeatingRequest(previewRequest, captureCallback, backgroundHandler);
+                    } catch (CameraAccessException e) {
+                        Logger.e(TAG, "setZoom error : " + e);
+                    }
+                } else {
+                    Logger.i(TAG, "setZoom captureSession is null.");
+                }
+            } else {
+                Logger.i(TAG, "setZoom failed : setZoomInternal failed.");
+            }
+        } else {
+            Logger.i(TAG, "setZoom failed : camera not open.");
+        }
     }
 
     @Override
     public float getZoom() {
-        return 0;
+        return zoom;
     }
 
     @Override
     public float getMaxZoom() {
-        return 0;
+        if (maxZoom == 0) {
+            CameraCharacteristics cameraCharacteristics = cameraFace == Camera.FACE_FRONT ?
+                    frontCameraCharacteristics : rearCameraCharacteristics;
+            Float fMaxZoom = cameraCharacteristics.get(CameraCharacteristics.SCALER_AVAILABLE_MAX_DIGITAL_ZOOM);
+            if (fMaxZoom == null) {
+                maxZoom = 1.0f;
+            } else {
+                maxZoom = fMaxZoom;
+            }
+        }
+        return maxZoom;
     }
 
     @Override
@@ -253,8 +387,9 @@ public class Camera2Manager extends BaseCameraManager<String> {
                 return pictureSize;
             case Camera.SIZE_FOR_VIDEO:
                 return videoSize;
+            default:
+                return null;
         }
-        return null;
     }
 
     @Override
@@ -275,12 +410,20 @@ public class Camera2Manager extends BaseCameraManager<String> {
                     videoSizeMap = CameraHelper.getSizeMapFromSizes(videoSizes);
                 }
                 return videoSizeMap;
+            default:
+                return null;
         }
-        return null;
     }
 
     @Override
     public void setDisplayOrientation(int displayOrientation) {
+        if (this.displayOrientation == displayOrientation) {
+            return;
+        }
+        this.displayOrientation = displayOrientation;
+        if (isCameraOpened()) {
+            // empty
+        }
     }
 
     @Override
@@ -291,7 +434,7 @@ public class Camera2Manager extends BaseCameraManager<String> {
             public void run() {
                 try {
                     previewRequestBuilder.set(CaptureRequest.CONTROL_AF_TRIGGER, CameraMetadata.CONTROL_AF_TRIGGER_START);
-                    cameraState = STATE_WAITING_LOCK;
+                    cameraPreviewState = STATE_WAITING_LOCK;
                     captureSession.capture(previewRequestBuilder.build(), captureCallback, backgroundHandler);
                 } catch (Exception ex) {
                     notifyCameraCaptureFailed(ex);
@@ -384,10 +527,13 @@ public class Camera2Manager extends BaseCameraManager<String> {
         if (mediaType == Media.TYPE_PICTURE && pictureSize == null) {
             pictureSize = cameraSizeCalculator.getPictureSize(pictureSizes, expectAspectRatio, expectSize);
             previewSize = cameraSizeCalculator.getPicturePreviewSize(previewSizes, pictureSize);
+            notifyPictureSizeUpdated(pictureSize);
         } else if (mediaType == Media.TYPE_VIDEO && videoSize == null) {
             videoSize = cameraSizeCalculator.getVideoSize(videoSizes, expectAspectRatio, expectSize);
             previewSize = cameraSizeCalculator.getVideoPreviewSize(previewSizes, videoSize);
+            notifyVideoSizeUpdated(videoSize);
         }
+        notifyPreviewSizeUpdated(previewSize);
 
         imageReader = ImageReader.newInstance(pictureSize.width, pictureSize.height, ImageFormat.JPEG, /*maxImages*/2);
         imageReader.setOnImageAvailableListener(onImageAvailableListener, backgroundHandler);
@@ -395,7 +541,7 @@ public class Camera2Manager extends BaseCameraManager<String> {
 
     private void setupPreview() {
         try {
-            // TODO TEST
+            // TODO test if the surface view is available
             if (cameraPreview.getPreviewType() == Preview.TEXTURE_VIEW) {
                 this.surfaceTexture = cameraPreview.getSurfaceTexture();
                 assert surfaceTexture != null;
@@ -415,13 +561,14 @@ public class Camera2Manager extends BaseCameraManager<String> {
                         @Override
                         public void onConfigured(@NonNull CameraCaptureSession cameraCaptureSession) {
                             if (isCameraOpened()) {
-                                Camera2Manager.this.captureSession = cameraCaptureSession;
-                                previewRequest = previewRequestBuilder.build();
                                 captureSession = cameraCaptureSession;
+                                setFlashModeInternal();
+                                previewRequest = previewRequestBuilder.build();
                                 try {
                                     captureSession.setRepeatingRequest(previewRequest, captureCallback, backgroundHandler);
                                 } catch (CameraAccessException ex) {
                                     Logger.e(TAG, "SetupPreview error " + ex);
+                                    notifyCameraOpenError(ex);
                                 }
                             }
                         }
@@ -429,11 +576,124 @@ public class Camera2Manager extends BaseCameraManager<String> {
                         @Override
                         public void onConfigureFailed(@NonNull CameraCaptureSession cameraCaptureSession) {
                             Logger.d(TAG, "onConfigureFailed");
+                            notifyCameraOpenError(new Throwable("Camera capture session configure failed."));
                         }
                     }, null);
         } catch (Exception ex) {
             Logger.e(TAG, "SetupPreview error " + ex);
+            notifyCameraOpenError(ex);
         }
+    }
+
+    private void captureStillPicture() {
+        if (isCameraOpened()) {
+            try {
+                final CaptureRequest.Builder captureBuilder = cameraDevice.createCaptureRequest(CameraDevice.TEMPLATE_STILL_CAPTURE);
+                captureBuilder.addTarget(imageReader.getSurface());
+
+                captureBuilder.set(CaptureRequest.CONTROL_AF_MODE, CaptureRequest.CONTROL_AF_MODE_CONTINUOUS_PICTURE);
+//            captureBuilder.set(CaptureRequest.JPEG_ORIENTATION, getPhotoOrientation(configurationProvider.getSensorPosition()));
+
+                captureSession.stopRepeating();
+                captureSession.capture(captureBuilder.build(), new CameraCaptureSession.CaptureCallback() {
+                    @Override
+                    public void onCaptureCompleted(@NonNull CameraCaptureSession session,
+                                                   @NonNull CaptureRequest request,
+                                                   @NonNull TotalCaptureResult result) {
+                        Logger.d(TAG, "onCaptureCompleted: ");
+                    }
+                }, null);
+            } catch (CameraAccessException e) {
+                Logger.e(TAG, "Error during capturing picture");
+                notifyCameraCaptureFailed(e);
+            }
+        } else {
+            notifyCameraCaptureFailed(new RuntimeException("Camera not open."));
+        }
+    }
+
+    private void runPreCaptureSequence() {
+        try {
+            previewRequestBuilder.set(CaptureRequest.CONTROL_AE_PRECAPTURE_TRIGGER, CaptureRequest.CONTROL_AE_PRECAPTURE_TRIGGER_START);
+            cameraPreviewState = STATE_WAITING_PRE_CAPTURE;
+            captureSession.capture(previewRequestBuilder.build(), captureCallback, backgroundHandler);
+        } catch (CameraAccessException e) {
+            Logger.e(TAG, "runPreCaptureSequence error " + e);
+        }
+    }
+
+    private boolean setFlashModeInternal() {
+        try {
+            CameraCharacteristics cameraCharacteristics = cameraFace == Camera.FACE_FRONT ?
+                    frontCameraCharacteristics : rearCameraCharacteristics;
+            Boolean isFlashAvailable = cameraCharacteristics.get(CameraCharacteristics.FLASH_INFO_AVAILABLE);
+            if (isFlashAvailable == null || !isFlashAvailable) {
+                Logger.i(TAG, "Flash is not available.");
+                return false;
+            }
+            switch (flashMode) {
+                case Flash.FLASH_ON:
+                    previewRequestBuilder.set(CaptureRequest.CONTROL_AE_MODE, CaptureRequest.CONTROL_AE_MODE_ON);
+                    previewRequestBuilder.set(CaptureRequest.FLASH_MODE, CameraMetadata.FLASH_MODE_SINGLE);
+                    break;
+                case Flash.FLASH_OFF:
+                    previewRequestBuilder.set(CaptureRequest.CONTROL_AE_MODE, CaptureRequest.CONTROL_AE_MODE_ON);
+                    previewRequestBuilder.set(CaptureRequest.FLASH_MODE, CameraMetadata.FLASH_MODE_OFF);
+                    break;
+                case Flash.FLASH_AUTO:
+                default:
+                    previewRequestBuilder.set(CaptureRequest.CONTROL_AE_MODE, CaptureRequest.CONTROL_AE_MODE_ON_AUTO_FLASH);
+                    previewRequestBuilder.set(CaptureRequest.FLASH_MODE, CameraMetadata.FLASH_MODE_SINGLE);
+                    break;
+            }
+            return true;
+        } catch (Exception ex) {
+            Logger.e(TAG, "setFlashMode error : " + ex);
+        }
+        return false;
+    }
+
+    private void setAutoFocusInternal() {
+        if (isAutoFocus) {
+            CameraCharacteristics cameraCharacteristics = cameraFace == Camera.FACE_FRONT ?
+                    frontCameraCharacteristics : rearCameraCharacteristics;
+            int[] modes = cameraCharacteristics.get(CameraCharacteristics.CONTROL_AF_AVAILABLE_MODES);
+            if (modes == null || modes.length == 0 ||
+                    (modes.length == 1 && modes[0] == CameraCharacteristics.CONTROL_AF_MODE_OFF)) {
+                isAutoFocus = false;
+                previewRequestBuilder.set(CaptureRequest.CONTROL_AF_MODE, CaptureRequest.CONTROL_AF_MODE_OFF);
+            } else if (mediaType == Media.TYPE_PICTURE) {
+                previewRequestBuilder.set(CaptureRequest.CONTROL_AF_MODE, CaptureRequest.CONTROL_AF_MODE_CONTINUOUS_PICTURE);
+            } else if (mediaType == Media.TYPE_VIDEO) {
+                previewRequestBuilder.set(CaptureRequest.CONTROL_AF_MODE, CaptureRequest.CONTROL_AF_MODE_CONTINUOUS_VIDEO);
+            }
+        } else {
+            previewRequestBuilder.set(CaptureRequest.CONTROL_AF_MODE, CaptureRequest.CONTROL_AF_MODE_OFF);
+        }
+    }
+
+    private boolean setZoomInternal() {
+        float maxZoom = getMaxZoom();
+        if (maxZoom == 1.0f || previewRequestBuilder == null) {
+            return false;
+        }
+
+        CameraCharacteristics cameraCharacteristics = cameraFace == Camera.FACE_FRONT ?
+                frontCameraCharacteristics : rearCameraCharacteristics;
+        Rect rect = cameraCharacteristics.get(CameraCharacteristics.SENSOR_INFO_ACTIVE_ARRAY_SIZE);
+        if (rect == null) {
+            return false;
+        }
+
+        zoom = zoom < 1.f ? 1.f : zoom;
+        zoom = zoom > maxZoom ? maxZoom : zoom;
+
+        int cropW = (rect.width() - (int) ((float) rect.width() / zoom)) / 2;
+        int cropH = (rect.height() - (int) ((float) rect.height() / zoom)) / 2;
+
+        Rect zoomRect = new Rect(cropW, cropH, rect.width() - cropW, rect.height() - cropH);
+        previewRequestBuilder.set(CaptureRequest.SCALER_CROP_REGION, zoomRect);
+        return true;
     }
 
     @IntDef({STATE_PREVIEW, STATE_WAITING_LOCK, STATE_WAITING_PRE_CAPTURE, STATE_WAITING_NON_PRE_CAPTURE, STATE_PICTURE_TAKEN})

@@ -70,7 +70,6 @@ abstract class BaseCameraManager<CameraId> implements CameraManager {
     private List<CameraSizeListener> cameraSizeListeners;
 
     CameraPreview cameraPreview;
-    volatile boolean showingPreview;
     volatile boolean takingPicture;
     volatile boolean videoRecording;
 
