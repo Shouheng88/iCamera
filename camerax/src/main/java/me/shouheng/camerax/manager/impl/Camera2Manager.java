@@ -400,6 +400,7 @@ public class Camera2Manager extends BaseCameraManager<String> implements ImageRe
         this.displayOrientation = displayOrientation;
         if (isCameraOpened()) {
             // empty
+//            previewRequestBuilder.set(CaptureRequest.JPEG_ORIENTATION, );
         }
     }
 
@@ -410,9 +411,7 @@ public class Camera2Manager extends BaseCameraManager<String> implements ImageRe
             @Override
             public void run() {
                 try {
-                    previewRequestBuilder.set(CaptureRequest.CONTROL_AF_TRIGGER, CameraMetadata.CONTROL_AF_TRIGGER_START);
-                    cameraPreviewState = STATE_WAITING_LOCK;
-                    captureSession.capture(previewRequestBuilder.build(), captureCallback, backgroundHandler);
+                    lockFocus();
                     if (voiceEnabled) {
                         new MediaActionSound().play(MediaActionSound.SHUTTER_CLICK);
                     }
@@ -435,14 +434,7 @@ public class Camera2Manager extends BaseCameraManager<String> implements ImageRe
     @Override
     public void resumePreview() {
         if (isCameraOpened()) {
-            try {
-                previewRequestBuilder.set(CaptureRequest.CONTROL_AF_TRIGGER, CameraMetadata.CONTROL_AF_TRIGGER_CANCEL);
-                captureSession.capture(previewRequestBuilder.build(), captureCallback, backgroundHandler);
-                cameraPreviewState = STATE_PREVIEW;
-                captureSession.setRepeatingRequest(previewRequest, captureCallback, backgroundHandler);
-            } catch (Exception e) {
-                Logger.e(TAG, "resumePreview : error during focus unlocking");
-            }
+            unlockFocus();
         }
     }
 
@@ -462,13 +454,11 @@ public class Camera2Manager extends BaseCameraManager<String> implements ImageRe
                 Logger.e(TAG, "onImageAvailable error" + e);
                 notifyCameraCaptureFailed(e);
             }
-            previewRequestBuilder.set(CaptureRequest.CONTROL_AF_TRIGGER, CameraMetadata.CONTROL_AF_TRIGGER_CANCEL);
-            captureSession.capture(previewRequestBuilder.build(), captureCallback, backgroundHandler);
-            cameraPreviewState = STATE_PREVIEW;
-            captureSession.setRepeatingRequest(previewRequest, captureCallback, backgroundHandler);
         } catch (Exception e) {
             Logger.e(TAG, "onImageAvailable error " + e);
             notifyCameraCaptureFailed(e);
+        } finally {
+            unlockFocus();
         }
     }
 
@@ -706,6 +696,27 @@ public class Camera2Manager extends BaseCameraManager<String> implements ImageRe
         Rect zoomRect = new Rect(cropW, cropH, rect.width() - cropW, rect.height() - cropH);
         previewRequestBuilder.set(CaptureRequest.SCALER_CROP_REGION, zoomRect);
         return true;
+    }
+
+    private void lockFocus() {
+        try {
+            previewRequestBuilder.set(CaptureRequest.CONTROL_AF_TRIGGER, CameraMetadata.CONTROL_AF_TRIGGER_START);
+            cameraPreviewState = STATE_WAITING_LOCK;
+            captureSession.capture(previewRequestBuilder.build(), captureCallback, backgroundHandler);
+        } catch (Exception e) {
+            Logger.e(TAG, "lockFocus : error during focus locking");
+        }
+    }
+
+    private void unlockFocus() {
+        try {
+            previewRequestBuilder.set(CaptureRequest.CONTROL_AF_TRIGGER, CameraMetadata.CONTROL_AF_TRIGGER_CANCEL);
+            captureSession.capture(previewRequestBuilder.build(), captureCallback, backgroundHandler);
+            cameraPreviewState = STATE_PREVIEW;
+            captureSession.setRepeatingRequest(previewRequest, captureCallback, backgroundHandler);
+        } catch (Exception e) {
+            Logger.e(TAG, "unlockFocus : error during focus unlocking");
+        }
     }
 
     @IntDef({STATE_PREVIEW, STATE_WAITING_LOCK, STATE_WAITING_PRE_CAPTURE, STATE_WAITING_NON_PRE_CAPTURE, STATE_PICTURE_TAKEN})
