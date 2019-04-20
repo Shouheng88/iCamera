@@ -398,6 +398,9 @@ public class Camera2Manager extends BaseCameraManager<String> implements ImageRe
             return;
         }
         this.displayOrientation = displayOrientation;
+        if (isCameraOpened()) {
+            // TODO the display orientation
+        }
     }
 
     @Override
@@ -595,6 +598,9 @@ public class Camera2Manager extends BaseCameraManager<String> implements ImageRe
                 captureBuilder.set(CaptureRequest.CONTROL_AF_MODE, CaptureRequest.CONTROL_AF_MODE_CONTINUOUS_PICTURE);
                 captureBuilder.set(CaptureRequest.JPEG_ORIENTATION,
                         CameraHelper.getJpegOrientation(cameraCharacteristics, displayOrientation));
+
+                // TODO the zoomed result is invalid
+                setZoomInternal();
 
                 captureSession.stopRepeating();
                 captureSession.capture(captureBuilder.build(), new CameraCaptureSession.CaptureCallback() {
