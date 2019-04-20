@@ -27,9 +27,43 @@
 
         <LinearLayout
                 android:orientation="vertical"
+                android:padding="16dp"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 app:layout_behavior="@string/appbar_scrolling_view_behavior" >
+
+            <RadioGroup
+                    android:orientation="vertical"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content">
+
+                <android.support.v7.widget.AppCompatTextView
+                        android:text="@string/main_camera_option"
+                        android:textSize="16sp"
+                        android:textColor="@android:color/white"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"/>
+
+                <RadioButton
+                        android:id="@+id/rb_camera1"
+                        android:text="@string/main_camera_option_camera1_only"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"/>
+
+                <RadioButton
+                        android:id="@+id/rb_camera2"
+                        android:text="@string/main_camera_option_camera2_only"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"/>
+
+                <RadioButton
+                        android:id="@+id/rb_camera"
+                        android:checked="true"
+                        android:text="@string/main_camera_option_camera"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"/>
+
+            </RadioGroup>
 
             <android.support.v7.widget.AppCompatButton
                     android:onClick="openCamera"

@@ -2,6 +2,10 @@
     <string name="app_name">CameraX</string>
 
     <string name="main_menu_camera">Open Camera</string>
+    <string name="main_camera_option">Select your camera option:</string>
+    <string name="main_camera_option_camera1_only">Camera1 only</string>
+    <string name="main_camera_option_camera2_only">Camera2 only</string>
+    <string name="main_camera_option_camera">According to platform</string>
 
     <string name="camera_drawer_title">Camera Configuration</string>
     <string name="camera_drawer_shutter">Enable shutter</string>
