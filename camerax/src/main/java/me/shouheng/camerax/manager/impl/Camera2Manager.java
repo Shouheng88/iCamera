@@ -9,6 +9,7 @@ import android.hardware.camera2.*;
 import android.hardware.camera2.params.StreamConfigurationMap;
 import android.media.Image;
 import android.media.ImageReader;
+import android.media.MediaActionSound;
 import android.os.Build;
 import android.support.annotation.IntDef;
 import android.support.annotation.NonNull;
@@ -412,6 +413,9 @@ public class Camera2Manager extends BaseCameraManager<String> implements ImageRe
                     previewRequestBuilder.set(CaptureRequest.CONTROL_AF_TRIGGER, CameraMetadata.CONTROL_AF_TRIGGER_START);
                     cameraPreviewState = STATE_WAITING_LOCK;
                     captureSession.capture(previewRequestBuilder.build(), captureCallback, backgroundHandler);
+                    if (voiceEnabled) {
+                        new MediaActionSound().play(MediaActionSound.SHUTTER_CLICK);
+                    }
                 } catch (Exception ex) {
                     notifyCameraCaptureFailed(ex);
                 }
