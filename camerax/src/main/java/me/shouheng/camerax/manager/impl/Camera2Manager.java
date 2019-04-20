@@ -398,10 +398,6 @@ public class Camera2Manager extends BaseCameraManager<String> implements ImageRe
             return;
         }
         this.displayOrientation = displayOrientation;
-        if (isCameraOpened()) {
-            // empty
-//            previewRequestBuilder.set(CaptureRequest.JPEG_ORIENTATION, );
-        }
     }
 
     @Override
@@ -590,11 +586,15 @@ public class Camera2Manager extends BaseCameraManager<String> implements ImageRe
     private void captureStillPicture() {
         if (isCameraOpened()) {
             try {
+                CameraCharacteristics cameraCharacteristics = cameraFace == Camera.FACE_FRONT ?
+                        frontCameraCharacteristics : rearCameraCharacteristics;
+
                 final CaptureRequest.Builder captureBuilder = cameraDevice.createCaptureRequest(CameraDevice.TEMPLATE_STILL_CAPTURE);
                 captureBuilder.addTarget(imageReader.getSurface());
 
                 captureBuilder.set(CaptureRequest.CONTROL_AF_MODE, CaptureRequest.CONTROL_AF_MODE_CONTINUOUS_PICTURE);
-//            captureBuilder.set(CaptureRequest.JPEG_ORIENTATION, getPhotoOrientation(configurationProvider.getSensorPosition()));
+                captureBuilder.set(CaptureRequest.JPEG_ORIENTATION,
+                        CameraHelper.getJpegOrientation(cameraCharacteristics, displayOrientation));
 
                 captureSession.stopRepeating();
                 captureSession.capture(captureBuilder.build(), new CameraCaptureSession.CaptureCallback() {

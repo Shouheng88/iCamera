@@ -114,6 +114,25 @@ public final class CameraHelper {
         return displayRotation;
     }
 
+    @TargetApi(Build.VERSION_CODES.LOLLIPOP)
+    public static int getJpegOrientation(@NonNull CameraCharacteristics c, int deviceOrientation) {
+        if (deviceOrientation == android.view.OrientationEventListener.ORIENTATION_UNKNOWN) return 0;
+        Integer sensorOrientation = c.get(CameraCharacteristics.SENSOR_ORIENTATION);
+        assert sensorOrientation != null;
+
+        // Round device orientation to a multiple of 90
+        deviceOrientation = (deviceOrientation + 45) / 90 * 90;
+
+        // Reverse device orientation for front-facing cameras
+        Integer lensFacing = c.get(CameraCharacteristics.LENS_FACING);
+        boolean facingFront = lensFacing != null && lensFacing == CameraCharacteristics.LENS_FACING_FRONT;
+        if (facingFront) deviceOrientation = -deviceOrientation;
+
+        // Calculate desired JPEG orientation relative to camera orientation to make
+        // the image upright relative to the device orientation
+        return (sensorOrientation + deviceOrientation + 360) % 360;
+    }
+
     public static SizeMap getSizeMapFromSizes(@NonNull List<Size> sizes) {
         SizeMap sizeMap = new SizeMap();
         for (Size size : sizes) {
