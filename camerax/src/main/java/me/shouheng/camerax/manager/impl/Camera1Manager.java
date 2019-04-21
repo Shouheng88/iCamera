@@ -250,6 +250,7 @@ public class Camera1Manager extends BaseCameraManager<Integer> {
         return null;
     }
 
+    // TODO the output picture and video rotation
     @Override
     public void setDisplayOrientation(int displayOrientation) {
         if (this.displayOrientation == displayOrientation) {
