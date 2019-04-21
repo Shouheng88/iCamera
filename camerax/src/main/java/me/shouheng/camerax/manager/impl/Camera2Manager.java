@@ -589,6 +589,9 @@ public class Camera2Manager extends BaseCameraManager<String> implements ImageRe
             pictureSize = cameraSizeCalculator.getPictureSize(pictureSizes, expectAspectRatio, expectSize);
             previewSize = cameraSizeCalculator.getPicturePreviewSize(previewSizes, pictureSize);
             notifyPictureSizeUpdated(pictureSize);
+
+            imageReader = ImageReader.newInstance(pictureSize.width, pictureSize.height, ImageFormat.JPEG, /*maxImages*/2);
+            imageReader.setOnImageAvailableListener(this, backgroundHandler);
         }
         if (mediaType == Media.TYPE_VIDEO && (videoSize == null || forceCalculate)) {
             camcorderProfile = CameraHelper.getCamcorderProfile(mediaQuality, currentCameraId);
@@ -599,9 +602,6 @@ public class Camera2Manager extends BaseCameraManager<String> implements ImageRe
         if (!previewSize.equals(oldPreviewSize)) {
             notifyPreviewSizeUpdated(previewSize);
         }
-
-        imageReader = ImageReader.newInstance(pictureSize.width, pictureSize.height, ImageFormat.JPEG, /*maxImages*/2);
-        imageReader.setOnImageAvailableListener(this, backgroundHandler);
     }
 
     private void createPreviewSession() {
