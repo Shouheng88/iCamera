@@ -16,7 +16,6 @@ import me.shouheng.camerax.enums.Preview;
 public class TexturePreview extends BaseCameraPreview {
 
     private SurfaceTexture surfaceTexture;
-    private Surface surface;
 
     public TexturePreview(Context context, ViewGroup parent) {
         super(context, parent);
@@ -51,10 +50,7 @@ public class TexturePreview extends BaseCameraPreview {
 
     @Override
     public Surface getSurface() {
-        if (surface == null) {
-            surface = new Surface(surfaceTexture);
-        }
-        return surface;
+        return new Surface(surfaceTexture);
     }
 
     @Override

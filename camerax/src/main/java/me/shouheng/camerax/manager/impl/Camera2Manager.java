@@ -52,31 +52,6 @@ public class Camera2Manager extends BaseCameraManager<String> implements ImageRe
 
     private static final String TAG = "Camera2Manager";
 
-    /**
-     * Camera state: Showing camera preview.
-     */
-    private static final int STATE_PREVIEW                      = 0;
-
-    /**
-     * Camera state: Waiting for the focus to be locked.
-     */
-    private static final int STATE_WAITING_LOCK                 = 1;
-
-    /**
-     * Camera state: Waiting for the exposure to be precapture state.
-     */
-    private static final int STATE_WAITING_PRE_CAPTURE          = 2;
-
-    /**
-     * Camera state: Waiting for the exposure state to be something other than precapture.
-     */
-    private static final int STATE_WAITING_NON_PRE_CAPTURE      = 3;
-
-    /**
-     * Camera state: Picture was taken.
-     */
-    private static final int STATE_PICTURE_TAKEN                = 4;
-
     private CameraManager cameraManager;
     private CameraDevice cameraDevice;
 
@@ -95,12 +70,9 @@ public class Camera2Manager extends BaseCameraManager<String> implements ImageRe
     private CaptureRequest.Builder previewRequestBuilder;
     private CaptureRequest previewRequest;
 
-    @CameraState
-    private int cameraPreviewState;
+    private CaptureSessionCallback captureSessionCallback = new CaptureSessionCallback() {
 
-    private CameraCaptureSession.CaptureCallback captureCallback = new CameraCaptureSession.CaptureCallback() {
-
-        private void processCaptureResult(@NonNull CaptureResult result) {
+        private void processCaptureResultInternal(@NonNull CaptureResult result, int cameraPreviewState) {
             switch (cameraPreviewState) {
                 case STATE_PREVIEW:
                     break;
@@ -114,7 +86,7 @@ public class Camera2Manager extends BaseCameraManager<String> implements ImageRe
                             || CaptureResult.CONTROL_AF_STATE_PASSIVE_SCAN == afState) {
                         Integer aeState = result.get(CaptureResult.CONTROL_AE_STATE);
                         if (aeState == null || aeState == CaptureResult.CONTROL_AE_STATE_CONVERGED) {
-                            cameraPreviewState = STATE_PICTURE_TAKEN;
+                            setCameraPreviewState(STATE_PICTURE_TAKEN);
                             captureStillPicture();
                         } else {
                             runPreCaptureSequence();
@@ -127,14 +99,14 @@ public class Camera2Manager extends BaseCameraManager<String> implements ImageRe
                     if (aeState == null ||
                             aeState == CaptureResult.CONTROL_AE_STATE_PRECAPTURE ||
                             aeState == CaptureRequest.CONTROL_AE_STATE_FLASH_REQUIRED) {
-                        cameraPreviewState = STATE_WAITING_NON_PRE_CAPTURE;
+                        setCameraPreviewState(STATE_WAITING_NON_PRE_CAPTURE);
                     }
                     break;
                 }
                 case STATE_WAITING_NON_PRE_CAPTURE: {
                     final Integer aeState = result.get(CaptureResult.CONTROL_AE_STATE);
                     if (aeState == null || aeState != CaptureResult.CONTROL_AE_STATE_PRECAPTURE) {
-                        cameraPreviewState = STATE_PICTURE_TAKEN;
+                        setCameraPreviewState(STATE_PICTURE_TAKEN);
                         captureStillPicture();
                     }
                     break;
@@ -145,17 +117,8 @@ public class Camera2Manager extends BaseCameraManager<String> implements ImageRe
         }
 
         @Override
-        public void onCaptureProgressed(@NonNull CameraCaptureSession session,
-                                        @NonNull CaptureRequest request,
-                                        @NonNull CaptureResult partialResult) {
-            processCaptureResult(partialResult);
-        }
-
-        @Override
-        public void onCaptureCompleted(@NonNull CameraCaptureSession session,
-                                       @NonNull CaptureRequest request,
-                                       @NonNull TotalCaptureResult result) {
-            processCaptureResult(result);
+        void processCaptureResult(@NonNull CaptureResult result, int cameraPreviewState) {
+            processCaptureResultInternal(result, cameraPreviewState);
         }
     };
 
@@ -280,7 +243,7 @@ public class Camera2Manager extends BaseCameraManager<String> implements ImageRe
             previewRequest = previewRequestBuilder.build();
             if (captureSession != null) {
                 try {
-                    captureSession.setRepeatingRequest(previewRequest, captureCallback, backgroundHandler);
+                    captureSession.setRepeatingRequest(previewRequest, captureSessionCallback, backgroundHandler);
                 } catch (CameraAccessException e) {
                     Logger.e(TAG, "setAutoFocus error : " + e);
                 }
@@ -309,7 +272,7 @@ public class Camera2Manager extends BaseCameraManager<String> implements ImageRe
                 previewRequest = previewRequestBuilder.build();
                 if (captureSession != null) {
                     try {
-                        captureSession.setRepeatingRequest(previewRequest, captureCallback, backgroundHandler);
+                        captureSession.setRepeatingRequest(previewRequest, captureSessionCallback, backgroundHandler);
                     } catch (CameraAccessException e) {
                         Logger.e(TAG, "setFlashMode error : " + e);
                     }
@@ -341,7 +304,7 @@ public class Camera2Manager extends BaseCameraManager<String> implements ImageRe
                 previewRequest = previewRequestBuilder.build();
                 if (captureSession != null) {
                     try {
-                        captureSession.setRepeatingRequest(previewRequest, captureCallback, backgroundHandler);
+                        captureSession.setRepeatingRequest(previewRequest, captureSessionCallback, backgroundHandler);
                     } catch (CameraAccessException e) {
                         Logger.e(TAG, "setZoom error : " + e);
                     }
@@ -496,6 +459,21 @@ public class Camera2Manager extends BaseCameraManager<String> implements ImageRe
 
     @Override
     public void closeCamera() {
+        if (isCameraOpened()) {
+            cameraDevice.close();
+            cameraDevice = null;
+        }
+        closePreviewSession();
+//        releaseTexture();
+        closeImageReader();
+        releaseVideoRecorder();
+        releaseCameraInternal();
+        if (uiHandler != null) {
+            uiHandler.removeCallbacksAndMessages(null);
+        }
+        if (backgroundHandler != null) {
+            backgroundHandler.removeCallbacksAndMessages(null);
+        }
     }
 
     @Override
@@ -520,6 +498,7 @@ public class Camera2Manager extends BaseCameraManager<String> implements ImageRe
 
     /*---------------------------------inner methods------------------------------------*/
 
+    // TODO this method cost a lot of time to finish
     private void initCameraInfo(Context context) {
         cameraManager = (CameraManager) context.getSystemService(Context.CAMERA_SERVICE);
 
@@ -583,14 +562,12 @@ public class Camera2Manager extends BaseCameraManager<String> implements ImageRe
     private void adjustCameraConfiguration() {
         Size oldPreviewSize = previewSize;
         CameraSizeCalculator cameraSizeCalculator = ConfigurationProvider.get().getCameraSizeCalculator();
-        if (mediaType == Media.TYPE_PICTURE) {
+        if (pictureSize == null) {
             pictureSize = cameraSizeCalculator.getPictureSize(pictureSizes, expectAspectRatio, expectSize);
             previewSize = cameraSizeCalculator.getPicturePreviewSize(previewSizes, pictureSize);
-            imageReader = ImageReader.newInstance(pictureSize.width, pictureSize.height, ImageFormat.JPEG, /*maxImages*/2);
-            imageReader.setOnImageAvailableListener(this, backgroundHandler);
             notifyPictureSizeUpdated(pictureSize);
         }
-        if (mediaType == Media.TYPE_VIDEO) {
+        if (mediaType == Media.TYPE_VIDEO && videoSize == null) {
             camcorderProfile = CameraHelper.getCamcorderProfile(mediaQuality, currentCameraId);
             videoSize = cameraSizeCalculator.getVideoSize(videoSizes, expectAspectRatio, expectSize);
             previewSize = cameraSizeCalculator.getVideoPreviewSize(previewSizes, videoSize);
@@ -599,6 +576,9 @@ public class Camera2Manager extends BaseCameraManager<String> implements ImageRe
         if (!previewSize.equals(oldPreviewSize)) {
             notifyPreviewSizeUpdated(previewSize);
         }
+
+        imageReader = ImageReader.newInstance(pictureSize.width, pictureSize.height, ImageFormat.JPEG, /*maxImages*/2);
+        imageReader.setOnImageAvailableListener(this, backgroundHandler);
     }
 
     private void createPreviewSession() {
@@ -627,9 +607,9 @@ public class Camera2Manager extends BaseCameraManager<String> implements ImageRe
                                 setFlashModeInternal();
                                 previewRequest = previewRequestBuilder.build();
                                 try {
-                                    captureSession.setRepeatingRequest(previewRequest, captureCallback, backgroundHandler);
+                                    captureSession.setRepeatingRequest(previewRequest, captureSessionCallback, backgroundHandler);
                                 } catch (CameraAccessException ex) {
-                                    Logger.e(TAG, "SetupPreview error " + ex);
+                                    Logger.e(TAG, "createPreviewSession error " + ex);
                                     notifyCameraOpenError(ex);
                                 }
                             }
@@ -642,7 +622,7 @@ public class Camera2Manager extends BaseCameraManager<String> implements ImageRe
                         }
                     }, null);
         } catch (Exception ex) {
-            Logger.e(TAG, "SetupPreview error " + ex);
+            Logger.e(TAG, "createPreviewSession error " + ex);
             notifyCameraOpenError(ex);
         }
     }
@@ -737,8 +717,8 @@ public class Camera2Manager extends BaseCameraManager<String> implements ImageRe
     private void runPreCaptureSequence() {
         try {
             previewRequestBuilder.set(CaptureRequest.CONTROL_AE_PRECAPTURE_TRIGGER, CaptureRequest.CONTROL_AE_PRECAPTURE_TRIGGER_START);
-            cameraPreviewState = STATE_WAITING_PRE_CAPTURE;
-            captureSession.capture(previewRequestBuilder.build(), captureCallback, backgroundHandler);
+            captureSessionCallback.setCameraPreviewState(CaptureSessionCallback.STATE_WAITING_PRE_CAPTURE);
+            captureSession.capture(previewRequestBuilder.build(), captureSessionCallback, backgroundHandler);
         } catch (CameraAccessException e) {
             Logger.e(TAG, "runPreCaptureSequence error " + e);
         }
@@ -821,8 +801,8 @@ public class Camera2Manager extends BaseCameraManager<String> implements ImageRe
     private void lockFocus() {
         try {
             previewRequestBuilder.set(CaptureRequest.CONTROL_AF_TRIGGER, CameraMetadata.CONTROL_AF_TRIGGER_START);
-            cameraPreviewState = STATE_WAITING_LOCK;
-            captureSession.capture(previewRequestBuilder.build(), captureCallback, backgroundHandler);
+            captureSessionCallback.setCameraPreviewState(CaptureSessionCallback.STATE_WAITING_LOCK);
+            captureSession.capture(previewRequestBuilder.build(), captureSessionCallback, backgroundHandler);
         } catch (Exception e) {
             Logger.e(TAG, "lockFocus : error during focus locking");
         }
@@ -831,9 +811,9 @@ public class Camera2Manager extends BaseCameraManager<String> implements ImageRe
     private void unlockFocus() {
         try {
             previewRequestBuilder.set(CaptureRequest.CONTROL_AF_TRIGGER, CameraMetadata.CONTROL_AF_TRIGGER_CANCEL);
-            captureSession.capture(previewRequestBuilder.build(), captureCallback, backgroundHandler);
-            cameraPreviewState = STATE_PREVIEW;
-            captureSession.setRepeatingRequest(previewRequest, captureCallback, backgroundHandler);
+            captureSession.capture(previewRequestBuilder.build(), captureSessionCallback, backgroundHandler);
+            captureSessionCallback.setCameraPreviewState(CaptureSessionCallback.STATE_PREVIEW);
+            captureSession.setRepeatingRequest(previewRequest, captureSessionCallback, backgroundHandler);
         } catch (Exception e) {
             Logger.e(TAG, "unlockFocus : error during focus unlocking");
         }
@@ -896,8 +876,82 @@ public class Camera2Manager extends BaseCameraManager<String> implements ImageRe
         }
     }
 
-    @IntDef({STATE_PREVIEW, STATE_WAITING_LOCK, STATE_WAITING_PRE_CAPTURE, STATE_WAITING_NON_PRE_CAPTURE, STATE_PICTURE_TAKEN})
-    @Retention(RetentionPolicy.SOURCE)
-    @interface CameraState {
+    private void releaseCameraInternal() {
+        previewSize = null;
+        pictureSize = null;
+        videoSize = null;
+        maxZoom = 0;
+        // TODO notify camera closed
     }
+
+    private void releaseTexture() {
+        if (null != surfaceTexture) {
+            surfaceTexture.release();
+            surfaceTexture = null;
+        }
+    }
+
+    private void closeImageReader() {
+        if (null != imageReader) {
+            imageReader.close();
+            imageReader = null;
+        }
+    }
+
+    private static abstract class CaptureSessionCallback extends CameraCaptureSession.CaptureCallback {
+
+        /**
+         * Camera state: Showing camera preview.
+         */
+        static final int STATE_PREVIEW = 0;
+
+        /**
+         * Camera state: Waiting for the focus to be locked.
+         */
+        static final int STATE_WAITING_LOCK = 1;
+
+        /**
+         * Camera state: Waiting for the exposure to be precapture state.
+         */
+        static final int STATE_WAITING_PRE_CAPTURE = 2;
+
+        /**
+         * Camera state: Waiting for the exposure state to be something other than precapture.
+         */
+        static final int STATE_WAITING_NON_PRE_CAPTURE = 3;
+
+        /**
+         * Camera state: Picture was taken.
+         */
+        static final int STATE_PICTURE_TAKEN = 4;
+
+        @CameraState
+        private int cameraPreviewState;
+
+        void setCameraPreviewState(@CameraState int cameraPreviewState) {
+            this.cameraPreviewState = cameraPreviewState;
+        }
+
+        abstract void processCaptureResult(@NonNull CaptureResult result, @CameraState int cameraPreviewState);
+
+        @Override
+        public void onCaptureProgressed(@NonNull CameraCaptureSession session,
+                                        @NonNull CaptureRequest request,
+                                        @NonNull CaptureResult partialResult) {
+            processCaptureResult(partialResult, cameraPreviewState);
+        }
+
+        @Override
+        public void onCaptureCompleted(@NonNull CameraCaptureSession session,
+                                       @NonNull CaptureRequest request,
+                                       @NonNull TotalCaptureResult result) {
+            processCaptureResult(result, cameraPreviewState);
+        }
+
+        @IntDef({STATE_PREVIEW, STATE_WAITING_LOCK, STATE_WAITING_PRE_CAPTURE, STATE_WAITING_NON_PRE_CAPTURE, STATE_PICTURE_TAKEN})
+        @Retention(RetentionPolicy.SOURCE)
+        @interface CameraState {
+        }
+    }
+
 }
