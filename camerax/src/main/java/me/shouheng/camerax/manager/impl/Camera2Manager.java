@@ -10,6 +10,7 @@ import android.hardware.camera2.params.StreamConfigurationMap;
 import android.media.Image;
 import android.media.ImageReader;
 import android.media.MediaActionSound;
+import android.media.MediaRecorder;
 import android.os.Build;
 import android.support.annotation.IntDef;
 import android.support.annotation.NonNull;
@@ -33,10 +34,13 @@ import me.shouheng.camerax.util.CameraHelper;
 import me.shouheng.camerax.util.Logger;
 
 import java.io.File;
+import java.io.IOException;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.nio.ByteBuffer;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
 /**
  * @author WngShhng (shouheng2015@gmail.com)
@@ -161,7 +165,7 @@ public class Camera2Manager extends BaseCameraManager<String> implements ImageRe
             @Override
             public void onAvailable(CameraPreview cameraPreview) {
                 if (isCameraOpened()) {
-                    setupPreview();
+                    createPreviewSession();
                 }
             }
         });
@@ -188,7 +192,7 @@ public class Camera2Manager extends BaseCameraManager<String> implements ImageRe
                             Logger.d(TAG, "Camera opened.");
                             cameraDevice = camera;
                             if (cameraPreview.isAvailable()) {
-                                setupPreview();
+                                createPreviewSession();
                             }
                             notifyCameraOpened();
                         }
@@ -225,6 +229,11 @@ public class Camera2Manager extends BaseCameraManager<String> implements ImageRe
     @Override
     public void switchCamera(int cameraFace) {
         super.switchCamera(cameraFace);
+        if (isCameraOpened()) {
+            closeCamera();
+            ConfigurationProvider.get().clearCachedValues();
+            openCamera(cameraOpenListener);
+        }
     }
 
     @Override
@@ -233,6 +242,18 @@ public class Camera2Manager extends BaseCameraManager<String> implements ImageRe
             return;
         }
         this.mediaType = mediaType;
+        if (isCameraOpened()) {
+            backgroundHandler.post(new Runnable() {
+                @Override
+                public void run() {
+                    try {
+                        adjustCameraConfiguration();
+                    } catch (Exception ex) {
+                        Logger.e(TAG, "setMediaType : " + ex);
+                    }
+                }
+            });
+        }
     }
 
     @Override
@@ -424,10 +445,46 @@ public class Camera2Manager extends BaseCameraManager<String> implements ImageRe
     @Override
     public void startVideoRecord(File file, CameraVideoListener cameraVideoListener) {
         super.startVideoRecord(file, cameraVideoListener);
+        if (videoRecording) {
+            return;
+        }
+        if (isCameraOpened()) {
+            if (voiceEnabled) {
+                new MediaActionSound().play(MediaActionSound.START_VIDEO_RECORDING);
+            }
+            backgroundHandler.post(new Runnable() {
+                @Override
+                public void run() {
+                    closePreviewSession();
+                    if (prepareVideoRecorder()) {
+                        createRecordSession();
+                    } else {
+                        Logger.i(TAG, "startVideoRecord : failed when prepare video recorder.");
+                        notifyVideoRecordError(new RuntimeException("Failed when prepare video recorder."));
+                    }
+                }
+            });
+        }
     }
 
     @Override
     public void stopVideoRecord() {
+        if (videoRecording && isCameraOpened()) {
+            backgroundHandler.post(new Runnable() {
+                @Override
+                public void run() {
+                    closePreviewSession();
+                    safeStopVideoRecorder();
+                    releaseVideoRecorder();
+                    videoRecording = false;
+                    notifyVideoRecordStop(videoOutFile);
+                    if (voiceEnabled) {
+                        new MediaActionSound().play(MediaActionSound.STOP_VIDEO_RECORDING);
+                    }
+                    createPreviewSession();
+                }
+            });
+        }
     }
 
     @Override
@@ -524,23 +581,27 @@ public class Camera2Manager extends BaseCameraManager<String> implements ImageRe
     }
 
     private void adjustCameraConfiguration() {
+        Size oldPreviewSize = previewSize;
         CameraSizeCalculator cameraSizeCalculator = ConfigurationProvider.get().getCameraSizeCalculator();
-        if (mediaType == Media.TYPE_PICTURE && pictureSize == null) {
+        if (mediaType == Media.TYPE_PICTURE) {
             pictureSize = cameraSizeCalculator.getPictureSize(pictureSizes, expectAspectRatio, expectSize);
             previewSize = cameraSizeCalculator.getPicturePreviewSize(previewSizes, pictureSize);
+            imageReader = ImageReader.newInstance(pictureSize.width, pictureSize.height, ImageFormat.JPEG, /*maxImages*/2);
+            imageReader.setOnImageAvailableListener(this, backgroundHandler);
             notifyPictureSizeUpdated(pictureSize);
-        } else if (mediaType == Media.TYPE_VIDEO && videoSize == null) {
+        }
+        if (mediaType == Media.TYPE_VIDEO) {
+            camcorderProfile = CameraHelper.getCamcorderProfile(mediaQuality, currentCameraId);
             videoSize = cameraSizeCalculator.getVideoSize(videoSizes, expectAspectRatio, expectSize);
             previewSize = cameraSizeCalculator.getVideoPreviewSize(previewSizes, videoSize);
             notifyVideoSizeUpdated(videoSize);
         }
-        notifyPreviewSizeUpdated(previewSize);
-
-        imageReader = ImageReader.newInstance(pictureSize.width, pictureSize.height, ImageFormat.JPEG, /*maxImages*/2);
-        imageReader.setOnImageAvailableListener(this, backgroundHandler);
+        if (!previewSize.equals(oldPreviewSize)) {
+            notifyPreviewSizeUpdated(previewSize);
+        }
     }
 
-    private void setupPreview() {
+    private void createPreviewSession() {
         try {
             // TODO test if the surface view is available
             if (cameraPreview.getPreviewType() == Preview.TEXTURE_VIEW) {
@@ -617,6 +678,59 @@ public class Camera2Manager extends BaseCameraManager<String> implements ImageRe
             }
         } else {
             notifyCameraCaptureFailed(new RuntimeException("Camera not open."));
+        }
+    }
+
+    private void createRecordSession() {
+        // TODO the SurfaceView type
+        final SurfaceTexture texture = Camera2Manager.this.surfaceTexture;
+        texture.setDefaultBufferSize(videoSize.width, videoSize.height);
+
+        try {
+            final List<Surface> surfaces = new ArrayList<>();
+
+            previewRequestBuilder = cameraDevice.createCaptureRequest(CameraDevice.TEMPLATE_RECORD);
+
+            final Surface previewSurface = workingSurface;
+            surfaces.add(previewSurface);
+            previewRequestBuilder.addTarget(previewSurface);
+
+            workingSurface = videoRecorder.getSurface();
+            surfaces.add(workingSurface);
+            previewRequestBuilder.addTarget(workingSurface);
+
+            cameraDevice.createCaptureSession(surfaces, new CameraCaptureSession.StateCallback() {
+                @Override
+                public void onConfigured(@NonNull CameraCaptureSession cameraCaptureSession) {
+                    captureSession = cameraCaptureSession;
+
+                    previewRequestBuilder.set(CaptureRequest.CONTROL_MODE, CameraMetadata.CONTROL_MODE_AUTO);
+                    try {
+                        captureSession.setRepeatingRequest(previewRequestBuilder.build(), null, backgroundHandler);
+                    } catch (Exception e) {
+                        Logger.e(TAG, "videoRecorder.start(): " + e);
+                        notifyVideoRecordError(e);
+                    }
+
+                    try {
+                        videoRecorder.start();
+                        videoRecording = true;
+                        notifyVideoRecordStart();
+                    } catch (Exception e) {
+                        Logger.e(TAG, "videoRecorder.start(): " + e);
+                        notifyVideoRecordError(e);
+                    }
+                }
+
+                @Override
+                public void onConfigureFailed(@NonNull CameraCaptureSession cameraCaptureSession) {
+                    Logger.i(TAG, "onConfigureFailed");
+                    notifyVideoRecordError(new RuntimeException("Video record configure failed."));
+                }
+            }, backgroundHandler);
+        } catch (Exception e) {
+            Logger.e(TAG, "startVideoRecord: " + e);
+            notifyVideoRecordError(e);
         }
     }
 
@@ -722,6 +836,63 @@ public class Camera2Manager extends BaseCameraManager<String> implements ImageRe
             captureSession.setRepeatingRequest(previewRequest, captureCallback, backgroundHandler);
         } catch (Exception e) {
             Logger.e(TAG, "unlockFocus : error during focus unlocking");
+        }
+    }
+
+    private boolean prepareVideoRecorder() {
+        videoRecorder = new MediaRecorder();
+        try {
+            videoRecorder.setAudioSource(MediaRecorder.AudioSource.CAMCORDER);
+            videoRecorder.setVideoSource(MediaRecorder.VideoSource.SURFACE);
+
+            videoRecorder.setOutputFormat(camcorderProfile.fileFormat);
+            videoRecorder.setVideoFrameRate(camcorderProfile.videoFrameRate);
+            videoRecorder.setVideoSize(videoSize.width, videoSize.height);
+            videoRecorder.setVideoEncodingBitRate(camcorderProfile.videoBitRate);
+            videoRecorder.setVideoEncoder(camcorderProfile.videoCodec);
+
+            videoRecorder.setAudioEncodingBitRate(camcorderProfile.audioBitRate);
+            videoRecorder.setAudioChannels(camcorderProfile.audioChannels);
+            videoRecorder.setAudioSamplingRate(camcorderProfile.audioSampleRate);
+            videoRecorder.setAudioEncoder(camcorderProfile.audioCodec);
+
+            // TODO max output file size and max output duration configuration
+
+            videoRecorder.setOutputFile(videoOutFile.toString());
+
+            CameraCharacteristics cameraCharacteristics = cameraFace == Camera.FACE_FRONT ?
+                    frontCameraCharacteristics : rearCameraCharacteristics;
+            videoRecorder.setOrientationHint(CameraHelper.getJpegOrientation(cameraCharacteristics, displayOrientation));
+
+            videoRecorder.setPreviewDisplay(cameraPreview.getSurface());
+            videoRecorder.prepare();
+
+            return true;
+        } catch (IllegalStateException error) {
+            Logger.e(TAG, "IllegalStateException preparing MediaRecorder: " + error.getMessage());
+            notifyVideoRecordError(error);
+        } catch (IOException error) {
+            Logger.e(TAG, "IOException preparing MediaRecorder: " + error.getMessage());
+            notifyVideoRecordError(error);
+        } catch (Throwable error) {
+            Logger.e(TAG, "Error during preparing MediaRecorder: " + error.getMessage());
+            notifyVideoRecordError(error);
+        }
+
+        releaseVideoRecorder();
+        return false;
+    }
+
+    private void closePreviewSession() {
+        if (captureSession != null) {
+            captureSession.close();
+            try {
+                captureSession.abortCaptures();
+            } catch (Exception e) {
+                Logger.e(TAG, "closePreviewSession error : " + e);
+            } finally {
+                captureSession = null;
+            }
         }
     }
 
