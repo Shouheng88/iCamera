@@ -138,7 +138,7 @@ class CameraActivity : CommonActivity<ActivityCameraBinding>() {
     override fun onResume() {
         super.onResume()
         binding.cv.openCamera(object : CameraOpenListener {
-            override fun onCameraOpened() {
+            override fun onCameraOpened(cameraFace: Int) {
                 Logger.d(TAG, "onCameraOpened")
             }
 

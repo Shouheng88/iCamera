@@ -157,7 +157,7 @@ abstract class BaseCameraManager<CameraId> implements CameraManager {
             uiHandler.post(new Runnable() {
                 @Override
                 public void run() {
-                    cameraOpenListener.onCameraOpened();
+                    cameraOpenListener.onCameraOpened(cameraFace);
                 }
             });
         }
