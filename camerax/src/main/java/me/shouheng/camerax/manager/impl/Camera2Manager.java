@@ -26,6 +26,7 @@ import me.shouheng.camerax.enums.Camera;
 import me.shouheng.camerax.enums.Flash;
 import me.shouheng.camerax.enums.Media;
 import me.shouheng.camerax.enums.Preview;
+import me.shouheng.camerax.listener.CameraCloseListener;
 import me.shouheng.camerax.listener.CameraOpenListener;
 import me.shouheng.camerax.listener.CameraPhotoListener;
 import me.shouheng.camerax.listener.CameraVideoListener;
@@ -194,7 +195,7 @@ public class Camera2Manager extends BaseCameraManager<String> implements ImageRe
     public void switchCamera(int cameraFace) {
         super.switchCamera(cameraFace);
         if (isCameraOpened()) {
-            closeCamera();
+            closeCamera(cameraCloseListener);
             ConfigurationProvider.get().clearCachedValues();
             openCamera(cameraOpenListener);
         }
@@ -481,7 +482,8 @@ public class Camera2Manager extends BaseCameraManager<String> implements ImageRe
     }
 
     @Override
-    public void closeCamera() {
+    public void closeCamera(CameraCloseListener cameraCloseListener) {
+        super.closeCamera(cameraCloseListener);
         if (isCameraOpened()) {
             cameraDevice.close();
             cameraDevice = null;
@@ -497,6 +499,7 @@ public class Camera2Manager extends BaseCameraManager<String> implements ImageRe
         if (backgroundHandler != null) {
             backgroundHandler.removeCallbacksAndMessages(null);
         }
+        notifyCameraClosed();
     }
 
     @Override

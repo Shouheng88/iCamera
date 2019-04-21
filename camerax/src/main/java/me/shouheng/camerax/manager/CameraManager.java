@@ -7,10 +7,7 @@ import me.shouheng.camerax.config.sizes.SizeMap;
 import me.shouheng.camerax.enums.Camera;
 import me.shouheng.camerax.enums.Flash;
 import me.shouheng.camerax.enums.Media;
-import me.shouheng.camerax.listener.CameraOpenListener;
-import me.shouheng.camerax.listener.CameraPhotoListener;
-import me.shouheng.camerax.listener.CameraSizeListener;
-import me.shouheng.camerax.listener.CameraVideoListener;
+import me.shouheng.camerax.listener.*;
 
 import java.io.File;
 
@@ -73,7 +70,7 @@ public interface CameraManager {
 
     void resumePreview();
 
-    void closeCamera();
+    void closeCamera(CameraCloseListener cameraCloseListener);
 
     void releaseCamera();
 }

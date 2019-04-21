@@ -137,15 +137,29 @@ class CameraActivity : CommonActivity<ActivityCameraBinding>() {
 
     override fun onResume() {
         super.onResume()
-        binding.cv.openCamera(object : CameraOpenListener {
-            override fun onCameraOpened(cameraFace: Int) {
-                Logger.d(TAG, "onCameraOpened")
-            }
+        if (!binding.cv.isCameraOpened) {
+            binding.cv.openCamera(object : CameraOpenListener {
+                override fun onCameraOpened(cameraFace: Int) {
+                    Logger.d(TAG, "onCameraOpened")
+                }
 
-            override fun onCameraOpenError(throwable: Throwable?) {
-                Logger.d(TAG, "error : $throwable")
-            }
-        })
+                override fun onCameraOpenError(throwable: Throwable?) {
+                    Logger.d(TAG, "error : $throwable")
+                }
+            })
+        }
+    }
+
+    override fun onPause() {
+        super.onPause()
+        binding.cv.closeCamera {
+            Logger.d(TAG, "closeCamera : $it")
+        }
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        binding.cv.releaseCamera()
     }
 
     fun picture(v: View) {

@@ -12,10 +12,7 @@ import me.shouheng.camerax.config.sizes.SizeMap;
 import me.shouheng.camerax.enums.Camera;
 import me.shouheng.camerax.enums.Flash;
 import me.shouheng.camerax.enums.Media;
-import me.shouheng.camerax.listener.CameraOpenListener;
-import me.shouheng.camerax.listener.CameraPhotoListener;
-import me.shouheng.camerax.listener.CameraSizeListener;
-import me.shouheng.camerax.listener.CameraVideoListener;
+import me.shouheng.camerax.listener.*;
 import me.shouheng.camerax.manager.CameraManager;
 import me.shouheng.camerax.preview.CameraPreview;
 import me.shouheng.camerax.util.Logger;
@@ -65,6 +62,7 @@ abstract class BaseCameraManager<CameraId> implements CameraManager {
     int displayOrientation;
 
     CameraOpenListener cameraOpenListener;
+    CameraCloseListener cameraCloseListener;
     private CameraPhotoListener cameraPhotoListener;
     private CameraVideoListener cameraVideoListener;
     private List<CameraSizeListener> cameraSizeListeners;
@@ -148,6 +146,11 @@ abstract class BaseCameraManager<CameraId> implements CameraManager {
     @Override
     public void releaseCamera() {
         stopBackgroundThread();
+    }
+
+    @Override
+    public void closeCamera(CameraCloseListener cameraCloseListener) {
+        this.cameraCloseListener = cameraCloseListener;
     }
 
     /*-----------------------------------protected methods-----------------------------------*/
@@ -280,6 +283,17 @@ abstract class BaseCameraManager<CameraId> implements CameraManager {
             public void run() {
                 for (CameraSizeListener cameraSizeListener : cameraSizeListeners) {
                     cameraSizeListener.onVideoSizeUpdated(videoSize);
+                }
+            }
+        });
+    }
+
+    void notifyCameraClosed() {
+        uiHandler.post(new Runnable() {
+            @Override
+            public void run() {
+                if (cameraCloseListener != null) {
+                    cameraCloseListener.onCameraClosed(cameraFace);
                 }
             }
         });

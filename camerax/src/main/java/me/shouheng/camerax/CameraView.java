@@ -264,8 +264,8 @@ public class CameraView extends FrameLayout {
         cameraManager.resumePreview();
     }
 
-    public void closeCamera() {
-        cameraManager.closeCamera();
+    public void closeCamera(CameraCloseListener cameraCloseListener) {
+        cameraManager.closeCamera(cameraCloseListener);
     }
 
     public void releaseCamera() {
