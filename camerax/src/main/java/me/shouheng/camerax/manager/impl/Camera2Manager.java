@@ -19,6 +19,7 @@ import android.view.Surface;
 import android.view.SurfaceHolder;
 import me.shouheng.camerax.config.ConfigurationProvider;
 import me.shouheng.camerax.config.calculator.CameraSizeCalculator;
+import me.shouheng.camerax.config.sizes.AspectRatio;
 import me.shouheng.camerax.config.sizes.Size;
 import me.shouheng.camerax.config.sizes.SizeMap;
 import me.shouheng.camerax.enums.Camera;
@@ -147,7 +148,7 @@ public class Camera2Manager extends BaseCameraManager<String> implements ImageRe
             @Override
             public void run() {
                 prepareCameraOutputs();
-                adjustCameraConfiguration();
+                adjustCameraConfiguration(false);
                 try {
                     cameraManager.openCamera(currentCameraId, new CameraDevice.StateCallback() {
                         @Override
@@ -210,7 +211,7 @@ public class Camera2Manager extends BaseCameraManager<String> implements ImageRe
                 @Override
                 public void run() {
                     try {
-                        adjustCameraConfiguration();
+                        adjustCameraConfiguration(false);
                     } catch (Exception ex) {
                         Logger.e(TAG, "setMediaType : " + ex);
                     }
@@ -340,6 +341,30 @@ public class Camera2Manager extends BaseCameraManager<String> implements ImageRe
     }
 
     @Override
+    public void setExpectSize(Size expectSize) {
+        super.setExpectSize(expectSize);
+        backgroundHandler.post(new Runnable() {
+            @Override
+            public void run() {
+                adjustCameraConfiguration(true);
+                createPreviewSession();
+            }
+        });
+    }
+
+    @Override
+    public void setExpectAspectRatio(AspectRatio expectAspectRatio) {
+        super.setExpectAspectRatio(expectAspectRatio);
+        backgroundHandler.post(new Runnable() {
+            @Override
+            public void run() {
+                adjustCameraConfiguration(true);
+                createPreviewSession();
+            }
+        });
+    }
+
+    @Override
     public Size getSize(@Camera.SizeFor int sizeFor) {
         switch (sizeFor) {
             case Camera.SIZE_FOR_PREVIEW:
@@ -382,9 +407,7 @@ public class Camera2Manager extends BaseCameraManager<String> implements ImageRe
             return;
         }
         this.displayOrientation = displayOrientation;
-        if (isCameraOpened()) {
-            // TODO the display orientation
-        }
+        // TODO the display orientation
     }
 
     @Override
@@ -559,15 +582,15 @@ public class Camera2Manager extends BaseCameraManager<String> implements ImageRe
         Logger.d(TAG, "prepareCameraOutputs cost : " + (System.currentTimeMillis() - start) + " ms");
     }
 
-    private void adjustCameraConfiguration() {
+    private void adjustCameraConfiguration(boolean forceCalculate) {
         Size oldPreviewSize = previewSize;
         CameraSizeCalculator cameraSizeCalculator = ConfigurationProvider.get().getCameraSizeCalculator();
-        if (pictureSize == null) {
+        if (pictureSize == null || forceCalculate) {
             pictureSize = cameraSizeCalculator.getPictureSize(pictureSizes, expectAspectRatio, expectSize);
             previewSize = cameraSizeCalculator.getPicturePreviewSize(previewSizes, pictureSize);
             notifyPictureSizeUpdated(pictureSize);
         }
-        if (mediaType == Media.TYPE_VIDEO && videoSize == null) {
+        if (mediaType == Media.TYPE_VIDEO && (videoSize == null || forceCalculate)) {
             camcorderProfile = CameraHelper.getCamcorderProfile(mediaQuality, currentCameraId);
             videoSize = cameraSizeCalculator.getVideoSize(videoSizes, expectAspectRatio, expectSize);
             previewSize = cameraSizeCalculator.getVideoPreviewSize(previewSizes, videoSize);
@@ -609,6 +632,9 @@ public class Camera2Manager extends BaseCameraManager<String> implements ImageRe
                                 try {
                                     captureSession.setRepeatingRequest(previewRequest, captureSessionCallback, backgroundHandler);
                                 } catch (CameraAccessException ex) {
+                                    Logger.e(TAG, "createPreviewSession error " + ex);
+                                    notifyCameraOpenError(ex);
+                                } catch (IllegalStateException ex) {
                                     Logger.e(TAG, "createPreviewSession error " + ex);
                                     notifyCameraOpenError(ex);
                                 }
