@@ -14,6 +14,8 @@ import me.shouheng.sample.creator.SurfaceOnlyCreator
 import me.shouheng.sample.creator.TextureOnlyCreator
 import me.shouheng.sample.databinding.ActivityMainBinding
 import me.shouheng.sample.utils.ThemeUtils
+import me.shouheng.utils.permission.Permission
+import me.shouheng.utils.permission.PermissionUtils
 
 /**
  * @author WngShhng (shouheng2015@gmail.com)
@@ -63,6 +65,10 @@ class MainActivity : CommonActivity<ActivityMainBinding>() {
     }
 
     fun openCamera(v: View) {
-        startActivity(Intent(this, CameraActivity::class.java))
+        PermissionUtils.checkPermissions(this,
+            intArrayOf(Permission.CAMERA, Permission.STORAGE, Permission.MICROPHONE)
+        ) {
+            startActivity(Intent(this, CameraActivity::class.java))
+        }
     }
 }

@@ -11,13 +11,19 @@ import android.support.v7.app.AppCompatActivity
 import android.view.LayoutInflater
 import android.view.View
 import android.view.WindowManager
+import me.shouheng.utils.permission.PermissionResultHandler
+import me.shouheng.utils.permission.PermissionResultResolver
+import me.shouheng.utils.permission.callback.OnGetPermissionCallback
+import me.shouheng.utils.permission.callback.PermissionResultCallbackImpl
 
 
 /**
  * @author WngShhng (shouheng2015@gmail.com)
  * @version 2019/4/13 22:10
  */
-abstract class CommonActivity<T : ViewDataBinding> : AppCompatActivity() {
+abstract class CommonActivity<T : ViewDataBinding> : AppCompatActivity(), PermissionResultResolver {
+
+    private var permissionCallback: OnGetPermissionCallback? = null
 
     lateinit var binding : T
 
@@ -81,5 +87,15 @@ abstract class CommonActivity<T : ViewDataBinding> : AppCompatActivity() {
 
     protected open fun useTransparentStatusBarForLollipop(): Boolean {
         return false
+    }
+
+    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        PermissionResultHandler.handlePermissionsResult(this, requestCode, permissions,
+            grantResults, PermissionResultCallbackImpl(this, permissionCallback))
+    }
+
+    override fun setOnGetPermissionCallback(onGetPermissionCallback: OnGetPermissionCallback?) {
+        permissionCallback = onGetPermissionCallback
     }
 }
