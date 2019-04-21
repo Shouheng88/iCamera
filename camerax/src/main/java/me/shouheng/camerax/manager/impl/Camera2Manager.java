@@ -951,7 +951,6 @@ public class Camera2Manager extends BaseCameraManager<String> implements ImageRe
         pictureSize = null;
         videoSize = null;
         maxZoom = 0;
-        // TODO notify camera closed
     }
 
     private void releaseTexture() {
