@@ -46,6 +46,7 @@ public final class CameraHelper {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP) return false;
         try {
             CameraManager manager = (CameraManager) context.getSystemService(Context.CAMERA_SERVICE);
+            assert manager != null;
             String[] idList = manager.getCameraIdList();
             boolean notNull = true;
             if (idList.length == 0) {
@@ -58,8 +59,8 @@ public final class CameraHelper {
                     }
                     final CameraCharacteristics characteristics = manager.getCameraCharacteristics(str);
 
-                    final int supportLevel = characteristics.get(CameraCharacteristics.INFO_SUPPORTED_HARDWARE_LEVEL);
-                    if (supportLevel == CameraCharacteristics.INFO_SUPPORTED_HARDWARE_LEVEL_LEGACY) {
+                    Integer iSupportLevel = characteristics.get(CameraCharacteristics.INFO_SUPPORTED_HARDWARE_LEVEL);
+                    if (iSupportLevel != null && iSupportLevel == CameraCharacteristics.INFO_SUPPORTED_HARDWARE_LEVEL_LEGACY) {
                         notNull = false;
                         break;
                     }
@@ -88,7 +89,9 @@ public final class CameraHelper {
     public static int calDisplayOrientation(Context context, @Camera.Face int cameraFace, int cameraOrientation) {
         int displayRotation;
 
-        final int rotation = ((WindowManager) context.getSystemService(Context.WINDOW_SERVICE)).getDefaultDisplay().getRotation();
+        WindowManager manager = (WindowManager) context.getSystemService(Context.WINDOW_SERVICE);
+        assert manager != null;
+        final int rotation = manager.getDefaultDisplay().getRotation();
         int degrees = 0;
         switch (rotation) {
             case Surface.ROTATION_0:
@@ -213,8 +216,8 @@ public final class CameraHelper {
                 Media.QUALITY_LOW, Media.QUALITY_LOWEST};
 
         CamcorderProfile camcorderProfile;
-        for (int i = 0; i < qualities.length; ++i) {
-            camcorderProfile = CameraHelper.getCamcorderProfile(qualities[i], currentCameraId);
+        for (int quality : qualities) {
+            camcorderProfile = CameraHelper.getCamcorderProfile(quality, currentCameraId);
             double fileSize = CameraHelper.calculateApproximateVideoSize(camcorderProfile, minimumDurationInSeconds);
 
             if (fileSize > maximumFileSize) {
@@ -239,50 +242,34 @@ public final class CameraHelper {
     }
 
     public static CamcorderProfile getCamcorderProfile(@Media.Quality int mediaQuality, int cameraId) {
-        if (Build.VERSION.SDK_INT > 10) {
-            if (mediaQuality == Media.QUALITY_HIGHEST) {
-                return CamcorderProfile.get(cameraId, CamcorderProfile.QUALITY_HIGH);
-            } else if (mediaQuality == Media.QUALITY_HIGH) {
-                if (CamcorderProfile.hasProfile(cameraId, CamcorderProfile.QUALITY_1080P)) {
-                    return CamcorderProfile.get(cameraId, CamcorderProfile.QUALITY_1080P);
-                } else if (CamcorderProfile.hasProfile(cameraId, CamcorderProfile.QUALITY_720P)) {
-                    return CamcorderProfile.get(cameraId, CamcorderProfile.QUALITY_720P);
-                } else {
-                    return CamcorderProfile.get(cameraId, CamcorderProfile.QUALITY_HIGH);
-                }
-            } else if (mediaQuality == Media.QUALITY_MEDIUM) {
-                if (CamcorderProfile.hasProfile(cameraId, CamcorderProfile.QUALITY_720P)) {
-                    return CamcorderProfile.get(cameraId, CamcorderProfile.QUALITY_720P);
-                } else if (CamcorderProfile.hasProfile(cameraId, CamcorderProfile.QUALITY_480P)) {
-                    return CamcorderProfile.get(cameraId, CamcorderProfile.QUALITY_480P);
-                } else {
-                    return CamcorderProfile.get(cameraId, CamcorderProfile.QUALITY_LOW);
-                }
-            } else if (mediaQuality == Media.QUALITY_LOW) {
-                if (CamcorderProfile.hasProfile(cameraId, CamcorderProfile.QUALITY_480P)) {
-                    return CamcorderProfile.get(cameraId, CamcorderProfile.QUALITY_480P);
-                } else {
-                    return CamcorderProfile.get(cameraId, CamcorderProfile.QUALITY_LOW);
-                }
-            } else if (mediaQuality == Media.QUALITY_LOWEST) {
-                return CamcorderProfile.get(cameraId, CamcorderProfile.QUALITY_LOW);
+        if (mediaQuality == Media.QUALITY_HIGHEST) {
+            return CamcorderProfile.get(cameraId, CamcorderProfile.QUALITY_HIGH);
+        } else if (mediaQuality == Media.QUALITY_HIGH) {
+            if (CamcorderProfile.hasProfile(cameraId, CamcorderProfile.QUALITY_1080P)) {
+                return CamcorderProfile.get(cameraId, CamcorderProfile.QUALITY_1080P);
+            } else if (CamcorderProfile.hasProfile(cameraId, CamcorderProfile.QUALITY_720P)) {
+                return CamcorderProfile.get(cameraId, CamcorderProfile.QUALITY_720P);
             } else {
                 return CamcorderProfile.get(cameraId, CamcorderProfile.QUALITY_HIGH);
             }
+        } else if (mediaQuality == Media.QUALITY_MEDIUM) {
+            if (CamcorderProfile.hasProfile(cameraId, CamcorderProfile.QUALITY_720P)) {
+                return CamcorderProfile.get(cameraId, CamcorderProfile.QUALITY_720P);
+            } else if (CamcorderProfile.hasProfile(cameraId, CamcorderProfile.QUALITY_480P)) {
+                return CamcorderProfile.get(cameraId, CamcorderProfile.QUALITY_480P);
+            } else {
+                return CamcorderProfile.get(cameraId, CamcorderProfile.QUALITY_LOW);
+            }
+        } else if (mediaQuality == Media.QUALITY_LOW) {
+            if (CamcorderProfile.hasProfile(cameraId, CamcorderProfile.QUALITY_480P)) {
+                return CamcorderProfile.get(cameraId, CamcorderProfile.QUALITY_480P);
+            } else {
+                return CamcorderProfile.get(cameraId, CamcorderProfile.QUALITY_LOW);
+            }
+        } else if (mediaQuality == Media.QUALITY_LOWEST) {
+            return CamcorderProfile.get(cameraId, CamcorderProfile.QUALITY_LOW);
         } else {
-            if (mediaQuality == Media.QUALITY_HIGHEST) {
-                return CamcorderProfile.get(cameraId, CamcorderProfile.QUALITY_HIGH);
-            } else if (mediaQuality == Media.QUALITY_HIGH) {
-                return CamcorderProfile.get(cameraId, CamcorderProfile.QUALITY_HIGH);
-            } else if (mediaQuality == Media.QUALITY_MEDIUM) {
-                return CamcorderProfile.get(cameraId, CamcorderProfile.QUALITY_LOW);
-            } else if (mediaQuality == Media.QUALITY_LOW) {
-                return CamcorderProfile.get(cameraId, CamcorderProfile.QUALITY_LOW);
-            } else if (mediaQuality == Media.QUALITY_LOWEST) {
-                return CamcorderProfile.get(cameraId, CamcorderProfile.QUALITY_LOW);
-            } else {
-                return CamcorderProfile.get(cameraId, CamcorderProfile.QUALITY_HIGH);
-            }
+            return CamcorderProfile.get(cameraId, CamcorderProfile.QUALITY_HIGH);
         }
     }
 
