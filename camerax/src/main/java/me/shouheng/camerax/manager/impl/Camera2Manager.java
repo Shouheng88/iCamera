@@ -408,7 +408,7 @@ public class Camera2Manager extends BaseCameraManager<String> implements ImageRe
             return;
         }
         this.displayOrientation = displayOrientation;
-        // TODO the display orientation
+        // FIXME the display orientation
     }
 
     @Override
@@ -593,6 +593,7 @@ public class Camera2Manager extends BaseCameraManager<String> implements ImageRe
             previewSize = cameraSizeCalculator.getPicturePreviewSize(previewSizes, pictureSize);
             notifyPictureSizeUpdated(pictureSize);
 
+            // Fix: CaptureRequest contains unconfigured Input/Output Surface!
             imageReader = ImageReader.newInstance(pictureSize.width, pictureSize.height, ImageFormat.JPEG, /*maxImages*/2);
             imageReader.setOnImageAvailableListener(this, backgroundHandler);
         }
@@ -687,7 +688,7 @@ public class Camera2Manager extends BaseCameraManager<String> implements ImageRe
                 captureBuilder.set(CaptureRequest.JPEG_ORIENTATION,
                         CameraHelper.getJpegOrientation(cameraCharacteristics, displayOrientation));
 
-                // TODO the zoomed result is invalid
+                // FIXME the zoomed result is invalid
                 setZoomInternal();
 
                 captureSession.stopRepeating();
