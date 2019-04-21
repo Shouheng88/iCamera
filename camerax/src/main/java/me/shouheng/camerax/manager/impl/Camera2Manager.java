@@ -606,47 +606,65 @@ public class Camera2Manager extends BaseCameraManager<String> implements ImageRe
 
     private void createPreviewSession() {
         try {
-            // TODO test if the surface view is available
+            final Runnable sessionCreationTask = new Runnable() {
+                @Override
+                public void run() {
+                    try {
+                        previewRequestBuilder = cameraDevice.createCaptureRequest(CameraDevice.TEMPLATE_PREVIEW);
+                        previewRequestBuilder.addTarget(workingSurface);
+                        cameraDevice.createCaptureSession(Arrays.asList(workingSurface, imageReader.getSurface()),
+                                new CameraCaptureSession.StateCallback() {
+                                    @Override
+                                    public void onConfigured(@NonNull CameraCaptureSession cameraCaptureSession) {
+                                        if (isCameraOpened()) {
+                                            captureSession = cameraCaptureSession;
+                                            setFlashModeInternal();
+                                            previewRequest = previewRequestBuilder.build();
+                                            try {
+                                                captureSession.setRepeatingRequest(previewRequest, captureSessionCallback, backgroundHandler);
+                                            } catch (CameraAccessException ex) {
+                                                Logger.e(TAG, "createPreviewSession error " + ex);
+                                                notifyCameraOpenError(ex);
+                                            } catch (IllegalStateException ex) {
+                                                Logger.e(TAG, "createPreviewSession error " + ex);
+                                                notifyCameraOpenError(ex);
+                                            }
+                                        }
+                                    }
+
+                                    @Override
+                                    public void onConfigureFailed(@NonNull CameraCaptureSession cameraCaptureSession) {
+                                        Logger.d(TAG, "onConfigureFailed");
+                                        notifyCameraOpenError(new Throwable("Camera capture session configure failed."));
+                                    }
+                                }, backgroundHandler);
+                    } catch (Exception ex) {
+                        Logger.e(TAG, "createPreviewSession error " + ex);
+                        notifyCameraOpenError(ex);
+                    }
+                }
+            };
+
             if (cameraPreview.getPreviewType() == Preview.TEXTURE_VIEW) {
                 this.surfaceTexture = cameraPreview.getSurfaceTexture();
                 assert surfaceTexture != null;
                 surfaceTexture.setDefaultBufferSize(previewSize.width, previewSize.height);
                 workingSurface = cameraPreview.getSurface();
+                sessionCreationTask.run();
             } else if (cameraPreview.getPreviewType() == Preview.SURFACE_VIEW) {
-                surfaceHolder = cameraPreview.getSurfaceHolder();
-                assert surfaceHolder != null;
-                surfaceHolder.setFixedSize(previewSize.width, previewSize.height);
-                workingSurface = cameraPreview.getSurface();
+                // only ui thread can touch surface view
+                uiHandler.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        surfaceHolder = cameraPreview.getSurfaceHolder();
+                        assert surfaceHolder != null;
+                        surfaceHolder.setFixedSize(previewSize.width, previewSize.height);
+                        workingSurface = cameraPreview.getSurface();
+                        // keep the initialization procedure
+                        sessionCreationTask.run();
+                    }
+                });
             }
-
-            previewRequestBuilder = cameraDevice.createCaptureRequest(CameraDevice.TEMPLATE_PREVIEW);
-            previewRequestBuilder.addTarget(workingSurface);
-            cameraDevice.createCaptureSession(Arrays.asList(workingSurface, imageReader.getSurface()),
-                    new CameraCaptureSession.StateCallback() {
-                        @Override
-                        public void onConfigured(@NonNull CameraCaptureSession cameraCaptureSession) {
-                            if (isCameraOpened()) {
-                                captureSession = cameraCaptureSession;
-                                setFlashModeInternal();
-                                previewRequest = previewRequestBuilder.build();
-                                try {
-                                    captureSession.setRepeatingRequest(previewRequest, captureSessionCallback, backgroundHandler);
-                                } catch (CameraAccessException ex) {
-                                    Logger.e(TAG, "createPreviewSession error " + ex);
-                                    notifyCameraOpenError(ex);
-                                } catch (IllegalStateException ex) {
-                                    Logger.e(TAG, "createPreviewSession error " + ex);
-                                    notifyCameraOpenError(ex);
-                                }
-                            }
-                        }
-
-                        @Override
-                        public void onConfigureFailed(@NonNull CameraCaptureSession cameraCaptureSession) {
-                            Logger.d(TAG, "onConfigureFailed");
-                            notifyCameraOpenError(new Throwable("Camera capture session configure failed."));
-                        }
-                    }, null);
         } catch (Exception ex) {
             Logger.e(TAG, "createPreviewSession error " + ex);
             notifyCameraOpenError(ex);
@@ -688,55 +706,71 @@ public class Camera2Manager extends BaseCameraManager<String> implements ImageRe
     }
 
     private void createRecordSession() {
-        // TODO the SurfaceView type
-        final SurfaceTexture texture = Camera2Manager.this.surfaceTexture;
-        texture.setDefaultBufferSize(videoSize.width, videoSize.height);
+        final Runnable sessionCreationTask = new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    final List<Surface> surfaces = new ArrayList<>();
 
-        try {
-            final List<Surface> surfaces = new ArrayList<>();
+                    previewRequestBuilder = cameraDevice.createCaptureRequest(CameraDevice.TEMPLATE_RECORD);
 
-            previewRequestBuilder = cameraDevice.createCaptureRequest(CameraDevice.TEMPLATE_RECORD);
+                    final Surface previewSurface = workingSurface;
+                    surfaces.add(previewSurface);
+                    previewRequestBuilder.addTarget(previewSurface);
 
-            final Surface previewSurface = workingSurface;
-            surfaces.add(previewSurface);
-            previewRequestBuilder.addTarget(previewSurface);
+                    workingSurface = videoRecorder.getSurface();
+                    surfaces.add(workingSurface);
+                    previewRequestBuilder.addTarget(workingSurface);
 
-            workingSurface = videoRecorder.getSurface();
-            surfaces.add(workingSurface);
-            previewRequestBuilder.addTarget(workingSurface);
+                    cameraDevice.createCaptureSession(surfaces, new CameraCaptureSession.StateCallback() {
+                        @Override
+                        public void onConfigured(@NonNull CameraCaptureSession cameraCaptureSession) {
+                            captureSession = cameraCaptureSession;
 
-            cameraDevice.createCaptureSession(surfaces, new CameraCaptureSession.StateCallback() {
-                @Override
-                public void onConfigured(@NonNull CameraCaptureSession cameraCaptureSession) {
-                    captureSession = cameraCaptureSession;
+                            previewRequestBuilder.set(CaptureRequest.CONTROL_MODE, CameraMetadata.CONTROL_MODE_AUTO);
+                            try {
+                                captureSession.setRepeatingRequest(previewRequestBuilder.build(), null, backgroundHandler);
+                            } catch (Exception e) {
+                                Logger.e(TAG, "videoRecorder.start(): " + e);
+                                notifyVideoRecordError(e);
+                            }
 
-                    previewRequestBuilder.set(CaptureRequest.CONTROL_MODE, CameraMetadata.CONTROL_MODE_AUTO);
-                    try {
-                        captureSession.setRepeatingRequest(previewRequestBuilder.build(), null, backgroundHandler);
-                    } catch (Exception e) {
-                        Logger.e(TAG, "videoRecorder.start(): " + e);
-                        notifyVideoRecordError(e);
-                    }
+                            try {
+                                videoRecorder.start();
+                                videoRecording = true;
+                                notifyVideoRecordStart();
+                            } catch (Exception e) {
+                                Logger.e(TAG, "videoRecorder.start(): " + e);
+                                notifyVideoRecordError(e);
+                            }
+                        }
 
-                    try {
-                        videoRecorder.start();
-                        videoRecording = true;
-                        notifyVideoRecordStart();
-                    } catch (Exception e) {
-                        Logger.e(TAG, "videoRecorder.start(): " + e);
-                        notifyVideoRecordError(e);
-                    }
+                        @Override
+                        public void onConfigureFailed(@NonNull CameraCaptureSession cameraCaptureSession) {
+                            Logger.i(TAG, "onConfigureFailed");
+                            notifyVideoRecordError(new RuntimeException("Video record configure failed."));
+                        }
+                    }, backgroundHandler);
+                } catch (Exception e) {
+                    Logger.e(TAG, "startVideoRecord: " + e);
+                    notifyVideoRecordError(e);
                 }
+            }
+        };
 
+        if (cameraPreview.getPreviewType() == Preview.TEXTURE_VIEW) {
+            final SurfaceTexture texture = Camera2Manager.this.surfaceTexture;
+            texture.setDefaultBufferSize(videoSize.width, videoSize.height);
+            sessionCreationTask.run();
+        } else if (cameraPreview.getPreviewType() == Preview.SURFACE_VIEW) {
+            uiHandler.post(new Runnable() {
                 @Override
-                public void onConfigureFailed(@NonNull CameraCaptureSession cameraCaptureSession) {
-                    Logger.i(TAG, "onConfigureFailed");
-                    notifyVideoRecordError(new RuntimeException("Video record configure failed."));
+                public void run() {
+                    SurfaceHolder surfaceHolder = Camera2Manager.this.surfaceHolder;
+                    surfaceHolder.setFixedSize(previewSize.width, previewSize.height);
+                    sessionCreationTask.run();
                 }
-            }, backgroundHandler);
-        } catch (Exception e) {
-            Logger.e(TAG, "startVideoRecord: " + e);
-            notifyVideoRecordError(e);
+            });
         }
     }
 
