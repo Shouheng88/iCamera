@@ -6,6 +6,10 @@
     <string name="main_camera_option_camera1_only">Camera1 only</string>
     <string name="main_camera_option_camera2_only">Camera2 only</string>
     <string name="main_camera_option_camera">According to platform</string>
+    <string name="main_preview_option">Select your camera preview option:</string>
+    <string name="main_preview_option_texture_only">TextureView only</string>
+    <string name="main_preview_option_surface_only">SurfaceView only</string>
+    <string name="main_preview_option_platform">According to platform</string>
 
     <string name="camera_drawer_title">Camera Configuration</string>
     <string name="camera_drawer_shutter">Enable shutter</string>

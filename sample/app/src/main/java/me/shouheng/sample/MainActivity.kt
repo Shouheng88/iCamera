@@ -6,9 +6,12 @@ import android.util.Log
 import android.view.View
 import me.shouheng.camerax.config.ConfigurationProvider
 import me.shouheng.camerax.config.creator.impl.CameraManagerCreatorImpl
+import me.shouheng.camerax.config.creator.impl.CameraPreviewCreatorImpl
 import me.shouheng.sample.base.CommonActivity
 import me.shouheng.sample.creator.Camera1OnlyCreator
 import me.shouheng.sample.creator.Camera2OnlyCreator
+import me.shouheng.sample.creator.SurfaceOnlyCreator
+import me.shouheng.sample.creator.TextureOnlyCreator
 import me.shouheng.sample.databinding.ActivityMainBinding
 import me.shouheng.sample.utils.ThemeUtils
 
@@ -39,6 +42,22 @@ class MainActivity : CommonActivity<ActivityMainBinding>() {
         binding.rbCamera2.setOnCheckedChangeListener { _, isChecked ->
             if (isChecked) {
                 ConfigurationProvider.get().cameraManagerCreator = Camera2OnlyCreator()
+            }
+        }
+
+        binding.rbSurface.setOnCheckedChangeListener { _, isChecked ->
+            if (isChecked) {
+                ConfigurationProvider.get().cameraPreviewCreator = SurfaceOnlyCreator()
+            }
+        }
+        binding.rbTexture.setOnCheckedChangeListener { _, isChecked ->
+            if (isChecked) {
+                ConfigurationProvider.get().cameraPreviewCreator = TextureOnlyCreator()
+            }
+        }
+        binding.rbPlatform.setOnCheckedChangeListener { _, isChecked ->
+            if (isChecked) {
+                ConfigurationProvider.get().cameraPreviewCreator = CameraPreviewCreatorImpl()
             }
         }
     }

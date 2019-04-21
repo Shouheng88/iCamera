@@ -65,7 +65,42 @@
 
             </RadioGroup>
 
+            <RadioGroup
+                    android:layout_marginTop="20dp"
+                    android:orientation="vertical"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content">
+
+                <android.support.v7.widget.AppCompatTextView
+                        android:text="@string/main_preview_option"
+                        android:textSize="16sp"
+                        android:textColor="@android:color/white"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"/>
+
+                <RadioButton
+                        android:id="@+id/rb_texture"
+                        android:text="@string/main_preview_option_texture_only"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"/>
+
+                <RadioButton
+                        android:id="@+id/rb_surface"
+                        android:text="@string/main_preview_option_surface_only"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"/>
+
+                <RadioButton
+                        android:id="@+id/rb_platform"
+                        android:checked="true"
+                        android:text="@string/main_preview_option_platform"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"/>
+
+            </RadioGroup>
+
             <android.support.v7.widget.AppCompatButton
+                    android:layout_marginTop="20dp"
                     android:onClick="openCamera"
                     android:text="@string/main_menu_camera"
                     android:layout_width="match_parent"
