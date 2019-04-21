@@ -151,6 +151,11 @@
                         android:text="@string/camera_drawer_switch_camera"
                         style="@style/CameraDrawerText"/>
 
+                <android.support.v7.widget.AppCompatEditText
+                        android:id="@+id/et_video_duration"
+                        android:hint="@string/main_video_duration"
+                        style="@style/CameraDrawerText"/>
+
             </LinearLayout>
 
         </android.support.v4.widget.NestedScrollView>

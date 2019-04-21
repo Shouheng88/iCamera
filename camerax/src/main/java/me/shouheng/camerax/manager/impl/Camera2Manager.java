@@ -899,9 +899,16 @@ public class Camera2Manager extends BaseCameraManager<String> implements ImageRe
             videoRecorder.setAudioSamplingRate(camcorderProfile.audioSampleRate);
             videoRecorder.setAudioEncoder(camcorderProfile.audioCodec);
 
-            // TODO max output file size and max output duration configuration
-
             videoRecorder.setOutputFile(videoOutFile.toString());
+
+            if (videoFileSize > 0) {
+                videoRecorder.setMaxFileSize(videoFileSize);
+                videoRecorder.setOnInfoListener(this);
+            }
+            if (videoDuration > 0) {
+                videoRecorder.setMaxDuration(videoDuration);
+                videoRecorder.setOnInfoListener(this);
+            }
 
             CameraCharacteristics cameraCharacteristics = cameraFace == Camera.FACE_FRONT ?
                     frontCameraCharacteristics : rearCameraCharacteristics;

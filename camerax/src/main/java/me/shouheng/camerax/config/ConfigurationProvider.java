@@ -52,6 +52,8 @@ public class ConfigurationProvider {
     private boolean isAutoFocus;
     @Flash.FlashMode
     private int defaultFlashMode;
+    private long defaultVideoFileSize = -1;
+    private int defaultVideoDuration = -1;
 
     private boolean isDebug;
 
@@ -268,6 +270,22 @@ public class ConfigurationProvider {
 
     public void setDefaultFlashMode(@Flash.FlashMode int defaultFlashMode) {
         this.defaultFlashMode = defaultFlashMode;
+    }
+
+    public long getDefaultVideoFileSize() {
+        return defaultVideoFileSize;
+    }
+
+    public void setDefaultVideoFileSize(long defaultVideoFileSize) {
+        this.defaultVideoFileSize = defaultVideoFileSize;
+    }
+
+    public int getDefaultVideoDuration() {
+        return defaultVideoDuration;
+    }
+
+    public void setDefaultVideoDuration(int defaultVideoDuration) {
+        this.defaultVideoDuration = defaultVideoDuration;
     }
 
     public boolean isDebug() {

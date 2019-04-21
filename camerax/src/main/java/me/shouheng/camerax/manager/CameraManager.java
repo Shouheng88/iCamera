@@ -64,6 +64,10 @@ public interface CameraManager {
 
     void takePicture(CameraPhotoListener cameraPhotoListener);
 
+    void setVideoFileSize(long videoFileSize);
+
+    void setVideoDuration(int videoDuration);
+
     void startVideoRecord(File file, CameraVideoListener cameraVideoListener);
 
     void stopVideoRecord();

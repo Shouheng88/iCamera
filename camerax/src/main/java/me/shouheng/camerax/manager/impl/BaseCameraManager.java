@@ -25,7 +25,7 @@ import java.util.List;
  * @author WngShhng (shouheng2015@gmail.com)
  * @version 2019/4/13 22:50
  */
-abstract class BaseCameraManager<CameraId> implements CameraManager {
+abstract class BaseCameraManager<CameraId> implements CameraManager, MediaRecorder.OnInfoListener {
 
     private static final String TAG = "BaseCameraManager";
 
@@ -61,6 +61,9 @@ abstract class BaseCameraManager<CameraId> implements CameraManager {
     float maxZoom;
     int displayOrientation;
 
+    long videoFileSize;
+    int videoDuration;
+
     CameraOpenListener cameraOpenListener;
     CameraCloseListener cameraCloseListener;
     private CameraPhotoListener cameraPhotoListener;
@@ -85,6 +88,8 @@ abstract class BaseCameraManager<CameraId> implements CameraManager {
         isAutoFocus = ConfigurationProvider.get().isAutoFocus();
         flashMode = ConfigurationProvider.get().getDefaultFlashMode();
         cameraSizeListeners = new LinkedList<>();
+        videoFileSize = ConfigurationProvider.get().getDefaultVideoFileSize();
+        videoDuration = ConfigurationProvider.get().getDefaultVideoDuration();
     }
 
     @Override
@@ -137,6 +142,14 @@ abstract class BaseCameraManager<CameraId> implements CameraManager {
         this.cameraPhotoListener = cameraPhotoListener;
     }
 
+    public void setVideoFileSize(long videoFileSize) {
+        this.videoFileSize = videoFileSize;
+    }
+
+    public void setVideoDuration(int videoDuration) {
+        this.videoDuration = videoDuration;
+    }
+
     @Override
     public void startVideoRecord(File file, CameraVideoListener cameraVideoListener) {
         this.videoOutFile = file;
@@ -151,6 +164,15 @@ abstract class BaseCameraManager<CameraId> implements CameraManager {
     @Override
     public void closeCamera(CameraCloseListener cameraCloseListener) {
         this.cameraCloseListener = cameraCloseListener;
+    }
+
+    @Override
+    public void onInfo(MediaRecorder mr, int what, int extra) {
+        if (MediaRecorder.MEDIA_RECORDER_INFO_MAX_DURATION_REACHED == what) {
+            onMaxDurationReached();
+        } else if (MediaRecorder.MEDIA_RECORDER_INFO_MAX_FILESIZE_REACHED == what) {
+            onMaxFileSizeReached();
+        }
     }
 
     /*-----------------------------------protected methods-----------------------------------*/
@@ -297,6 +319,14 @@ abstract class BaseCameraManager<CameraId> implements CameraManager {
                 }
             }
         });
+    }
+
+    void onMaxDurationReached() {
+        stopVideoRecord();
+    }
+
+    void onMaxFileSizeReached() {
+        stopVideoRecord();
     }
 
     /*-----------------------------------private methods-----------------------------------*/

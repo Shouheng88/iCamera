@@ -252,6 +252,24 @@ public class CameraView extends FrameLayout {
         cameraManager.takePicture(cameraPhotoListener);
     }
 
+    /**
+     * Sets the maximum file size (in bytes) of the recording video.
+     *
+     * @param videoFileSize the maximum file size in bytes (if zero or negative, disables the limit)
+     */
+    public void setVideoFileSize(long videoFileSize) {
+        cameraManager.setVideoFileSize(videoFileSize);
+    }
+
+    /**
+     * Sets the maximum duration (in ms) of the recording video.
+     *
+     * @param videoDuration the maximum duration in ms (if zero or negative, disables the duration limit)
+     */
+    public void setVideoDuration(int videoDuration) {
+        cameraManager.setVideoDuration(videoDuration);
+    }
+
     public void startVideoRecord(File file, CameraVideoListener cameraVideoListener) {
         cameraManager.startVideoRecord(file, cameraVideoListener);
     }

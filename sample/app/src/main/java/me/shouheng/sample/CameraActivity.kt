@@ -201,6 +201,12 @@ class CameraActivity : CommonActivity<ActivityCameraBinding>() {
 
     private fun takeVideo() {
         if (!isCameraRecording) {
+            val seconds: Int = try {
+                Integer.parseInt(binding.etVideoDuration.text.toString())
+            } catch (ex: Exception) {
+                0
+            }
+            binding.cv.setVideoDuration(seconds * 1000)
             binding.cv.startVideoRecord(FileUtils.getTempFile(this, "mp4"), object : CameraVideoListener {
                 override fun onVideoRecordStart() {
                     Toast.makeText(this@CameraActivity, "Video record START!", Toast.LENGTH_SHORT).show()

@@ -502,9 +502,16 @@ public class Camera1Manager extends BaseCameraManager<Integer> {
             videoRecorder.setAudioSamplingRate(camcorderProfile.audioSampleRate);
             videoRecorder.setAudioEncoder(camcorderProfile.audioCodec);
 
-            // TODO max output file size and max output duration configuration
-            
             videoRecorder.setOutputFile(videoOutFile.toString());
+
+            if (videoFileSize > 0) {
+                videoRecorder.setMaxFileSize(videoFileSize);
+                videoRecorder.setOnInfoListener(this);
+            }
+            if (videoDuration > 0) {
+                videoRecorder.setMaxDuration(videoDuration);
+                videoRecorder.setOnInfoListener(this);
+            }
 
             videoRecorder.setPreviewDisplay(cameraPreview.getSurface());
             videoRecorder.prepare();

@@ -10,6 +10,7 @@
     <string name="main_preview_option_texture_only">TextureView only</string>
     <string name="main_preview_option_surface_only">SurfaceView only</string>
     <string name="main_preview_option_platform">According to platform</string>
+    <string name="main_video_duration">Max video duration in second:</string>
 
     <string name="camera_drawer_title">Camera Configuration</string>
     <string name="camera_drawer_shutter">Enable shutter</string>
