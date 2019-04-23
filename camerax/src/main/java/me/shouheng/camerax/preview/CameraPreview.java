@@ -4,6 +4,7 @@ import android.graphics.SurfaceTexture;
 import android.support.annotation.Nullable;
 import android.view.Surface;
 import android.view.SurfaceHolder;
+import android.view.View;
 import me.shouheng.camerax.config.sizes.Size;
 import me.shouheng.camerax.enums.Preview;
 
@@ -69,4 +70,11 @@ public interface CameraPreview {
      * @return the size
      */
     Size getSize();
+
+    /**
+     * Get the TextureView or SurfaceView
+     *
+     * @return the view
+     */
+    View getView();
 }

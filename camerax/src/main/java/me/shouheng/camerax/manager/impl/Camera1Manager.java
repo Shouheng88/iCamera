@@ -206,13 +206,17 @@ public class Camera1Manager extends BaseCameraManager<Integer> {
     @Override
     public void setExpectSize(Size expectSize) {
         super.setExpectSize(expectSize);
-        adjustCameraParameters(true, false, false);
+        if (isCameraOpened()) {
+            adjustCameraParameters(true, false, false);
+        }
     }
 
     @Override
     public void setExpectAspectRatio(AspectRatio expectAspectRatio) {
         super.setExpectAspectRatio(expectAspectRatio);
-        adjustCameraParameters(true, false, false);
+        if (isCameraOpened()) {
+            adjustCameraParameters(true, false, false);
+        }
     }
 
     @Override

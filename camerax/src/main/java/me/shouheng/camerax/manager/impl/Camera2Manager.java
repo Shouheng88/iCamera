@@ -344,25 +344,29 @@ public class Camera2Manager extends BaseCameraManager<String> implements ImageRe
     @Override
     public void setExpectSize(Size expectSize) {
         super.setExpectSize(expectSize);
-        backgroundHandler.post(new Runnable() {
-            @Override
-            public void run() {
-                adjustCameraConfiguration(true);
-                createPreviewSession();
-            }
-        });
+        if (isCameraOpened()) {
+            backgroundHandler.post(new Runnable() {
+                @Override
+                public void run() {
+                    adjustCameraConfiguration(true);
+                    createPreviewSession();
+                }
+            });
+        }
     }
 
     @Override
     public void setExpectAspectRatio(AspectRatio expectAspectRatio) {
         super.setExpectAspectRatio(expectAspectRatio);
-        backgroundHandler.post(new Runnable() {
-            @Override
-            public void run() {
-                adjustCameraConfiguration(true);
-                createPreviewSession();
-            }
-        });
+        if (isCameraOpened()) {
+            backgroundHandler.post(new Runnable() {
+                @Override
+                public void run() {
+                    adjustCameraConfiguration(true);
+                    createPreviewSession();
+                }
+            });
+        }
     }
 
     @Override

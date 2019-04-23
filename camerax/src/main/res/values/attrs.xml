@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <declare-styleable name="CameraView">
+        <attr name="android:adjustViewBounds"/>
+        <attr name="cameraFace" format="enum">
+            <enum name="rear" value="0"/>
+            <enum name="front" value="1"/>
+        </attr>
+        <attr name="mediaType" format="enum">
+            <enum name="picture" value="0"/>
+            <enum name="video" value="1"/>
+        </attr>
+        <attr name="voiceEnable" format="boolean"/>
+        <attr name="aspectRatio" format="string"/>
+        <attr name="autoFocus" format="boolean"/>
+        <attr name="flash" format="enum">
+            <enum name="off" value="0"/>
+            <enum name="on" value="1"/>
+            <enum name="auto" value="2"/>
+        </attr>
+        <attr name="zoom" format="string"/>
+        <attr name="clipScreen" format="boolean"/>
+        <attr name="cameraAdjustType">
+            <enum name="none" value="0" />
+            <enum name="fixWidth" value="1" />
+            <enum name="fixHeight" value="2" />
+            <enum name="scaleSmaller" value="3" />
+            <enum name="scaleLarger" value="4" />
+        </attr>
+        <attr name="scaleRate" format="integer"/>
+        <attr name="touchRoom" format="boolean"/>
+        <attr name="touchFocus" format="boolean"/>
+    </declare-styleable>
+</resources>

@@ -25,13 +25,15 @@ public class FocusMarkerLayout extends FrameLayout implements View.OnTouchListen
 
     private static final String TAG = "FocusMarkerLayout";
 
+    public static final int DEFAULT_SCALE_RATE = 10;
+
     private FrameLayout focusMarkerContainer;
     private AppCompatImageView ivFill;
 
     private boolean useTouchFocus = true;
     private boolean touchZoomEnable = true;
     private int touchAngle = 0;
-    private int scaleRate = 10;
+    private int scaleRate = DEFAULT_SCALE_RATE;
     private OnMoveListener onMoveListener;
     private CameraView cameraView;
 

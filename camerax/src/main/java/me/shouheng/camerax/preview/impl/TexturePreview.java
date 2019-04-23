@@ -3,10 +3,7 @@ package me.shouheng.camerax.preview.impl;
 import android.content.Context;
 import android.graphics.SurfaceTexture;
 import android.support.annotation.Nullable;
-import android.view.Surface;
-import android.view.SurfaceHolder;
-import android.view.TextureView;
-import android.view.ViewGroup;
+import android.view.*;
 import me.shouheng.camerax.enums.Preview;
 
 /**
@@ -16,10 +13,11 @@ import me.shouheng.camerax.enums.Preview;
 public class TexturePreview extends BaseCameraPreview {
 
     private SurfaceTexture surfaceTexture;
+    private TextureView textureView;
 
     public TexturePreview(Context context, ViewGroup parent) {
         super(context, parent);
-        TextureView textureView = new TextureView(context);
+        textureView = new TextureView(context);
         textureView.setLayoutParams(new ViewGroup.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
         parent.addView(textureView);
@@ -69,6 +67,11 @@ public class TexturePreview extends BaseCameraPreview {
     @Override
     public SurfaceTexture getSurfaceTexture() {
         return surfaceTexture;
+    }
+
+    @Override
+    public View getView() {
+        return textureView;
     }
 
     /*-----------------------------------------inner methods---------------------------------------------*/
