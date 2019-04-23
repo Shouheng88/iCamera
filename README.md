@@ -62,7 +62,7 @@
 
 虽然文章的题目是相机开发实践，但是我们并不打算介绍太多关于如何使用 Camera API 的内容，因为本项目是开源的，读者可以自行 Fork 代码进行阅读。在这里，我们只对项目中的一些关键部分的设计思路进行说明。
 
-![相机整体架构](res/开发.png)
+![相机整体架构](https://user-gold-cdn.xitu.io/2019/4/23/16a4aae65580a62c?imageView2/0/w/1280/h/960/format/webp/ignore-error/1)
 
 连接：https://www.processon.com/view/link/5c976af8e4b0d1a5b10a4049
 
@@ -290,7 +290,7 @@ public interface CameraSizeCalculator {
 
 为了对相机的性能进行优化，笔者可是花了大量的精力。因为在之前进行优化的时候积累了一些经验，所以这次开发的时候就容易得多。下面是 TraceView 进行分析的图：
 
-![Android 相机 TraceView 分析](res/QQ图片20190423230233.png)
+![Android 相机 TraceView 分析](https://user-gold-cdn.xitu.io/2019/4/23/16a4ac1ac0d8a697?imageView2/0/w/1280/h/960/format/webp/ignore-error/1)
 
 可以看出从相机当中获取支持尺寸的本身会占用一定时间的，而这种属于相机固有的信息，一般是不会发生变化的，所以我们可以通过将其缓存起来来提升下一次打开相机的速率。
 
