@@ -16,10 +16,14 @@
             <me.shouheng.camerax.CameraView
                     android:id="@+id/cv"
                     app:scaleRate="10"
-                    app:clipScreen="true"
-                    app:cameraAdjustType="scaleSmaller"
+                    app:mediaType="picture"
+                    app:cameraFace="rear"
+                    android:adjustViewBounds="true"
+                    app:clipScreen="false"
+                    app:cameraAdjustType="heightFirst"
+                    android:layout_centerInParent="true"
                     android:layout_width="match_parent"
-                    android:layout_height="match_parent"/>
+                    android:layout_height="wrap_content"/>
 
             <android.support.v7.widget.AppCompatTextView
                     android:id="@+id/tv_info"

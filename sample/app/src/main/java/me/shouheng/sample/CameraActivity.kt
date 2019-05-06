@@ -33,8 +33,15 @@ import java.io.File
  */
 class CameraActivity : CommonActivity<ActivityCameraBinding>() {
 
+    /**
+     * Is currently capturing picture.
+     * Be sure to change this value if you used app:mediaType="picture" property in layout.
+     */
     private var isCapturePicture = true
 
+    /**
+     * Is currently recording video.
+     */
     private var isCameraRecording = false
 
     companion object {

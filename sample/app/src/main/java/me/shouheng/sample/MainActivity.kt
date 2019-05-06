@@ -1,6 +1,5 @@
 package me.shouheng.sample
 
-import android.content.Intent
 import android.os.Bundle
 import android.util.Log
 import android.view.View
@@ -14,6 +13,7 @@ import me.shouheng.sample.creator.SurfaceOnlyCreator
 import me.shouheng.sample.creator.TextureOnlyCreator
 import me.shouheng.sample.databinding.ActivityMainBinding
 import me.shouheng.sample.utils.ThemeUtils
+import me.shouheng.utils.activity.ActivityHelper
 import me.shouheng.utils.permission.Permission
 import me.shouheng.utils.permission.PermissionUtils
 
@@ -68,7 +68,7 @@ class MainActivity : CommonActivity<ActivityMainBinding>() {
         PermissionUtils.checkPermissions(this,
             intArrayOf(Permission.CAMERA, Permission.STORAGE, Permission.MICROPHONE)
         ) {
-            startActivity(Intent(this, CameraActivity::class.java))
+            ActivityHelper.start(this, CameraActivity::class.java)
         }
     }
 }
