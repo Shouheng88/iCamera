@@ -2,33 +2,53 @@
 <resources>
     <declare-styleable name="CameraView">
         <attr name="android:adjustViewBounds"/>
+        <!--The front camera of rear camera.-->
         <attr name="cameraFace" format="enum">
             <enum name="rear" value="0"/>
             <enum name="front" value="1"/>
         </attr>
+        <!--Media type for video or picture.-->
         <attr name="mediaType" format="enum">
             <enum name="picture" value="0"/>
             <enum name="video" value="1"/>
         </attr>
+        <!--Use voice when capture.-->
         <attr name="voiceEnable" format="boolean"/>
+        <!--The expected aspect ratio.-->
         <attr name="aspectRatio" format="string"/>
+        <!--Whether use auto focus for the camera.-->
         <attr name="autoFocus" format="boolean"/>
+        <!--The flash mode.-->
         <attr name="flash" format="enum">
             <enum name="off" value="0"/>
             <enum name="on" value="1"/>
             <enum name="auto" value="2"/>
         </attr>
+        <!--The default zoom for camera.-->
         <attr name="zoom" format="string"/>
+
+        <!--Only when the clipScreen is true, the cameraAdjustType is valid.
+        So, if you want to use the cameraAdjustType, set the clipScreen true.-->
         <attr name="clipScreen" format="boolean"/>
         <attr name="cameraAdjustType">
             <enum name="none" value="0" />
-            <enum name="fixWidth" value="1" />
-            <enum name="fixHeight" value="2" />
-            <enum name="scaleSmaller" value="3" />
-            <enum name="scaleLarger" value="4" />
+            <!-- Width first means let the preview width fit the width of screen first.
+            The preview width is fixed, the height will change according to the ratio.-->
+            <enum name="widthFirst" value="1" />
+            <!--The preview height is fixed, the width will change according to the ratio.-->
+            <enum name="heightFirst" value="2" />
+            <!--The larger and smaller is the side which will fit the width or height first.
+            Use the smaller side to fit the screen, the larger side change according to the ratio.-->
+            <enum name="smallerFirst" value="3" />
+            <!--Use the larger side to fit the screen, the smaller side change according to the ratio.-->
+            <enum name="largerFirst" value="4" />
         </attr>
+
+        <!--The zoom scale rate when touch.-->
         <attr name="scaleRate" format="integer"/>
+        <!--Whether enable the touch zoom function.-->
         <attr name="touchRoom" format="boolean"/>
+        <!--Whether enable the touch focus function.-->
         <attr name="touchFocus" format="boolean"/>
     </declare-styleable>
 </resources>

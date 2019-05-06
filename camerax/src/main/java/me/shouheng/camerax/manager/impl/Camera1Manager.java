@@ -90,6 +90,7 @@ public class Camera1Manager extends BaseCameraManager<Integer> {
 
     @Override
     public void switchCamera(int cameraFace) {
+        Logger.d(TAG, "switchCamera : " + cameraFace);
         super.switchCamera(cameraFace);
         if (isCameraOpened()) {
             closeCamera(cameraCloseListener);
@@ -99,6 +100,7 @@ public class Camera1Manager extends BaseCameraManager<Integer> {
 
     @Override
     public void setMediaType(@Media.Type int mediaType) {
+        Logger.d(TAG, "setMediaType : " + mediaType + " with mediaType " + this.mediaType);
         if (this.mediaType == mediaType) {
             return;
         }

@@ -158,20 +158,20 @@ public class CameraView extends FrameLayout {
             int width = MeasureSpec.getSize(widthMeasureSpec);
             int height = MeasureSpec.getSize(heightMeasureSpec);
             switch (adjustType) {
-                case FIXED_WIDTH:
+                case WIDTH_FIRST:
                     height = width * aspectRatio.heightRatio / aspectRatio.widthRatio;
                     break;
-                case FIXED_HEIGHT:
+                case HEIGHT_FIRST:
                     width = height * aspectRatio.widthRatio / aspectRatio.heightRatio;
                     break;
-                case SCALE_SMALLER:
+                case SMALLER_FIRST:
                     if (width * aspectRatio.heightRatio < height * aspectRatio.widthRatio) {
-                        height = width * aspectRatio.heightRatio /aspectRatio. widthRatio;
+                        height = width * aspectRatio.heightRatio / aspectRatio.widthRatio;
                     } else {
                         width = height * aspectRatio.widthRatio / aspectRatio.heightRatio;
                     }
                     break;
-                case SCALE_LARGER:
+                case LARGER_FIRST:
                     if (width * aspectRatio.heightRatio < height * aspectRatio.widthRatio) {
                         width = height * aspectRatio.widthRatio / aspectRatio.heightRatio;
                     } else {
@@ -215,6 +215,7 @@ public class CameraView extends FrameLayout {
 
         int width = getMeasuredWidth();
         int height = getMeasuredHeight();
+        // Always smaller first! But use the effect to the CameraPreview instead of the CameraView.
         if (height < width * aspectRatio.heightRatio / aspectRatio.widthRatio) {
             cameraPreview.getView().measure(
                     MeasureSpec.makeMeasureSpec(width, MeasureSpec.EXACTLY),

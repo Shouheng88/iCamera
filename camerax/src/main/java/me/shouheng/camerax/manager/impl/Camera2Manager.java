@@ -202,6 +202,7 @@ public class Camera2Manager extends BaseCameraManager<String> implements ImageRe
 
     @Override
     public void setMediaType(int mediaType) {
+        Logger.d(TAG, "setMediaType : " + mediaType + " with mediaType " + this.mediaType);
         if (this.mediaType == mediaType) {
             return;
         }
