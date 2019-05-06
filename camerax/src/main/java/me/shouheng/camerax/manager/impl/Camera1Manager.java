@@ -93,7 +93,6 @@ public class Camera1Manager extends BaseCameraManager<Integer> {
         super.switchCamera(cameraFace);
         if (isCameraOpened()) {
             closeCamera(cameraCloseListener);
-            ConfigurationProvider.get().clearCachedValues();
             openCamera(cameraOpenListener);
         }
     }
@@ -397,10 +396,10 @@ public class Camera1Manager extends BaseCameraManager<Integer> {
     private void prepareCameraOutputs() {
         try {
             long start = System.currentTimeMillis();
-            previewSizes = ConfigurationProvider.get().getPreviewSizes(camera);
-            pictureSizes = ConfigurationProvider.get().getPictureSizes(camera);
-            videoSizes = ConfigurationProvider.get().getVideoSizes(camera);
-            zoomRatios = ConfigurationProvider.get().getZoomRatios(camera);
+            previewSizes = ConfigurationProvider.get().getSizes(camera, cameraFace, Camera.SIZE_FOR_PREVIEW);
+            pictureSizes = ConfigurationProvider.get().getSizes(camera, cameraFace, Camera.SIZE_FOR_PICTURE);
+            videoSizes = ConfigurationProvider.get().getSizes(camera, cameraFace, Camera.SIZE_FOR_VIDEO);
+            zoomRatios = ConfigurationProvider.get().getZoomRatios(camera, cameraFace);
             Logger.d(TAG, "prepareCameraOutputs cost : " + (System.currentTimeMillis() - start) + " ms");
         } catch (Exception ex) {
             Logger.e(TAG, "error : " + ex);

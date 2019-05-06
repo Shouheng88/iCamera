@@ -196,7 +196,6 @@ public class Camera2Manager extends BaseCameraManager<String> implements ImageRe
         super.switchCamera(cameraFace);
         if (isCameraOpened()) {
             closeCamera(cameraCloseListener);
-            ConfigurationProvider.get().clearCachedValues();
             openCamera(cameraOpenListener);
         }
     }
@@ -579,9 +578,9 @@ public class Camera2Manager extends BaseCameraManager<String> implements ImageRe
         start = System.currentTimeMillis();
         try {
             final StreamConfigurationMap map = isFrontCamera ? frontStreamConfigurationMap : rearStreamConfigurationMap;
-            previewSizes = ConfigurationProvider.get().getPreviewSizes(map);
-            pictureSizes = ConfigurationProvider.get().getPictureSizes(map);
-            videoSizes = ConfigurationProvider.get().getVideoSizes(map);
+            previewSizes = ConfigurationProvider.get().getSizes(map, cameraFace, Camera.SIZE_FOR_PREVIEW);
+            pictureSizes = ConfigurationProvider.get().getSizes(map, cameraFace, Camera.SIZE_FOR_PICTURE);
+            videoSizes = ConfigurationProvider.get().getSizes(map, cameraFace, Camera.SIZE_FOR_VIDEO);
         } catch (Exception ex) {
             Logger.e(TAG, "error : " + ex);
             notifyCameraOpenError(new RuntimeException(ex));

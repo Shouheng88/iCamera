@@ -6,6 +6,7 @@ import android.graphics.SurfaceTexture;
 import android.hardware.camera2.params.StreamConfigurationMap;
 import android.media.MediaRecorder;
 import android.os.Build;
+import android.util.SparseArray;
 import me.shouheng.camerax.config.calculator.CameraSizeCalculator;
 import me.shouheng.camerax.config.calculator.impl.CameraSizeCalculatorImpl;
 import me.shouheng.camerax.config.creator.CameraManagerCreator;
@@ -36,10 +37,8 @@ public class ConfigurationProvider {
     private CameraSizeCalculator cameraSizeCalculator;
 
     private boolean useCacheValues;
-    private List<Size> previewSizes;
-    private List<Size> pictureSizes;
-    private List<Size> videoSizes;
-    private List<Float> zoomRatios;
+    private SparseArray<List<Size>> sizeMap;
+    private SparseArray<List<Float>> ratioMap;
 
     @Camera.Face
     private int defaultCameraFace;
@@ -65,6 +64,8 @@ public class ConfigurationProvider {
     }
 
     private void initWithDefaultValues() {
+        sizeMap = new SparseArray<>();
+        ratioMap = new SparseArray<>();
         cameraManagerCreator = new CameraManagerCreatorImpl();
         cameraPreviewCreator = new CameraPreviewCreatorImpl();
         cameraSizeCalculator = new CameraSizeCalculatorImpl();
@@ -121,49 +122,41 @@ public class ConfigurationProvider {
         this.useCacheValues = useCacheValues;
     }
 
-    public void clearCachedValues() {
-        previewSizes = null;
-        pictureSizes = null;
-        videoSizes = null;
-        zoomRatios = null;
-    }
-
-    public List<Size> getPreviewSizes(android.hardware.Camera camera) {
-        if (useCacheValues && previewSizes != null) {
-            return previewSizes;
-        }
-        List<Size> sizes = Size.fromList(camera.getParameters().getSupportedPreviewSizes());
+    public List<Size> getSizes(android.hardware.Camera camera, @Camera.Face int cameraFace, @Camera.SizeFor int sizeFor) {
+        int hash = cameraFace | sizeFor | Camera.TYPE_CAMERA1;
         if (useCacheValues) {
-            previewSizes = sizes;
+            List<Size> sizes = sizeMap.get(hash);
+            if (sizes != null) {
+                return sizes;
+            }
+        }
+        List<Size> sizes;
+        switch (sizeFor) {
+            case Camera.SIZE_FOR_PICTURE:
+                sizes = Size.fromList(camera.getParameters().getSupportedPictureSizes());
+                break;
+            case Camera.SIZE_FOR_PREVIEW:
+                sizes = Size.fromList(camera.getParameters().getSupportedPreviewSizes());
+                break;
+            case Camera.SIZE_FOR_VIDEO:
+                sizes = Size.fromList(camera.getParameters().getSupportedVideoSizes());
+                break;
+            default:
+                throw new IllegalArgumentException("Unsupported size for " + sizeFor);
+        }
+        if (useCacheValues) {
+            sizeMap.put(hash, sizes);
         }
         return sizes;
     }
 
-    public List<Size> getPictureSizes(android.hardware.Camera camera) {
-        if (useCacheValues && pictureSizes != null) {
-            return pictureSizes;
-        }
-        List<Size> sizes = Size.fromList(camera.getParameters().getSupportedPictureSizes());
+    public List<Float> getZoomRatios(android.hardware.Camera camera, @Camera.Face int cameraFace) {
+        int hash = cameraFace | Camera.TYPE_CAMERA1;
         if (useCacheValues) {
-            pictureSizes = sizes;
-        }
-        return sizes;
-    }
-
-    public List<Size> getVideoSizes(android.hardware.Camera camera) {
-        if (useCacheValues && videoSizes != null) {
-            return videoSizes;
-        }
-        List<Size> sizes = Size.fromList(camera.getParameters().getSupportedVideoSizes());
-        if (useCacheValues) {
-            videoSizes = sizes;
-        }
-        return sizes;
-    }
-
-    public List<Float> getZoomRatios(android.hardware.Camera camera) {
-        if (useCacheValues && zoomRatios != null) {
-            return zoomRatios;
+            List<Float> zoomRatios = ratioMap.get(hash);
+            if (zoomRatios != null) {
+                return zoomRatios;
+            }
         }
         List<Integer> ratios = camera.getParameters().getZoomRatios();
         List<Float> result = new ArrayList<>(ratios.size());
@@ -171,43 +164,36 @@ public class ConfigurationProvider {
             result.add(ratio * 0.01f);
         }
         if (useCacheValues) {
-            zoomRatios = result;
+            ratioMap.put(hash, result);
         }
         return result;
     }
 
     @TargetApi(Build.VERSION_CODES.LOLLIPOP)
-    public List<Size> getPreviewSizes(StreamConfigurationMap configurationMap) {
-        if (useCacheValues && previewSizes != null) {
-            return previewSizes;
-        }
-        List<Size> sizes = Size.fromList(configurationMap.getOutputSizes(SurfaceTexture.class));
+    public List<Size> getSizes(StreamConfigurationMap configurationMap, @Camera.Face int cameraFace, @Camera.SizeFor int sizeFor) {
+        int hash = cameraFace | sizeFor | Camera.TYPE_CAMERA2;
         if (useCacheValues) {
-            previewSizes = sizes;
+            List<Size> sizes = sizeMap.get(hash);
+            if (sizes != null) {
+                return sizes;
+            }
         }
-        return sizes;
-    }
-
-    @TargetApi(Build.VERSION_CODES.LOLLIPOP)
-    public List<Size> getPictureSizes(StreamConfigurationMap configurationMap) {
-        if (useCacheValues && pictureSizes != null) {
-            return pictureSizes;
+        List<Size> sizes;
+        switch (sizeFor) {
+            case Camera.SIZE_FOR_PICTURE:
+                sizes = Size.fromList(configurationMap.getOutputSizes(ImageFormat.JPEG));
+                break;
+            case Camera.SIZE_FOR_PREVIEW:
+                sizes = Size.fromList(configurationMap.getOutputSizes(SurfaceTexture.class));
+                break;
+            case Camera.SIZE_FOR_VIDEO:
+                sizes = Size.fromList(configurationMap.getOutputSizes(MediaRecorder.class));
+                break;
+            default:
+                throw new IllegalArgumentException("Unsupported size for " + sizeFor);
         }
-        List<Size> sizes = Size.fromList(configurationMap.getOutputSizes(ImageFormat.JPEG));
         if (useCacheValues) {
-            pictureSizes = sizes;
-        }
-        return sizes;
-    }
-
-    @TargetApi(Build.VERSION_CODES.LOLLIPOP)
-    public List<Size> getVideoSizes(StreamConfigurationMap configurationMap) {
-        if (useCacheValues && videoSizes != null) {
-            return videoSizes;
-        }
-        List<Size> sizes = Size.fromList(configurationMap.getOutputSizes(MediaRecorder.class));
-        if (useCacheValues) {
-            videoSizes = sizes;
+            sizeMap.put(hash, sizes);
         }
         return sizes;
     }

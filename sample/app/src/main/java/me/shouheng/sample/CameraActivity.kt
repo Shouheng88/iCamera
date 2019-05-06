@@ -1,5 +1,6 @@
 package me.shouheng.sample
 
+import android.annotation.SuppressLint
 import android.graphics.Color
 import android.os.Bundle
 import android.support.v7.widget.PopupMenu
@@ -88,9 +89,11 @@ class CameraActivity : CommonActivity<ActivityCameraBinding>() {
     private fun configMain() {
         binding.sb.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
             override fun onStartTrackingTouch(seekBar: SeekBar?) {
+                // empty
             }
 
             override fun onStopTrackingTouch(seekBar: SeekBar?) {
+                // empty
             }
 
             override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
@@ -102,16 +105,35 @@ class CameraActivity : CommonActivity<ActivityCameraBinding>() {
             Toast.makeText(this@CameraActivity, if (it) "LEFT" else "RIGHT", Toast.LENGTH_SHORT).show()
         }
         binding.cv.addCameraSizeListener(object : CameraSizeListener {
+
+            private var previewSize: Size? = null
+            private var videoSize: Size? = null
+            private var pictureSize: Size? = null
+
             override fun onPreviewSizeUpdated(previewSize: Size?) {
+                this.previewSize = previewSize
+                displaySizeInfo()
                 Logger.d(TAG, "onPreviewSizeUpdated : $previewSize")
             }
 
             override fun onVideoSizeUpdated(videoSize: Size?) {
+                this.videoSize = videoSize
+                displaySizeInfo()
                 Logger.d(TAG, "onVideoSizeUpdated : $videoSize")
             }
 
             override fun onPictureSizeUpdated(pictureSize: Size?) {
+                this.pictureSize = pictureSize
+                displaySizeInfo()
                 Logger.d(TAG, "onPictureSizeUpdated : $pictureSize")
+            }
+
+            @SuppressLint("SetTextI18n")
+            private fun displaySizeInfo() {
+                binding.tvInfo.text = "Camera Info:\n" +
+                        "1.Preview Size: ${previewSize?.toString()}\n" +
+                        "2.Picture Size: ${pictureSize?.toString()}\n" +
+                        "3.Video Size: ${videoSize?.toString()}"
             }
         })
     }
