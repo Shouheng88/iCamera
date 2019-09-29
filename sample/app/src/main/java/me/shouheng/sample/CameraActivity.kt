@@ -10,17 +10,17 @@ import android.view.View
 import android.widget.SeekBar
 import android.widget.TextView
 import android.widget.Toast
-import me.shouheng.camerax.config.ConfigurationProvider
-import me.shouheng.camerax.config.sizes.Size
-import me.shouheng.camerax.config.sizes.SizeMap
-import me.shouheng.camerax.enums.Camera
-import me.shouheng.camerax.enums.Flash
-import me.shouheng.camerax.enums.Media
-import me.shouheng.camerax.listener.CameraOpenListener
-import me.shouheng.camerax.listener.CameraPhotoListener
-import me.shouheng.camerax.listener.CameraSizeListener
-import me.shouheng.camerax.listener.CameraVideoListener
-import me.shouheng.camerax.util.Logger
+import me.shouheng.shining.config.ConfigurationProvider
+import me.shouheng.shining.config.sizes.Size
+import me.shouheng.shining.config.sizes.SizeMap
+import me.shouheng.shining.enums.Camera
+import me.shouheng.shining.enums.Flash
+import me.shouheng.shining.enums.Media
+import me.shouheng.shining.listener.CameraOpenListener
+import me.shouheng.shining.listener.CameraPhotoListener
+import me.shouheng.shining.listener.CameraSizeListener
+import me.shouheng.shining.listener.CameraVideoListener
+import me.shouheng.shining.util.SLogger
 import me.shouheng.sample.base.CommonActivity
 import me.shouheng.sample.databinding.ActivityCameraBinding
 import me.shouheng.sample.utils.FileUtils
@@ -120,19 +120,19 @@ class CameraActivity : CommonActivity<ActivityCameraBinding>() {
             override fun onPreviewSizeUpdated(previewSize: Size?) {
                 this.previewSize = previewSize
                 displaySizeInfo()
-                Logger.d(TAG, "onPreviewSizeUpdated : $previewSize")
+                SLogger.d(TAG, "onPreviewSizeUpdated : $previewSize")
             }
 
             override fun onVideoSizeUpdated(videoSize: Size?) {
                 this.videoSize = videoSize
                 displaySizeInfo()
-                Logger.d(TAG, "onVideoSizeUpdated : $videoSize")
+                SLogger.d(TAG, "onVideoSizeUpdated : $videoSize")
             }
 
             override fun onPictureSizeUpdated(pictureSize: Size?) {
                 this.pictureSize = pictureSize
                 displaySizeInfo()
-                Logger.d(TAG, "onPictureSizeUpdated : $pictureSize")
+                SLogger.d(TAG, "onPictureSizeUpdated : $pictureSize")
             }
 
             @SuppressLint("SetTextI18n")
@@ -169,11 +169,11 @@ class CameraActivity : CommonActivity<ActivityCameraBinding>() {
         if (!binding.cv.isCameraOpened) {
             binding.cv.openCamera(object : CameraOpenListener {
                 override fun onCameraOpened(cameraFace: Int) {
-                    Logger.d(TAG, "onCameraOpened")
+                    SLogger.d(TAG, "onCameraOpened")
                 }
 
                 override fun onCameraOpenError(throwable: Throwable?) {
-                    Logger.d(TAG, "error : $throwable")
+                    SLogger.d(TAG, "error : $throwable")
                 }
             })
         }
@@ -182,7 +182,7 @@ class CameraActivity : CommonActivity<ActivityCameraBinding>() {
     override fun onPause() {
         super.onPause()
         binding.cv.closeCamera {
-            Logger.d(TAG, "closeCamera : $it")
+            SLogger.d(TAG, "closeCamera : $it")
         }
     }
 

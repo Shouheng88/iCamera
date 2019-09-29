@@ -3,9 +3,9 @@ package me.shouheng.sample
 import android.os.Bundle
 import android.util.Log
 import android.view.View
-import me.shouheng.camerax.config.ConfigurationProvider
-import me.shouheng.camerax.config.creator.impl.CameraManagerCreatorImpl
-import me.shouheng.camerax.config.creator.impl.CameraPreviewCreatorImpl
+import me.shouheng.shining.config.ConfigurationProvider
+import me.shouheng.shining.config.creator.impl.CameraManagerCreatorImpl
+import me.shouheng.shining.config.creator.impl.CameraPreviewCreatorImpl
 import me.shouheng.sample.base.CommonActivity
 import me.shouheng.sample.creator.Camera1OnlyCreator
 import me.shouheng.sample.creator.Camera2OnlyCreator

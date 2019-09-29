@@ -2,9 +2,9 @@ package me.shouheng.sample.creator
 
 import android.content.Context
 import android.view.ViewGroup
-import me.shouheng.camerax.config.creator.CameraPreviewCreator
-import me.shouheng.camerax.preview.CameraPreview
-import me.shouheng.camerax.preview.impl.TexturePreview
+import me.shouheng.shining.config.creator.CameraPreviewCreator
+import me.shouheng.shining.preview.CameraPreview
+import me.shouheng.shining.preview.impl.TexturePreview
 
 /**
  * @author WngShhng (shouheng2015@gmail.com)

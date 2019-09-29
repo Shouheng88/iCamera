@@ -3,10 +3,10 @@ package me.shouheng.sample.creator
 import android.content.Context
 import android.os.Build
 import android.support.annotation.RequiresApi
-import me.shouheng.camerax.config.creator.CameraManagerCreator
-import me.shouheng.camerax.manager.CameraManager
-import me.shouheng.camerax.manager.impl.Camera2Manager
-import me.shouheng.camerax.preview.CameraPreview
+import me.shouheng.shining.config.creator.CameraManagerCreator
+import me.shouheng.shining.manager.CameraManager
+import me.shouheng.shining.manager.impl.Camera2Manager
+import me.shouheng.shining.preview.CameraPreview
 
 /**
  * @author WngShhng (shouheng2015@gmail.com)

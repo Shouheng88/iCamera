@@ -1,2 +1,2 @@
-include ':app', ':camerax'
-project(':camerax').projectDir = new File('../camerax')
+include ':app', ':shining'
+project(':shining').projectDir = new File('../shining')
