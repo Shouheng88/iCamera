@@ -136,6 +136,12 @@ public final class CameraHelper {
         return (sensorOrientation + deviceOrientation + 360) % 360;
     }
 
+    /**
+     * Get a map from aspect to sizes.
+     *
+     * @param sizes sizes to get from
+     * @return      the map
+     */
     public static SizeMap getSizeMapFromSizes(@NonNull List<Size> sizes) {
         SizeMap sizeMap = new SizeMap();
         for (Size size : sizes) {
@@ -152,17 +158,26 @@ public final class CameraHelper {
         return sizeMap;
     }
 
-    public static Size getSizeWithClosestRatio(List<Size> sizes, Size expectSize) {
-        if (sizes == null) return null;
+    /**
+     * 先获取宽高比最小的宽高比，然后从满足这个宽高比的尺寸中选择高度差最小的。
+     *
+     * @param sizes      sizes to get from
+     * @param expectSize expect size
+     * @return           final size, null if the sizes is empty
+     */
+    public static Size getSizeWithClosestRatio(List<Size> sizes, @NonNull Size expectSize) {
+        if (sizes == null || sizes.isEmpty()) return null;
 
         Size optimalSize = null;
         double targetRatio = expectSize.ratio();
         double minRatioDiff = Double.MAX_VALUE;
 
         for (Size size : sizes) {
+            // ratio first
             if (size.equals(expectSize)) {
                 return size;
             }
+            // get size with minimum ratio diff
             double ratioDiff = Math.abs(size.ratio() - targetRatio);
             if (ratioDiff < minRatioDiff) {
                 optimalSize = size;
@@ -174,6 +189,7 @@ public final class CameraHelper {
         int targetHeight = expectSize.height;
         for (Size size : sizes) {
             if (size.ratio() == minHeightDiff) {
+                // get size of same ratio, but with minimum height diff
                 int heightDiff = Math.abs(size.height - targetHeight);
                 if (heightDiff <= minHeightDiff) {
                     minHeightDiff = heightDiff;

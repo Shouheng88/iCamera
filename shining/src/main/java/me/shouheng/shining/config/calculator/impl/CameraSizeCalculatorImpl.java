@@ -11,6 +11,8 @@ import me.shouheng.shining.util.SLogger;
 import java.util.List;
 
 /**
+ * Default implementation for {@link CameraSizeCalculator}.
+ *
  * @author WngShhng (shouheng2015@gmail.com)
  * @version 2019/4/13 22:58
  */
@@ -30,29 +32,13 @@ public class CameraSizeCalculatorImpl implements CameraSizeCalculator {
     private SizeCalculatorMethod lastPictureSizeCalculatorMethod;
 
     @Override
-    public Size getPicturePreviewSize(@NonNull List<Size> previewSizes, @NonNull Size pictureSize) {
-        if (picturePreviewSize == null || !lastPictureSizeForPreview.equals(pictureSize)) {
-            lastPictureSizeForPreview = pictureSize;
-            picturePreviewSize = CameraHelper.getSizeWithClosestRatio(previewSizes, pictureSize);
-        }
-        return picturePreviewSize;
-    }
-
-    @Override
-    public Size getVideoPreviewSize(@NonNull List<Size> previewSizes, @NonNull Size videoSize) {
-        if (videoPreviewSize == null || !lastVideoSizeForPreview.equals(videoSize)) {
-            lastVideoSizeForPreview = videoSize;
-            videoPreviewSize = CameraHelper.getSizeWithClosestRatio(previewSizes, videoSize);
-        }
-        return videoPreviewSize;
-    }
-
-    @Override
     public Size getPictureSize(@NonNull List<Size> pictureSizes, @NonNull AspectRatio expectAspectRatio, @Nullable Size expectSize) {
         SizeCalculatorMethod sizeCalculatorMethod = new SizeCalculatorMethod(expectAspectRatio, expectSize);
+        // calculate only when the first time or expect sizes changed
         if (lastPictureSize == null || !sizeCalculatorMethod.equals(lastPictureSizeCalculatorMethod)) {
             lastPictureSizeCalculatorMethod = sizeCalculatorMethod;
             if (expectSize == null) {
+                // default expect size with height 4000 and desired ratio
                 expectSize = Size.of((int) (4000 * expectAspectRatio.ratio()), 4000 );
             }
             lastPictureSize = CameraHelper.getSizeWithClosestRatio(pictureSizes, expectSize);
@@ -62,17 +48,37 @@ public class CameraSizeCalculatorImpl implements CameraSizeCalculator {
     }
 
     @Override
+    public Size getPicturePreviewSize(@NonNull List<Size> previewSizes, @NonNull Size pictureSize) {
+        if (picturePreviewSize == null || !lastPictureSizeForPreview.equals(pictureSize)) {
+            lastPictureSizeForPreview = pictureSize;
+            picturePreviewSize = CameraHelper.getSizeWithClosestRatio(previewSizes, pictureSize);
+        }
+        return picturePreviewSize;
+    }
+
+    @Override
     public Size getVideoSize(@NonNull List<Size> videoSizes, @NonNull AspectRatio expectAspectRatio, @Nullable Size expectSize) {
         SizeCalculatorMethod sizeCalculatorMethod = new SizeCalculatorMethod(expectAspectRatio, expectSize);
+        // calculate only when the first time or expect sizes changed
         if (lastVideoSize == null || !sizeCalculatorMethod.equals(lastVideoSizeCalculatorMethod)) {
             lastVideoSizeCalculatorMethod = sizeCalculatorMethod;
             if (expectSize == null) {
+                // default expect size with height 4000 and given ratio
                 expectSize = Size.of((int) (4000 * expectAspectRatio.ratio()), 4000 );
             }
             lastVideoSize = CameraHelper.getSizeWithClosestRatio(videoSizes, expectSize);
         }
         SLogger.d(TAG, "getVideoSize : " + lastVideoSize);
         return lastVideoSize;
+    }
+
+    @Override
+    public Size getVideoPreviewSize(@NonNull List<Size> previewSizes, @NonNull Size videoSize) {
+        if (videoPreviewSize == null || !lastVideoSizeForPreview.equals(videoSize)) {
+            lastVideoSizeForPreview = videoSize;
+            videoPreviewSize = CameraHelper.getSizeWithClosestRatio(previewSizes, videoSize);
+        }
+        return videoPreviewSize;
     }
 
     private static class SizeCalculatorMethod {
