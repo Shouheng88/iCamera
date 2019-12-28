@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">CameraX</string>
+    <string name="app_name">xCamera</string>
 
     <string name="main_menu_camera">Open Camera</string>
     <string name="main_camera_option">Select your camera option:</string>

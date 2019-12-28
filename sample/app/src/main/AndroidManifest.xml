@@ -3,7 +3,7 @@
           xmlns:tools="http://schemas.android.com/tools"
           package="me.shouheng.sample">
 
-    <uses-sdk tools:overrideLibrary="me.shouheng.utils"/>
+    <uses-sdk tools:overrideLibrary="me.shouheng.utils, me.shouheng.mvvm, me.shouheng.uix"/>
 
     <uses-permission android:name="android.permission.CAMERA"/>
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
@@ -19,9 +19,10 @@
             android:label="@string/app_name"
             android:roundIcon="@mipmap/ic_launcher_round"
             android:supportsRtl="true"
-            android:theme="@style/AppTheme">
+            android:theme="@style/AppTheme"
+            android:name="me.shouheng.sample.App">
 
-        <activity android:name=".MainActivity"
+        <activity android:name="me.shouheng.sample.activity.MainActivity"
                   android:screenOrientation="portrait"
                   android:hardwareAccelerated="true">
             <intent-filter>
@@ -31,7 +32,17 @@
             </intent-filter>
         </activity>
 
-        <activity android:name=".CameraActivity"/>
+        <activity android:name="me.shouheng.sample.activity.CameraActivity"/>
+
+        <provider
+                android:name="android.support.v4.content.FileProvider"
+                android:authorities="me.shouheng.xcamera.provider"
+                android:exported="false"
+                android:grantUriPermissions="true">
+            <meta-data
+                    android:name="android.support.FILE_PROVIDER_PATHS"
+                    android:resource="@xml/provider_paths" />
+        </provider>
 
     </application>
 
