@@ -32,5 +32,5 @@ dependencies {
     implementation "com.android.support:design:$supportLibVersion"
     implementation 'me.shouheng.vmlib:vmlib-core:1.4.7'
     implementation 'me.shouheng.ui:uix-core:1.4.0'
-    implementation project(path: ':xcamera')
+    implementation project(path: ':icamera')
 }
