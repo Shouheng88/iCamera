@@ -3,14 +3,15 @@
 
     <item>
         <shape android:shape="oval">
+            <solid android:color="@android:color/transparent"/>
             <size android:height="60dp" android:width="60dp"/>
-            <stroke android:color="@android:color/white" android:width="2dp"/>
+            <stroke android:color="@android:color/white" android:width="3dp"/>
         </shape>
     </item>
 
     <item android:gravity="center">
         <shape android:shape="oval">
-            <size android:height="52dp" android:width="52dp"/>
+            <size android:height="50dp" android:width="50dp"/>
             <solid android:color="@android:color/white"/>
         </shape>
     </item>

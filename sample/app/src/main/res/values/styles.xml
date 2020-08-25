@@ -21,6 +21,12 @@
     <style name="AppTheme.PopupOverlayDark" parent="ThemeOverlay.AppCompat.Dark" />
 
     <style name="CameraDrawerSwitch">
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:textColor">@android:color/white</item>
+    </style>
+
+    <style name="CameraDrawerMenuItem">
         <item name="android:layout_height">?attr/actionBarSize</item>
         <item name="android:layout_width">match_parent</item>
         <item name="android:paddingLeft">20dp</item>
@@ -34,8 +40,6 @@
         <item name="android:paddingLeft">20dp</item>
         <item name="android:paddingRight">20dp</item>
         <item name="android:background">?attr/selectableItemBackground</item>
-        <item name="android:textSize">16sp</item>
-        <item name="android:textColor">@android:color/white</item>
         <item name="android:gravity">center_vertical</item>
     </style>
 
