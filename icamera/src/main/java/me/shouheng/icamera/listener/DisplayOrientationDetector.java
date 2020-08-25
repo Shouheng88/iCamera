@@ -17,8 +17,8 @@ public abstract class DisplayOrientationDetector {
     private static final SparseIntArray DISPLAY_ORIENTATIONS = new SparseIntArray();
 
     static {
-        DISPLAY_ORIENTATIONS.put(Surface.ROTATION_0, 0);
-        DISPLAY_ORIENTATIONS.put(Surface.ROTATION_90, 90);
+        DISPLAY_ORIENTATIONS.put(Surface.ROTATION_0,     0);
+        DISPLAY_ORIENTATIONS.put(Surface.ROTATION_90,   90);
         DISPLAY_ORIENTATIONS.put(Surface.ROTATION_180, 180);
         DISPLAY_ORIENTATIONS.put(Surface.ROTATION_270, 270);
     }

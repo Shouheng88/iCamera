@@ -17,18 +17,12 @@ import static me.shouheng.icamera.enums.CameraSizeFor.*;
 @Retention(value = RetentionPolicy.SOURCE)
 public @interface CameraSizeFor {
 
-    /**
-     * Camera size for preview
-     */
+    /** Camera size for preview */
     int SIZE_FOR_PREVIEW    = 0x0010;
 
-    /**
-     * Camera size for picture
-     */
+    /** Camera size for picture */
     int SIZE_FOR_PICTURE    = 0x0020;
 
-    /**
-     * Camera size for video
-     */
+    /** Camera size for video */
     int SIZE_FOR_VIDEO      = 0x0040;
 }

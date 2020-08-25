@@ -17,18 +17,12 @@ import static me.shouheng.icamera.enums.FlashMode.*;
 @Retention(RetentionPolicy.SOURCE)
 public @interface FlashMode {
 
-    /**
-     * Flash on
-     */
-    int FLASH_ON    = 0;
+    /** Flash on */
+    int FLASH_ON        = 0;
 
-    /**
-     * Flash off
-     */
-    int FLASH_OFF   = 1;
+    /** Flash off */
+    int FLASH_OFF       = 1;
 
-    /**
-     * Auto
-     */
-    int FLASH_AUTO  = 2;
+    /** Auto */
+    int FLASH_AUTO      = 2;
 }

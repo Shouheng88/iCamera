@@ -33,7 +33,9 @@ public class CameraSizeCalculatorImpl implements CameraSizeCalculator {
     private SizeCalculatorMethod lastPictureSizeCalculatorMethod;
 
     @Override
-    public Size getPictureSize(@NonNull List<Size> pictureSizes, @NonNull AspectRatio expectAspectRatio, @Nullable Size expectSize) {
+    public Size getPictureSize(@NonNull List<Size> pictureSizes,
+                               @NonNull AspectRatio expectAspectRatio,
+                               @Nullable Size expectSize) {
         SizeCalculatorMethod sizeCalculatorMethod = new SizeCalculatorMethod(expectAspectRatio, expectSize);
         // calculate only when the first time or expect sizes changed
         if (lastPictureSize == null || !sizeCalculatorMethod.equals(lastPictureSizeCalculatorMethod)) {
@@ -58,7 +60,9 @@ public class CameraSizeCalculatorImpl implements CameraSizeCalculator {
     }
 
     @Override
-    public Size getVideoSize(@NonNull List<Size> videoSizes, @NonNull AspectRatio expectAspectRatio, @Nullable Size expectSize) {
+    public Size getVideoSize(@NonNull List<Size> videoSizes,
+                             @NonNull AspectRatio expectAspectRatio,
+                             @Nullable Size expectSize) {
         SizeCalculatorMethod sizeCalculatorMethod = new SizeCalculatorMethod(expectAspectRatio, expectSize);
         // calculate only when the first time or expect sizes changed
         if (lastVideoSize == null || !sizeCalculatorMethod.equals(lastVideoSizeCalculatorMethod)) {

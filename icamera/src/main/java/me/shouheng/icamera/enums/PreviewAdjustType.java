@@ -15,9 +15,7 @@ import static me.shouheng.icamera.enums.PreviewAdjustType.*;
 @IntDef({NONE, WIDTH_FIRST, HEIGHT_FIRST, SMALLER_FIRST, LARGER_FIRST})
 public @interface PreviewAdjustType {
 
-    /**
-     * The imagery will be stretched to fit the view
-     */
+    /** The imagery will be stretched to fit the view */
     int NONE                   = 0;
 
     /**
@@ -34,8 +32,7 @@ public @interface PreviewAdjustType {
      * |/////////////|
      * |/////////////|
      * |             |
-     * +-------------+
-     */
+     * +-------------+ */
     int WIDTH_FIRST            = 1;
 
     /**
@@ -52,8 +49,7 @@ public @interface PreviewAdjustType {
      * |  /////////  |
      * |  /////////  |
      * |  /////////  |
-     * +-------------+
-     */
+     * +-------------+ */
     int HEIGHT_FIRST           = 2;
 
     /**
@@ -61,8 +57,7 @@ public @interface PreviewAdjustType {
      * another will be stretched to meet the aspect ratio.
      *
      * @see #WIDTH_FIRST
-     * @see #HEIGHT_FIRST
-     */
+     * @see #HEIGHT_FIRST */
     int SMALLER_FIRST          = 3;
 
     /**
@@ -70,7 +65,6 @@ public @interface PreviewAdjustType {
      * another will be stretched to meet the aspect ratio.
      *
      * @see #WIDTH_FIRST
-     * @see #HEIGHT_FIRST
-     */
+     * @see #HEIGHT_FIRST */
     int LARGER_FIRST           = 4;
 }

@@ -17,33 +17,21 @@ import static me.shouheng.icamera.enums.MediaQuality.*;
 @Retention(value = RetentionPolicy.SOURCE)
 public @interface MediaQuality {
 
-    /**
-     * Auto
-     */
+    /** Auto */
     int QUALITY_AUTO        = 0;
 
-    /**
-     * Lowest quality
-     */
+    /** Lowest quality */
     int QUALITY_LOWEST      = 1;
 
-    /**
-     * Low quality
-     */
+    /** Low quality */
     int QUALITY_LOW         = 2;
 
-    /**
-     * Medium quality
-     */
+    /** Medium quality */
     int QUALITY_MEDIUM      = 3;
 
-    /**
-     * High quality
-     */
+    /** High quality */
     int QUALITY_HIGH        = 4;
 
-    /**
-     * Highest quality
-     */
+    /** Highest quality */
     int QUALITY_HIGHEST     = 5;
 }

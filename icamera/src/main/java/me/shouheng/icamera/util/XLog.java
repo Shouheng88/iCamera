@@ -3,7 +3,7 @@ package me.shouheng.icamera.util;
 import android.util.Log;
 
 /**
- * The logger to use in library.
+ * A simple logger to use in library.
  *
  * @author WngShhng (shouheng2015@gmail.com)
  * @version 2019/4/14 9:33

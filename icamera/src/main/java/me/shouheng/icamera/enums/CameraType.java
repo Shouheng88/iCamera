@@ -17,13 +17,9 @@ import static me.shouheng.icamera.enums.CameraType.*;
 @Retention(value = RetentionPolicy.SOURCE)
 public @interface CameraType {
 
-    /**
-     * Camera1
-     */
+    /** Camera1 */
     int TYPE_CAMERA1        = 0x0100;
 
-    /**
-     * Camera2
-     */
+    /** Camera2 */
     int TYPE_CAMERA2        = 0x0200;
 }

@@ -10,6 +10,8 @@ import me.shouheng.icamera.preview.CameraPreview;
 import me.shouheng.icamera.util.CameraHelper;
 
 /**
+ * Default camera manager creator implementation.
+ *
  * @author WngShhng (shouheng2015@gmail.com)
  * @version 2019/4/13 22:56
  */

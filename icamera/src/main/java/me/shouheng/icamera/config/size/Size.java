@@ -17,19 +17,13 @@ import java.util.List;
  */
 public class Size {
 
-    /**
-     * The width of size.
-     */
+    /**  The width of size. */
     public final int width;
 
-    /**
-     * The height of size.
-     */
+    /** The height of size. */
     public final int height;
 
-    /**
-     * The area of size, call {@link #area()} to get size.
-     */
+    /** The area of size, call {@link #area()} to get size. */
     private int area = -1;
 
     /**

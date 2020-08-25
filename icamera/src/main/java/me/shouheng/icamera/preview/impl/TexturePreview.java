@@ -73,6 +73,7 @@ public class TexturePreview extends BaseCameraPreview {
 
             @Override
             public void onSurfaceTextureUpdated(SurfaceTexture surface) {
+                /* noop */
             }
         });
     }

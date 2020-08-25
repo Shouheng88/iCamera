@@ -3,6 +3,8 @@ package me.shouheng.icamera.config.size;
 import android.support.annotation.IntRange;
 import android.support.annotation.NonNull;
 
+import me.shouheng.icamera.util.XLog;
+
 /**
  * Aspect ratio
  *
@@ -10,6 +12,8 @@ import android.support.annotation.NonNull;
  * @version 2019/4/13 23:08
  */
 public class AspectRatio {
+
+    private static final String TAG = "AspectRatio";
 
     private double ratio;
 
@@ -33,6 +37,7 @@ public class AspectRatio {
         try {
             int x = Integer.parseInt(s.substring(0, position));
             int y = Integer.parseInt(s.substring(position + 1));
+            XLog.d(TAG, "Parsed aspect ratio from string as " + x + " : " + y);
             return AspectRatio.of(x, y);
         } catch (NumberFormatException e) {
             throw new IllegalArgumentException("Malformed aspect ratio: " + s, e);
@@ -69,5 +74,15 @@ public class AspectRatio {
     public int hashCode() {
         long temp = Double.doubleToLongBits(ratio());
         return (int) (temp ^ (temp >>> 32));
+    }
+
+    @NonNull
+    @Override
+    public String toString() {
+        return "AspectRatio{" +
+                "ratio=" + ratio +
+                ", widthRatio=" + widthRatio +
+                ", heightRatio=" + heightRatio +
+                '}';
     }
 }

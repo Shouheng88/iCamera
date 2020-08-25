@@ -643,10 +643,10 @@ public class Camera2Manager extends BaseCameraManager<String> implements ImageRe
                                             try {
                                                 captureSession.setRepeatingRequest(previewRequest, captureSessionCallback, backgroundHandler);
                                             } catch (CameraAccessException ex) {
-                                                XLog.e(TAG, "createPreviewSession error " + ex);
+                                                XLog.e(TAG, "create preview session error " + ex);
                                                 notifyCameraOpenError(ex);
                                             } catch (IllegalStateException ex) {
-                                                XLog.e(TAG, "createPreviewSession error " + ex);
+                                                XLog.e(TAG, "create preview session error " + ex);
                                                 notifyCameraOpenError(ex);
                                             }
                                         }
@@ -786,8 +786,8 @@ public class Camera2Manager extends BaseCameraManager<String> implements ImageRe
             uiHandler.post(new Runnable() {
                 @Override
                 public void run() {
-                    SurfaceHolder surfaceHolder = Camera2Manager.this.surfaceHolder;
-                    surfaceHolder.setFixedSize(previewSize.width, previewSize.height);
+                    SurfaceHolder holder = Camera2Manager.this.surfaceHolder;
+                    holder.setFixedSize(previewSize.width, previewSize.height);
                     sessionCreationTask.run();
                 }
             });
@@ -986,29 +986,19 @@ public class Camera2Manager extends BaseCameraManager<String> implements ImageRe
 
     private static abstract class CaptureSessionCallback extends CameraCaptureSession.CaptureCallback {
 
-        /**
-         * Camera state: Showing camera preview.
-         */
+        /** Camera state: Showing camera preview. */
         static final int STATE_PREVIEW = 0;
 
-        /**
-         * Camera state: Waiting for the focus to be locked.
-         */
+        /** Camera state: Waiting for the focus to be locked. */
         static final int STATE_WAITING_LOCK = 1;
 
-        /**
-         * Camera state: Waiting for the exposure to be precapture state.
-         */
+        /** Camera state: Waiting for the exposure to be precapture state. */
         static final int STATE_WAITING_PRE_CAPTURE = 2;
 
-        /**
-         * Camera state: Waiting for the exposure state to be something other than precapture.
-         */
+        /** Camera state: Waiting for the exposure state to be something other than precapture. */
         static final int STATE_WAITING_NON_PRE_CAPTURE = 3;
 
-        /**
-         * Camera state: Picture was taken.
-         */
+        /** Camera state: Picture was taken. */
         static final int STATE_PICTURE_TAKEN = 4;
 
         @CameraState

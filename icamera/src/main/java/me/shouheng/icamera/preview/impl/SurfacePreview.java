@@ -45,6 +45,7 @@ public class SurfacePreview extends BaseCameraPreview {
              */
             @Override
             public void surfaceCreated(SurfaceHolder holder) {
+                /* noop */
             }
 
             /**

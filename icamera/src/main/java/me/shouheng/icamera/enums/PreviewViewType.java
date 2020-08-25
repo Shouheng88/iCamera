@@ -17,13 +17,9 @@ import static me.shouheng.icamera.enums.PreviewViewType.*;
 @Retention(value = RetentionPolicy.SOURCE)
 public @interface PreviewViewType {
 
-    /**
-     * {@link android.view.SurfaceView} will be used
-     */
+    /** {@link android.view.SurfaceView} will be used */
     int SURFACE_VIEW    = 0;
 
-    /**
-     * {@link android.view.TextureView} will be used
-     */
+    /** {@link android.view.TextureView} will be used */
     int TEXTURE_VIEW    = 1;
 }

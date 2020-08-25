@@ -17,13 +17,9 @@ import static me.shouheng.icamera.enums.CameraFace.*;
 @Retention(value = RetentionPolicy.SOURCE)
 public @interface CameraFace {
 
-    /**
-     * Rear camera
-     */
+    /** Rear camera */
     int FACE_REAR           = 0x0000;
 
-    /**
-     * Front camera
-     */
+    /** Front camera */
     int FACE_FRONT          = 0x0001;
 }

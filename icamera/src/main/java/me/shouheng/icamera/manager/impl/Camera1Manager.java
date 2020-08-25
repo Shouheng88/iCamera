@@ -233,8 +233,9 @@ public class Camera1Manager extends BaseCameraManager<Integer> {
                 return pictureSize;
             case CameraSizeFor.SIZE_FOR_VIDEO:
                 return videoSize;
+            default:
+                return null;
         }
-        return null;
     }
 
     @Override
@@ -255,8 +256,9 @@ public class Camera1Manager extends BaseCameraManager<Integer> {
                     videoSizeMap = CameraHelper.getSizeMapFromSizes(videoSizes);
                 }
                 return videoSizeMap;
+            default:
+                return null;
         }
-        return null;
     }
 
     // FIXME the output picture and video rotation
@@ -299,6 +301,7 @@ public class Camera1Manager extends BaseCameraManager<Integer> {
                         camera.takePicture(voiceEnabled ? new android.hardware.Camera.ShutterCallback() {
                             @Override
                             public void onShutter() {
+                                XLog.d(TAG, "onShutter <<<");
                             }
                         } : null, null, new android.hardware.Camera.PictureCallback() {
                             @Override

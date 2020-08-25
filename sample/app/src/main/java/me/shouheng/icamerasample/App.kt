@@ -1,6 +1,7 @@
 package me.shouheng.icamerasample
 
 import android.app.Application
+import me.shouheng.icamera.config.ConfigurationProvider
 import me.shouheng.icamerasample.activity.MainActivity
 import me.shouheng.uix.common.bean.TextStyleBean
 import me.shouheng.uix.pages.CrashReportActivity
@@ -26,9 +27,11 @@ class App : Application() {
         application = this
         // initialize the vmlib
         VMLib.onCreate(this)
-        // Log
+        // log
         L.getConfig().setLogSwitch(BuildConfig.DEBUG)
         configCrashHelper(application)
+        // set iCamera log switch
+        ConfigurationProvider.get().isDebug = BuildConfig.DEBUG
     }
 
     companion object {

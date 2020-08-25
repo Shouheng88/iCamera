@@ -17,13 +17,9 @@ import static me.shouheng.icamera.enums.MediaType.*;
 @Retention(value = RetentionPolicy.SOURCE)
 public @interface MediaType {
 
-    /**
-     * Picture
-     */
-    int TYPE_PICTURE = 0;
+    /** Picture */
+    int TYPE_PICTURE    = 0;
 
-    /**
-     * Video
-     */
-    int TYPE_VIDEO = 1;
+    /** Video */
+    int TYPE_VIDEO      = 1;
 }

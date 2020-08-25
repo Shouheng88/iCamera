@@ -28,46 +28,40 @@ import me.shouheng.icamera.enums.MediaType;
 import me.shouheng.icamera.util.XLog;
 
 /**
- * Global configuration provider for camera library.
+ * Global configuration provider for camera library. Singleton, also used to
+ * cache some values of the camera to avoid multiple calculations.
+ * You can call methods of this instance to make set some default values of
+ * camera before it finally launched, for example {@link #setDefaultFlashMode(int)},
+ * {@link #setDefaultAspectRatio(AspectRatio)} etc.
  *
  * @author WngShhng (shouheng2015@gmail.com)
  * @version 2019/4/13 22:44
  */
 public final class ConfigurationProvider {
 
-    // singleton
+    /** The singleton */
     private static volatile ConfigurationProvider configurationProvider;
 
-    /**
-     * The creator for {@link me.shouheng.icamera.manager.CameraManager}.
-     */
+    /** The creator for {@link me.shouheng.icamera.manager.CameraManager}. */
     private CameraManagerCreator cameraManagerCreator;
 
-    /**
-     * The creator for {@link me.shouheng.icamera.preview.CameraPreview}.
-     */
+    /** The creator for {@link me.shouheng.icamera.preview.CameraPreview}. */
     private CameraPreviewCreator cameraPreviewCreator;
 
-    /**
-     * The calculator for camera size.
-     */
+    /** The calculator for camera size. */
     private CameraSizeCalculator cameraSizeCalculator;
 
-    /**
-     * Whether use memory cache in library. default is true.
-     */
+    /** Whether use memory cache in library. default is true. */
     private boolean useCacheValues;
 
     /**
      * The sizes map from a int value, which was calculated from:
-     * hash = {@link CameraFace} | {@link CameraSizeFor} | {@link CameraType}
-     */
+     * hash = {@link CameraFace} | {@link CameraSizeFor} | {@link CameraType} */
     private SparseArray<List<Size>> sizeMap;
 
     /**
      * The room ratios map from a int value, which was calculated from:
-     * hash = {@link CameraFace} | {@link CameraType}
-     */
+     * hash = {@link CameraFace} | {@link CameraType} */
     private SparseArray<List<Float>> ratioMap;
 
     @CameraFace
@@ -126,7 +120,9 @@ public final class ConfigurationProvider {
      * @param sizeFor    camera size for
      * @return           the size
      */
-    public List<Size> getSizes(android.hardware.Camera camera, @CameraFace int cameraFace, @CameraSizeFor int sizeFor) {
+    public List<Size> getSizes(android.hardware.Camera camera,
+                               @CameraFace int cameraFace,
+                               @CameraSizeFor int sizeFor) {
         // calculate hash of map
         int hash = cameraFace | sizeFor | CameraType.TYPE_CAMERA1;
         // try to get sizes from cache first.
@@ -166,7 +162,8 @@ public final class ConfigurationProvider {
      * @param cameraFace camera face
      * @return           supported zoom ratios
      */
-    public List<Float> getZoomRatios(android.hardware.Camera camera, @CameraFace int cameraFace) {
+    public List<Float> getZoomRatios(android.hardware.Camera camera,
+                                     @CameraFace int cameraFace) {
         // calculate hash of map
         int hash = cameraFace | CameraType.TYPE_CAMERA1;
         // try to get ratios from cache first.
@@ -198,7 +195,9 @@ public final class ConfigurationProvider {
      * @return                 the supported sizes
      */
     @TargetApi(Build.VERSION_CODES.LOLLIPOP)
-    public List<Size> getSizes(StreamConfigurationMap configurationMap, @CameraFace int cameraFace, @CameraSizeFor int sizeFor) {
+    public List<Size> getSizes(StreamConfigurationMap configurationMap,
+                               @CameraFace int cameraFace,
+                               @CameraSizeFor int sizeFor) {
         // calculate hash
         int hash = cameraFace | sizeFor | CameraType.TYPE_CAMERA2;
         // try to get sizes from cache
@@ -295,6 +294,11 @@ public final class ConfigurationProvider {
         return defaultAspectRatio;
     }
 
+    /**
+     * Set default camera aspect ratio
+     *
+     * @param defaultAspectRatio the camera aspect ratio
+     */
     public void setDefaultAspectRatio(AspectRatio defaultAspectRatio) {
         this.defaultAspectRatio = defaultAspectRatio;
     }

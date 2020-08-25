@@ -94,7 +94,7 @@ public class CameraView extends FrameLayout {
     }
 
     private void initCameraView(@NonNull Context context, @Nullable AttributeSet attrs, int defStyleAttr, int defStyleRes) {
-        cameraPreview = ConfigurationProvider.get().getCameraPreviewCreator().create(getContext(), this);
+        cameraPreview = ConfigurationProvider.get().getCameraPreviewCreator().create(context, this);
         cameraManager = ConfigurationProvider.get().getCameraManagerCreator().create(context, cameraPreview);
         cameraManager.initialize(context);
         cameraManager.addCameraSizeListener(new CameraSizeListener() {
@@ -108,12 +108,10 @@ public class CameraView extends FrameLayout {
             }
 
             @Override
-            public void onVideoSizeUpdated(Size videoSize) {
-            }
+            public void onVideoSizeUpdated(Size videoSize) { /*noop*/ }
 
             @Override
-            public void onPictureSizeUpdated(Size pictureSize) {
-            }
+            public void onPictureSizeUpdated(Size pictureSize) { /*noop*/ }
         });
 
         focusMarkerLayout = new FocusMarkerLayout(context);

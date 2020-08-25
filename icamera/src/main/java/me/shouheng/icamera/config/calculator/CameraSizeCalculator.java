@@ -26,7 +26,9 @@ public interface CameraSizeCalculator {
      * @param expectSize        desired size of picture, null if the user didn't set
      * @return                  the picture size
      */
-    Size getPictureSize(@NonNull List<Size> pictureSizes, @NonNull AspectRatio expectAspectRatio, @Nullable Size expectSize);
+    Size getPictureSize(@NonNull List<Size> pictureSizes,
+                        @NonNull AspectRatio expectAspectRatio,
+                        @Nullable Size expectSize);
 
     /**
      * Get size for picture preview.
@@ -47,7 +49,9 @@ public interface CameraSizeCalculator {
      * @param expectSize        desired size of video, null if the user didn't set
      * @return                  the video size
      */
-    Size getVideoSize(@NonNull List<Size> videoSizes, @NonNull AspectRatio expectAspectRatio, @Nullable Size expectSize);
+    Size getVideoSize(@NonNull List<Size> videoSizes,
+                      @NonNull AspectRatio expectAspectRatio,
+                      @Nullable Size expectSize);
 
     /**
      * Get size for video preview.
