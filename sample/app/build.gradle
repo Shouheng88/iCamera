@@ -6,7 +6,7 @@ apply plugin: 'kotlin-android-extensions'
 android {
     compileSdkVersion rootProject.ext.compileSdkVersion
     defaultConfig {
-        applicationId "me.shouheng.xcamera"
+        applicationId "me.shouheng.icamerasample"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 1
@@ -30,10 +30,7 @@ dependencies {
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
     implementation "com.android.support:appcompat-v7:$supportLibVersion"
     implementation "com.android.support:design:$supportLibVersion"
-    implementation 'me.shouheng.ui:uix-core:1.1.4'
-    implementation "me.shouheng.utils:utils-core:$androidUtilsVersion"
-    implementation ('me.shouheng.mvvm:mvvm-core:1.2.5') {
-        exclude group: 'me.shouheng.utils'
-    }
+    implementation 'me.shouheng.vmlib:vmlib-core:1.4.7'
+    implementation 'me.shouheng.ui:uix-core:1.4.0'
     implementation project(path: ':xcamera')
 }

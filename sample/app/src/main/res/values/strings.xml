@@ -1,17 +1,17 @@
 <resources>
-    <string name="app_name">xCamera</string>
+    <string name="app_name">iCamera</string>
 
-    <string name="main_menu_camera">Open Camera</string>
-    <string name="main_camera_option">Select your camera option:</string>
-    <string name="main_camera_option_camera1_only">Camera1 only</string>
-    <string name="main_camera_option_camera2_only">Camera2 only</string>
-    <string name="main_camera_option_camera">According to platform</string>
-    <string name="main_preview_option">Select your camera preview option:</string>
-    <string name="main_preview_option_texture_only">TextureView only</string>
-    <string name="main_preview_option_surface_only">SurfaceView only</string>
-    <string name="main_preview_option_platform">According to platform</string>
-    <string name="main_video_duration">Max video duration in second:</string>
+    <string name="main_menu_camera">Launch iCamera</string>
+    <string name="main_camera_option">PICK YOUR CAMERA OPTION:</string>
+    <string name="main_camera_option_camera1_only">Camera1 Only</string>
+    <string name="main_camera_option_camera2_only">Camera2 Only</string>
+    <string name="main_camera_option_camera">According to Platform</string>
+    <string name="main_preview_option">PICK YOUR CAMERA PREVIEW OPTION:</string>
+    <string name="main_preview_option_texture_only">TextureView Only</string>
+    <string name="main_preview_option_surface_only">SurfaceView Only</string>
+    <string name="main_preview_option_platform">According to Platform</string>
 
+    <string name="camera_video_duration">Max video duration in second:</string>
     <string name="camera_drawer_title">Camera Configuration</string>
     <string name="camera_drawer_shutter">Enable shutter</string>
     <string name="camera_drawer_focus">Enable auto focus mode</string>

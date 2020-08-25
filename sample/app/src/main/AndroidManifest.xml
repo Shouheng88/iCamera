@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
           xmlns:tools="http://schemas.android.com/tools"
-          package="me.shouheng.sample">
+          package="me.shouheng.icamerasample">
 
-    <uses-sdk tools:overrideLibrary="me.shouheng.utils, me.shouheng.mvvm, me.shouheng.uix"/>
+    <uses-sdk tools:overrideLibrary="me.shouheng.utils, me.shouheng.vmlib, me.shouheng.uix.common, me.shouheng.uix.widget, me.shouheng.uix.pages"/>
 
     <uses-permission android:name="android.permission.CAMERA"/>
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
@@ -20,9 +20,9 @@
             android:roundIcon="@mipmap/ic_launcher_round"
             android:supportsRtl="true"
             android:theme="@style/AppTheme"
-            android:name="me.shouheng.sample.App">
+            android:name="me.shouheng.icamerasample.App">
 
-        <activity android:name="me.shouheng.sample.activity.MainActivity"
+        <activity android:name=".activity.MainActivity"
                   android:screenOrientation="portrait"
                   android:hardwareAccelerated="true">
             <intent-filter>
@@ -32,11 +32,11 @@
             </intent-filter>
         </activity>
 
-        <activity android:name="me.shouheng.sample.activity.CameraActivity"/>
+        <activity android:name=".activity.CameraActivity"/>
 
         <provider
                 android:name="android.support.v4.content.FileProvider"
-                android:authorities="me.shouheng.xcamera.provider"
+                android:authorities="me.shouheng.icamerasample.provider"
                 android:exported="false"
                 android:grantUriPermissions="true">
             <meta-data

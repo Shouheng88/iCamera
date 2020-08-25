@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <layout xmlns:android="http://schemas.android.com/apk/res/android"
-        xmlns:tools="http://schemas.android.com/tools" xmlns:app="http://schemas.android.com/apk/res-auto"
-        tools:context=".activity.MainActivity">
+        xmlns:tools="http://schemas.android.com/tools"
+        xmlns:app="http://schemas.android.com/apk/res-auto"
+        tools:context="me.shouheng.icamerasample.activity.MainActivity">
 
     <android.support.design.widget.CoordinatorLayout
             android:fitsSystemWindows="true"
@@ -99,10 +100,14 @@
 
             </RadioGroup>
 
-            <android.support.v7.widget.AppCompatButton
+            <me.shouheng.uix.widget.button.NormalButton
                     android:layout_marginTop="20dp"
                     android:onClick="openCamera"
                     android:text="@string/main_menu_camera"
+                    app:btn_normal_color="@color/colorAccent"
+                    app:btn_corner_radius="40dp"
+                    android:paddingTop="10dp"
+                    android:paddingBottom="10dp"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"/>
 

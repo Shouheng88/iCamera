@@ -13,7 +13,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="match_parent">
 
-            <me.shouheng.xcamera.CameraView
+            <me.shouheng.icamera.CameraView
                     android:id="@+id/cv"
                     app:scaleRate="10"
                     app:mediaType="picture"
@@ -171,7 +171,7 @@
 
                 <android.support.v7.widget.AppCompatEditText
                         android:id="@+id/et_video_duration"
-                        android:hint="@string/main_video_duration"
+                        android:hint="@string/camera_video_duration"
                         style="@style/CameraDrawerText"/>
 
             </LinearLayout>
