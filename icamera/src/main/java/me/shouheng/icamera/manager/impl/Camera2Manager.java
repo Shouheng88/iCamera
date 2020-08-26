@@ -90,8 +90,8 @@ public class Camera2Manager extends BaseCameraManager<String> implements ImageRe
             switch (cameraPreviewState) {
                 case STATE_PREVIEW:
                     break;
-                case STATE_WAITING_LOCK: {
-                    final Integer afState = result.get(CaptureResult.CONTROL_AF_STATE);
+                case STATE_WAITING_LOCK:
+                    Integer afState = result.get(CaptureResult.CONTROL_AF_STATE);
                     if (afState == null) {
                         captureStillPicture();
                     } else if (CaptureResult.CONTROL_AF_STATE_FOCUSED_LOCKED == afState
@@ -107,26 +107,26 @@ public class Camera2Manager extends BaseCameraManager<String> implements ImageRe
                         }
                     }
                     break;
-                }
-                case STATE_WAITING_PRE_CAPTURE: {
-                    final Integer aeState = result.get(CaptureResult.CONTROL_AE_STATE);
+                case STATE_WAITING_PRE_CAPTURE:
+                    Integer aeState = result.get(CaptureResult.CONTROL_AE_STATE);
                     if (aeState == null ||
                             aeState == CaptureResult.CONTROL_AE_STATE_PRECAPTURE ||
                             aeState == CaptureRequest.CONTROL_AE_STATE_FLASH_REQUIRED) {
                         setCameraPreviewState(STATE_WAITING_NON_PRE_CAPTURE);
                     }
                     break;
-                }
-                case STATE_WAITING_NON_PRE_CAPTURE: {
-                    final Integer aeState = result.get(CaptureResult.CONTROL_AE_STATE);
+                case STATE_WAITING_NON_PRE_CAPTURE:
+                    aeState = result.get(CaptureResult.CONTROL_AE_STATE);
                     if (aeState == null || aeState != CaptureResult.CONTROL_AE_STATE_PRECAPTURE) {
                         setCameraPreviewState(STATE_PICTURE_TAKEN);
                         captureStillPicture();
                     }
                     break;
-                }
                 case STATE_PICTURE_TAKEN:
+                    // noop
                     break;
+                default:
+                    // noop
             }
         }
 
@@ -946,7 +946,7 @@ public class Camera2Manager extends BaseCameraManager<String> implements ImageRe
         } catch (IOException error) {
             XLog.e(TAG, "IOException preparing MediaRecorder: " + error.getMessage());
             notifyVideoRecordError(error);
-        } catch (Throwable error) {
+        } catch (Exception error) {
             XLog.e(TAG, "Error during preparing MediaRecorder: " + error.getMessage());
             notifyVideoRecordError(error);
         }
@@ -989,7 +989,7 @@ public class Camera2Manager extends BaseCameraManager<String> implements ImageRe
         }
     }
 
-    private static abstract class CaptureSessionCallback extends CameraCaptureSession.CaptureCallback {
+    private abstract static class CaptureSessionCallback extends CameraCaptureSession.CaptureCallback {
 
         /** Camera state: Showing camera preview. */
         static final int STATE_PREVIEW = 0;

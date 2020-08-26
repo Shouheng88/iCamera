@@ -1,6 +1,7 @@
 package me.shouheng.icamerasample
 
 import android.app.Application
+import com.squareup.leakcanary.LeakCanary
 import me.shouheng.icamera.config.ConfigurationProvider
 import me.shouheng.icamerasample.activity.MainActivity
 import me.shouheng.uix.common.bean.TextStyleBean
@@ -32,6 +33,8 @@ class App : Application() {
         configCrashHelper(application)
         // set iCamera log switch
         ConfigurationProvider.get().isDebug = BuildConfig.DEBUG
+        // leak canary used to detect memory leak of camera
+        LeakCanary.install(this)
     }
 
     companion object {

@@ -207,6 +207,10 @@ public class Camera1Manager extends BaseCameraManager<Integer> {
 
     @Override
     public float getMaxZoom() {
+        if (zoomRatios == null) {
+            XLog.w(TAG, "Try to get max zoom while it's not ready.");
+            return 0;
+        }
         if (maxZoom == 0) {
             maxZoom = zoomRatios.get(zoomRatios.size() - 1);
         }
