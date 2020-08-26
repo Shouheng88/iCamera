@@ -124,6 +124,11 @@ public class Camera1Manager extends BaseCameraManager<Integer> {
     }
 
     @Override
+    public int getMediaType() {
+        return mediaType;
+    }
+
+    @Override
     public void setVoiceEnable(boolean voiceEnable) {
         if (voiceEnabled == voiceEnable) {
             return;

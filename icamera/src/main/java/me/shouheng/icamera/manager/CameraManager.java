@@ -51,8 +51,7 @@ public interface CameraManager {
      *
      * @return camera face
      */
-    @CameraFace
-    int getCameraFace();
+    @CameraFace int getCameraFace();
 
     /**
      * Switch camera into given face.
@@ -67,6 +66,13 @@ public interface CameraManager {
      * @param mediaType the media type
      */
     void setMediaType(@MediaType int mediaType);
+
+    /**
+     * Get current media type
+     *
+     * @return the media type
+     */
+    @MediaType int getMediaType();
 
     /**
      * Set whether the voice enabled

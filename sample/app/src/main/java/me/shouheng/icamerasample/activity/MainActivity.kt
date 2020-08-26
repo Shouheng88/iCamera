@@ -42,27 +42,23 @@ class MainActivity : CommonActivity<EmptyViewModel, ActivityMainBinding>() {
         }
         binding.rbCamera1.setOnCheckedChangeListener { _, isChecked ->
             if (isChecked) {
-                ConfigurationProvider.get().cameraManagerCreator =
-                    Camera1OnlyCreator()
+                ConfigurationProvider.get().cameraManagerCreator = Camera1OnlyCreator()
             }
         }
         binding.rbCamera2.setOnCheckedChangeListener { _, isChecked ->
             if (isChecked) {
-                ConfigurationProvider.get().cameraManagerCreator =
-                    Camera2OnlyCreator()
+                ConfigurationProvider.get().cameraManagerCreator = Camera2OnlyCreator()
             }
         }
 
         binding.rbSurface.setOnCheckedChangeListener { _, isChecked ->
             if (isChecked) {
-                ConfigurationProvider.get().cameraPreviewCreator =
-                    SurfaceOnlyCreator()
+                ConfigurationProvider.get().cameraPreviewCreator = SurfaceOnlyCreator()
             }
         }
         binding.rbTexture.setOnCheckedChangeListener { _, isChecked ->
             if (isChecked) {
-                ConfigurationProvider.get().cameraPreviewCreator =
-                    TextureOnlyCreator()
+                ConfigurationProvider.get().cameraPreviewCreator = TextureOnlyCreator()
             }
         }
         binding.rbPlatform.setOnCheckedChangeListener { _, isChecked ->

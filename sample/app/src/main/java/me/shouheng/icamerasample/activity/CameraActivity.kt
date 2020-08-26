@@ -1,7 +1,6 @@
 package me.shouheng.icamerasample.activity
 
 import android.animation.Animator
-import android.annotation.SuppressLint
 import android.os.Bundle
 import android.support.v7.widget.PopupMenu
 import android.view.Gravity
@@ -40,9 +39,6 @@ import java.io.File
 class CameraActivity : CommonActivity<EmptyViewModel, ActivityCameraBinding>() {
 
     override fun getLayoutResId(): Int = R.layout.activity_camera
-
-    /** Is currently capturing picture. */
-    private var isCapturePicture = true
 
     /** Is currently recording video. */
     private var isCameraRecording = false
@@ -133,74 +129,63 @@ class CameraActivity : CommonActivity<EmptyViewModel, ActivityCameraBinding>() {
             override fun onStopTrackingTouch(seekBar: SeekBar?) { /*noop*/ }
 
             override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
+                // set camera zoom
                 val room = 1 + (binding.cv.maxZoom - 1) * (1.0f * progress / seekBar!!.max)
                 binding.cv.zoom = room
+                displayCameraInfo()
             }
         })
 
         binding.ivSwitch.setOnClickListener(object : NoDoubleClickListener() {
             override fun onNoDoubleClick(v: View) {
+                // switch camera between front and end camera
                 binding.cv.switchCamera(if (binding.cv.cameraFace == CameraFace.FACE_FRONT)
                     CameraFace.FACE_REAR else CameraFace.FACE_FRONT)
             }
         })
         binding.ivTypeSwitch.setOnClickListener(object : NoDoubleClickListener() {
             override fun onNoDoubleClick(v: View) {
-                if (isCapturePicture) {
-                    isCapturePicture = false
+                // switch camera between video and picture mode
+                if (binding.cv.mediaType == MediaType.TYPE_PICTURE) {
                     binding.ivTypeSwitch.setImageResource(R.drawable.ic_videocam_white_24dp)
-                    binding.cv.setMediaType(MediaType.TYPE_VIDEO)
+                    binding.cv.mediaType = MediaType.TYPE_VIDEO
                 } else {
-                    isCapturePicture = true
                     binding.ivTypeSwitch.setImageResource(R.drawable.ic_photo_camera_white_24dp)
-                    binding.cv.setMediaType(MediaType.TYPE_PICTURE)
+                    binding.cv.mediaType = MediaType.TYPE_PICTURE
                 }
+                displayCameraInfo()
             }
         })
 
         binding.cv.setOnMoveListener { toast(if (it) "LEFT" else "RIGHT") }
         binding.cv.addCameraSizeListener(object : CameraSizeListener {
-
-            private var previewSize: Size? = null
-            private var videoSize: Size? = null
-            private var pictureSize: Size? = null
-
             override fun onPreviewSizeUpdated(previewSize: Size?) {
-                this.previewSize = previewSize
-                displaySizeInfo()
                 L.d("onPreviewSizeUpdated : $previewSize")
+                displayCameraInfo()
             }
 
             override fun onVideoSizeUpdated(videoSize: Size?) {
-                this.videoSize = videoSize
-                displaySizeInfo()
                 L.d("onVideoSizeUpdated : $videoSize")
+                displayCameraInfo()
             }
 
             override fun onPictureSizeUpdated(pictureSize: Size?) {
-                this.pictureSize = pictureSize
-                displaySizeInfo()
                 L.d("onPictureSizeUpdated : $pictureSize")
-            }
-
-            @SuppressLint("SetTextI18n")
-            private fun displaySizeInfo() {
-                binding.tvInfo.text = "Camera Info:\n" +
-                        "1.Preview Size: ${previewSize?.toString()}\n" +
-                        "2.Picture Size: ${pictureSize?.toString()}\n" +
-                        "3.Video Size: ${videoSize?.toString()}"
+                displayCameraInfo()
             }
         })
 
         binding.ivShot.setOnClickListener(object : NoDoubleClickListener() {
             override fun onNoDoubleClick(v: View) {
-                if (isCapturePicture) {
+                if (binding.cv.mediaType == MediaType.TYPE_PICTURE) {
                     takePicture()
                 } else {
                     takeVideo()
                 }
             }
         })
+
+        displayCameraInfo()
     }
 
     private fun showPopDialog(view: View, sizes: SizeMap): PopupMenu {
@@ -229,6 +214,7 @@ class CameraActivity : CommonActivity<EmptyViewModel, ActivityCameraBinding>() {
 
                 override fun onCameraOpenError(throwable: Throwable?) {
                     L.e("error : $throwable")
+                    toast("Camera open error : $throwable")
                 }
             })
         }
@@ -249,7 +235,8 @@ class CameraActivity : CommonActivity<EmptyViewModel, ActivityCameraBinding>() {
     private fun takePicture() {
         binding.cv.takePicture(object : CameraPhotoListener {
             override fun onCaptureFailed(throwable: Throwable?) {
-                L.d("onCaptureFailed : $throwable")
+                L.e("onCaptureFailed : $throwable")
+                toast("onCaptureFailed : $throwable")
             }
 
             override fun onPictureTaken(data: ByteArray?) {
@@ -291,5 +278,15 @@ class CameraActivity : CommonActivity<EmptyViewModel, ActivityCameraBinding>() {
         } else {
             binding.cv.stopVideoRecord()
         }
+    }
+
+    private fun displayCameraInfo() {
+        binding.tvInfo.text = "Camera Info:\n" +
+                "1.Preview Size: ${binding.cv.getSize(CameraSizeFor.SIZE_FOR_PREVIEW)?.toString()}\n" +
+                "2.Picture Size: ${binding.cv.getSize(CameraSizeFor.SIZE_FOR_PICTURE)?.toString()}\n" +
+                "3.Video Size: ${binding.cv.getSize(CameraSizeFor.SIZE_FOR_VIDEO)?.toString()}\n" +
+                "4.Media Type (0:Picture, 1:Video): ${binding.cv.mediaType}\n" +
+                "5.Zoom: ${binding.cv.zoom}\n" +
+                "6.MaxZoom: ${binding.cv.maxZoom}"
     }
 }

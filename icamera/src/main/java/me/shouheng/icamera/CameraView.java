@@ -44,15 +44,15 @@ import static me.shouheng.icamera.enums.PreviewAdjustType.SMALLER_FIRST;
 import static me.shouheng.icamera.enums.PreviewAdjustType.WIDTH_FIRST;
 
 /**
- * 时运不济...
+ * It's over :D
  *
- * __   __  _______  _______  __   __  _______  ______    _______
- * |  |_|  ||       ||   _   ||  |_|  ||       ||    _ |  |   _   |
- * |       ||       ||  |_|  ||       ||    ___||   | ||  |  |_|  |
- * |       ||       ||       ||       ||   |___ |   |_||_ |       |
- * |     | |      _||       ||       ||    ___||    __  ||       |
- * |   _   ||     |_ |   _   || ||_|| ||   |___ |   |  | ||   _   |
- * |__| |__||_______||__| |__||_|   |_||_______||___|  |_||__| |__|
+ * ___   _______  _______  __   __  _______  ______    _______
+ * |   | |       ||   _   ||  |_|  ||       ||    _ |  |   _   |
+ * |   | |       ||  |_|  ||       ||    ___||   | ||  |  |_|  |
+ * |   | |       ||       ||       ||   |___ |   |_||_ |       |
+ * |   | |      _||       ||       ||    ___||    __  ||       |
+ * |   | |     |_ |   _   || ||_|| ||   |___ |   |  | ||   _   |
+ * |___| |_______||__| |__||_|   |_||_______||___|  |_||__| |__|
  *
  *                         = WngShhng ==
  *
@@ -285,6 +285,11 @@ public class CameraView extends FrameLayout {
         cameraManager.setMediaType(mediaType);
     }
 
+    @MediaType
+    public int getMediaType() {
+        return cameraManager.getMediaType();
+    }
+
     /**
      * Whether use shutter when capture. The final result is not only affected by
      * this value, but also subject to your phone circumstance. If your phone was
@@ -355,10 +360,22 @@ public class CameraView extends FrameLayout {
         cameraManager.setExpectAspectRatio(aspectRatio);
     }
 
+    /**
+     * Current using size of camera
+     *
+     * @param sizeFor the size for
+     * @return        the size
+     */
     public Size getSize(@CameraSizeFor int sizeFor) {
         return cameraManager.getSize(sizeFor);
     }
 
+    /**
+     * Get all support sizes of camera
+     *
+     * @param sizeFor the size for
+     * @return        the sizes
+     */
     public SizeMap getSizes(@CameraSizeFor int sizeFor) {
         return cameraManager.getSizes(sizeFor);
     }

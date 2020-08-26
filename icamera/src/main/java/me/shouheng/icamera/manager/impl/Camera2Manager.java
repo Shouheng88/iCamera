@@ -234,6 +234,11 @@ public class Camera2Manager extends BaseCameraManager<String> implements ImageRe
     }
 
     @Override
+    public int getMediaType() {
+        return mediaType;
+    }
+
+    @Override
     public void setVoiceEnable(boolean voiceEnable) {
         if (this.voiceEnabled == voiceEnable) {
             return;
