@@ -32,7 +32,8 @@
             </intent-filter>
         </activity>
 
-        <activity android:name=".activity.CameraActivity"/>
+        <activity android:name=".activity.CameraActivity"
+                android:configChanges="orientation|keyboardHidden|screenSize" />
 
         <provider
                 android:name="android.support.v4.content.FileProvider"

@@ -14,31 +14,31 @@ public final class XLog {
 
     public static void v(String tag, String msg) {
         if (isDebug) {
-            Log.v(tag, msg);
+            Log.v("XLog-" + tag, msg);
         }
     }
 
     public static void d(String tag, String msg) {
         if (isDebug) {
-            Log.d(tag, msg);
+            Log.d("XLog-" + tag, msg);
         }
     }
 
     public static void i(String tag, String msg) {
         if (isDebug) {
-            Log.i(tag, msg);
+            Log.i("XLog-" + tag, msg);
         }
     }
 
     public static void w(String tag, String msg) {
         if (isDebug) {
-            Log.w(tag, msg);
+            Log.w("XLog-" + tag, msg);
         }
     }
 
     public static void e(String tag, String msg) {
         if (isDebug) {
-            Log.e(tag, msg);
+            Log.e("XLog-" + tag, msg);
         }
     }
 

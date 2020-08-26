@@ -35,6 +35,7 @@ import me.shouheng.icamera.listener.DisplayOrientationDetector;
 import me.shouheng.icamera.listener.OnMoveListener;
 import me.shouheng.icamera.manager.CameraManager;
 import me.shouheng.icamera.preview.CameraPreview;
+import me.shouheng.icamera.util.XLog;
 import me.shouheng.icamera.widget.FocusMarkerLayout;
 
 import static me.shouheng.icamera.enums.PreviewAdjustType.HEIGHT_FIRST;
@@ -62,6 +63,7 @@ import static me.shouheng.icamera.enums.PreviewAdjustType.WIDTH_FIRST;
  * @version 2019/4/13 22:43
  */
 public class CameraView extends FrameLayout {
+    private static final String TAG = "CameraView";
 
     private CameraManager cameraManager;
     private CameraPreview cameraPreview;
@@ -175,6 +177,7 @@ public class CameraView extends FrameLayout {
 
     @Override
     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
+        XLog.d(TAG, "onMeasure");
         if (isInEditMode()) {
             super.onMeasure(widthMeasureSpec, heightMeasureSpec);
             return;

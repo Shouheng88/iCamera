@@ -273,6 +273,7 @@ public class Camera1Manager extends BaseCameraManager<Integer> {
     // FIXME the output picture and video rotation
     @Override
     public void setDisplayOrientation(int displayOrientation) {
+        XLog.d(TAG, "displayOrientation : " + displayOrientation);
         if (this.displayOrientation == displayOrientation) {
             return;
         }

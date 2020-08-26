@@ -1,6 +1,7 @@
 package me.shouheng.icamerasample.activity
 
 import android.animation.Animator
+import android.content.res.Configuration
 import android.os.Bundle
 import android.support.v7.widget.PopupMenu
 import android.view.Gravity
@@ -17,6 +18,7 @@ import me.shouheng.icamera.listener.CameraOpenListener
 import me.shouheng.icamera.listener.CameraPhotoListener
 import me.shouheng.icamera.listener.CameraSizeListener
 import me.shouheng.icamera.listener.CameraVideoListener
+import me.shouheng.icamera.util.XLog
 import me.shouheng.icamerasample.R
 import me.shouheng.icamerasample.databinding.ActivityCameraBinding
 import me.shouheng.icamerasample.utils.FileHelper.getSavedFile
@@ -44,6 +46,7 @@ class CameraActivity : CommonActivity<EmptyViewModel, ActivityCameraBinding>() {
     private var isCameraRecording = false
 
     override fun doCreateView(savedInstanceState: Bundle?) {
+        XLog.d("CameraActivity", "doCreateView")
         BarUtils.setStatusBarLightMode(window, false)
         configDrawer()
         configMain()
@@ -230,6 +233,11 @@ class CameraActivity : CommonActivity<EmptyViewModel, ActivityCameraBinding>() {
     override fun onDestroy() {
         super.onDestroy()
         binding.cv.releaseCamera()
+    }
+
+    override fun onConfigurationChanged(newConfig: Configuration?) {
+        super.onConfigurationChanged(newConfig)
+        XLog.d("CameraActivity", "onConfigurationChanged")
     }
 
     private fun takePicture() {
