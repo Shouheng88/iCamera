@@ -22,6 +22,7 @@ import android.media.MediaRecorder;
 import android.os.Build;
 import android.support.annotation.IntDef;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.annotation.RequiresApi;
 import android.view.Surface;
 import android.view.SurfaceHolder;
@@ -42,6 +43,7 @@ import me.shouheng.icamera.config.size.Size;
 import me.shouheng.icamera.config.size.SizeMap;
 import me.shouheng.icamera.enums.CameraFace;
 import me.shouheng.icamera.enums.CameraSizeFor;
+import me.shouheng.icamera.enums.CameraType;
 import me.shouheng.icamera.enums.FlashMode;
 import me.shouheng.icamera.enums.MediaType;
 import me.shouheng.icamera.enums.PreviewViewType;
@@ -359,7 +361,7 @@ public class Camera2Manager extends BaseCameraManager<String> implements ImageRe
     }
 
     @Override
-    public void setExpectSize(Size expectSize) {
+    public void setExpectSize(@Nullable Size expectSize) {
         super.setExpectSize(expectSize);
         if (isCameraOpened()) {
             backgroundHandler.post(new Runnable() {
@@ -599,6 +601,7 @@ public class Camera2Manager extends BaseCameraManager<String> implements ImageRe
             previewSizes = ConfigurationProvider.get().getSizes(map, cameraFace, CameraSizeFor.SIZE_FOR_PREVIEW);
             pictureSizes = ConfigurationProvider.get().getSizes(map, cameraFace, CameraSizeFor.SIZE_FOR_PICTURE);
             videoSizes = ConfigurationProvider.get().getSizes(map, cameraFace, CameraSizeFor.SIZE_FOR_VIDEO);
+            ConfigurationProvider.get().getCameraSizeCalculator().init(expectAspectRatio, expectSize, mediaQuality, previewSizes, pictureSizes, videoSizes);
         } catch (Exception ex) {
             XLog.e(TAG, "error : " + ex);
             notifyCameraOpenError(new RuntimeException(ex));
@@ -610,8 +613,8 @@ public class Camera2Manager extends BaseCameraManager<String> implements ImageRe
         Size oldPreviewSize = previewSize;
         CameraSizeCalculator cameraSizeCalculator = ConfigurationProvider.get().getCameraSizeCalculator();
         if (pictureSize == null || forceCalculate) {
-            pictureSize = cameraSizeCalculator.getPictureSize(pictureSizes, expectAspectRatio, expectSize);
-            previewSize = cameraSizeCalculator.getPicturePreviewSize(previewSizes, pictureSize);
+            pictureSize = cameraSizeCalculator.getPictureSize(CameraType.TYPE_CAMERA2);
+            previewSize = cameraSizeCalculator.getPicturePreviewSize(CameraType.TYPE_CAMERA2);
             notifyPictureSizeUpdated(pictureSize);
 
             // Fix: CaptureRequest contains unconfigured Input/Output Surface!
@@ -620,8 +623,8 @@ public class Camera2Manager extends BaseCameraManager<String> implements ImageRe
         }
         if (mediaType == MediaType.TYPE_VIDEO && (videoSize == null || forceCalculate)) {
             camcorderProfile = CameraHelper.getCamcorderProfile(mediaQuality, currentCameraId);
-            videoSize = cameraSizeCalculator.getVideoSize(videoSizes, expectAspectRatio, expectSize);
-            previewSize = cameraSizeCalculator.getVideoPreviewSize(previewSizes, videoSize);
+            videoSize = cameraSizeCalculator.getVideoSize(CameraType.TYPE_CAMERA2);
+            previewSize = cameraSizeCalculator.getVideoPreviewSize(CameraType.TYPE_CAMERA2);
             notifyVideoSizeUpdated(videoSize);
         }
         if (!previewSize.equals(oldPreviewSize)) {

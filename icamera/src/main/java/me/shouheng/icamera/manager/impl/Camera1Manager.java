@@ -23,6 +23,7 @@ import me.shouheng.icamera.config.size.Size;
 import me.shouheng.icamera.config.size.SizeMap;
 import me.shouheng.icamera.enums.CameraFace;
 import me.shouheng.icamera.enums.CameraSizeFor;
+import me.shouheng.icamera.enums.CameraType;
 import me.shouheng.icamera.enums.FlashMode;
 import me.shouheng.icamera.enums.MediaQuality;
 import me.shouheng.icamera.enums.MediaType;
@@ -225,7 +226,7 @@ public class Camera1Manager extends BaseCameraManager<Integer> {
     }
 
     @Override
-    public void setExpectSize(Size expectSize) {
+    public void setExpectSize(@Nullable Size expectSize) {
         super.setExpectSize(expectSize);
         if (isCameraOpened()) {
             adjustCameraParameters(true, false, false);
@@ -427,6 +428,7 @@ public class Camera1Manager extends BaseCameraManager<Integer> {
             pictureSizes = ConfigurationProvider.get().getSizes(camera, cameraFace, CameraSizeFor.SIZE_FOR_PICTURE);
             videoSizes = ConfigurationProvider.get().getSizes(camera, cameraFace, CameraSizeFor.SIZE_FOR_VIDEO);
             zoomRatios = ConfigurationProvider.get().getZoomRatios(camera, cameraFace);
+            ConfigurationProvider.get().getCameraSizeCalculator().init(expectAspectRatio, expectSize, mediaQuality, previewSizes, pictureSizes, videoSizes);
             XLog.d(TAG, "prepareCameraOutputs cost : " + (System.currentTimeMillis() - start) + " ms");
         } catch (Exception ex) {
             XLog.e(TAG, "error : " + ex);
@@ -440,8 +442,8 @@ public class Camera1Manager extends BaseCameraManager<Integer> {
         CameraSizeCalculator cameraSizeCalculator = ConfigurationProvider.get().getCameraSizeCalculator();
         android.hardware.Camera.Parameters parameters = camera.getParameters();
         if (mediaType == MediaType.TYPE_PICTURE && (pictureSize == null || forceCalculateSizes)) {
-            pictureSize = cameraSizeCalculator.getPictureSize(pictureSizes, expectAspectRatio, expectSize);
-            previewSize = cameraSizeCalculator.getPicturePreviewSize(previewSizes, pictureSize);
+            pictureSize = cameraSizeCalculator.getPictureSize(CameraType.TYPE_CAMERA1);
+            previewSize = cameraSizeCalculator.getPicturePreviewSize(CameraType.TYPE_CAMERA1);
             parameters.setPictureSize(pictureSize.width, pictureSize.height);
             notifyPictureSizeUpdated(pictureSize);
         }
@@ -449,8 +451,8 @@ public class Camera1Manager extends BaseCameraManager<Integer> {
             camcorderProfile = CameraHelper.getCamcorderProfile(mediaQuality, currentCameraId);
         }
         if (mediaType == MediaType.TYPE_VIDEO && (videoSize == null || forceCalculateSizes)) {
-            videoSize = cameraSizeCalculator.getVideoSize(videoSizes, expectAspectRatio, expectSize);
-            previewSize = cameraSizeCalculator.getVideoPreviewSize(previewSizes, videoSize);
+            videoSize = cameraSizeCalculator.getVideoSize(CameraType.TYPE_CAMERA1);
+            previewSize = cameraSizeCalculator.getVideoPreviewSize(CameraType.TYPE_CAMERA1);
             notifyVideoSizeUpdated(previewSize);
         }
         if (!previewSize.equals(oldPreview)) {

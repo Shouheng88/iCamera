@@ -40,6 +40,7 @@ import me.shouheng.icamera.util.XLog;
  * @version 2019/4/13 22:44
  */
 public final class ConfigurationProvider {
+    private static final String TAG = "ConfigurationProvider";
 
     /** The singleton */
     private static volatile ConfigurationProvider configurationProvider;
@@ -131,6 +132,7 @@ public final class ConfigurationProvider {
                                @CameraSizeFor int sizeFor) {
         // calculate hash of map
         int hash = cameraFace | sizeFor | CameraType.TYPE_CAMERA1;
+        XLog.d(TAG, "getSizes hash : " + Integer.toHexString(hash));
         // try to get sizes from cache first.
         if (useCacheValues) {
             List<Size> sizes = sizeMap.get(hash);
@@ -172,6 +174,7 @@ public final class ConfigurationProvider {
                                      @CameraFace int cameraFace) {
         // calculate hash of map
         int hash = cameraFace | CameraType.TYPE_CAMERA1;
+        XLog.d(TAG, "getZoomRatios hash : " + Integer.toHexString(hash));
         // try to get ratios from cache first.
         if (useCacheValues) {
             List<Float> zoomRatios = ratioMap.get(hash);
@@ -206,6 +209,7 @@ public final class ConfigurationProvider {
                                @CameraSizeFor int sizeFor) {
         // calculate hash
         int hash = cameraFace | sizeFor | CameraType.TYPE_CAMERA2;
+        XLog.d(TAG, "getSizes hash : " + Integer.toHexString(hash));
         // try to get sizes from cache
         if (useCacheValues) {
             List<Size> sizes = sizeMap.get(hash);

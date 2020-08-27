@@ -8,6 +8,7 @@ import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.Looper;
 import android.os.Process;
+import android.support.annotation.Nullable;
 
 import java.io.File;
 import java.util.LinkedList;
@@ -18,6 +19,7 @@ import me.shouheng.icamera.config.size.AspectRatio;
 import me.shouheng.icamera.config.size.Size;
 import me.shouheng.icamera.config.size.SizeMap;
 import me.shouheng.icamera.enums.CameraFace;
+import me.shouheng.icamera.enums.CameraSizeFor;
 import me.shouheng.icamera.enums.FlashMode;
 import me.shouheng.icamera.enums.MediaQuality;
 import me.shouheng.icamera.enums.MediaType;
@@ -42,12 +44,9 @@ abstract class BaseCameraManager<CameraId> implements CameraManager, MediaRecord
 
     protected Context context;
 
-    @MediaType
-    int mediaType;
-    @MediaQuality
-    int mediaQuality;
-    @CameraFace
-    int cameraFace;
+    @MediaType int mediaType;
+    @MediaQuality int mediaQuality;
+    @CameraFace int cameraFace;
     int numberOfCameras;
     CameraId rearCameraId;
     CameraId frontCameraId;
@@ -61,7 +60,7 @@ abstract class BaseCameraManager<CameraId> implements CameraManager, MediaRecord
     SizeMap previewSizeMap;
     SizeMap pictureSizeMap;
     SizeMap videoSizeMap;
-    Size expectSize;
+    @Nullable Size expectSize;
     Size previewSize;
     Size pictureSize;
     Size videoSize;
@@ -71,8 +70,7 @@ abstract class BaseCameraManager<CameraId> implements CameraManager, MediaRecord
     MediaRecorder videoRecorder;
     boolean voiceEnabled;
     boolean isAutoFocus;
-    @FlashMode
-    int flashMode;
+    @FlashMode int flashMode;
     float zoom = 1.0f;
     float maxZoom;
     int displayOrientation;
@@ -134,18 +132,43 @@ abstract class BaseCameraManager<CameraId> implements CameraManager, MediaRecord
     }
 
     @Override
-    public void setExpectSize(Size expectSize) {
+    public void setExpectSize(@Nullable Size expectSize) {
+        if (expectSize != null && expectSize.equals(this.expectSize)) {
+            return;
+        }
         this.expectSize = expectSize;
+        ConfigurationProvider.get().getCameraSizeCalculator().changeExpectSize(expectSize);
     }
 
     @Override
     public void setExpectAspectRatio(AspectRatio expectAspectRatio) {
+        if (this.expectAspectRatio.equals(expectAspectRatio)) {
+            return;
+        }
         this.expectAspectRatio = expectAspectRatio;
+        ConfigurationProvider.get().getCameraSizeCalculator().changeExpectAspectRatio(expectAspectRatio);
     }
 
     @Override
-    public AspectRatio getAspectRatio() {
-        return AspectRatio.of(previewSize);
+    public void setMediaQuality(int mediaQuality) {
+        if (this.mediaQuality == mediaQuality) {
+            return;
+        }
+        this.mediaQuality = mediaQuality;
+        ConfigurationProvider.get().getCameraSizeCalculator().changeMediaQuality(mediaQuality);
+    }
+
+    @Override
+    public AspectRatio getAspectRatio(@CameraSizeFor int sizeFor) {
+        switch (sizeFor) {
+            case CameraSizeFor.SIZE_FOR_PICTURE:
+                return pictureSize == null ? null : AspectRatio.of(pictureSize);
+            case CameraSizeFor.SIZE_FOR_VIDEO:
+                return videoSize == null ? null : AspectRatio.of(videoSize);
+            case CameraSizeFor.SIZE_FOR_PREVIEW:
+            default:
+                return previewSize == null ? null : AspectRatio.of(previewSize);
+        }
     }
 
     @Override

@@ -5,12 +5,16 @@ import android.support.annotation.Nullable;
 
 import java.util.List;
 
-import me.shouheng.icamera.config.ConfigurationProvider;
 import me.shouheng.icamera.config.size.AspectRatio;
 import me.shouheng.icamera.config.size.Size;
+import me.shouheng.icamera.enums.CameraType;
+import me.shouheng.icamera.enums.MediaQuality;
 
 /**
- * Calculator size for camera.
+ * Calculator size for camera. You may implement this interface to add your own camera
+ * size calculation logic.
+ *
+ * @see me.shouheng.icamera.config.calculator.impl.CameraSizeCalculatorImpl as an example
  *
  * @author WngShhng (shouheng2015@gmail.com)
  * @version 2019/4/13 22:58
@@ -18,49 +22,79 @@ import me.shouheng.icamera.config.size.Size;
 public interface CameraSizeCalculator {
 
     /**
-     * Get picture size.
+     * Initialize values of calculator.
      *
-     * @param pictureSizes      supported picture sizes
-     * @param expectAspectRatio desired aspect ratio of picture,
-     *                          default value is got from {@link ConfigurationProvider#getDefaultAspectRatio()}
-     * @param expectSize        desired size of picture, null if the user didn't set
-     * @return                  the picture size
+     * @param expectAspectRatio expect aspect ratio
+     * @param expectSize        expect size
+     * @param mediaQuality      expect media quality
+     * @param previewSizes      support preview sizes
+     * @param pictureSizes      support picture sizes
+     * @param videoSizes        support video sizes
      */
-    Size getPictureSize(@NonNull List<Size> pictureSizes,
-                        @NonNull AspectRatio expectAspectRatio,
-                        @Nullable Size expectSize);
+    void init(@NonNull AspectRatio expectAspectRatio,
+              @Nullable Size expectSize,
+              @MediaQuality int mediaQuality,
+              @NonNull List<Size> previewSizes,
+              @NonNull List<Size> pictureSizes,
+              @NonNull List<Size> videoSizes);
 
     /**
-     * Get size for picture preview.
+     * Change expect aspect ratio. You can implement this method to get the new desired
+     * aspect ratio and clear the calculated values cache. Anyway this is the method
+     * we used to notify you the camera state changed.
      *
-     * @param previewSizes preview sizes supported
-     * @param pictureSize  final output picture size,
-     *                     got from {@link #getPictureSize(List, AspectRatio, Size)}
-     * @return             final picture preview size
+     * See also,
+     * @see #changeExpectSize(Size)
+     * @see #changeMediaQuality(int)
+     *
+     * @param expectAspectRatio the new expect aspect ratio
      */
-    Size getPicturePreviewSize(@NonNull List<Size> previewSizes, @NonNull Size pictureSize);
+    void changeExpectAspectRatio(@NonNull AspectRatio expectAspectRatio);
 
     /**
-     * Get video size.
+     * Change expect size
      *
-     * @param videoSizes        supported video sizes
-     * @param expectAspectRatio desired aspect ratio of video
-     *                          default value is got from {@link ConfigurationProvider#getDefaultAspectRatio()}
-     * @param expectSize        desired size of video, null if the user didn't set
-     * @return                  the video size
+     * @param expectSize the new expect size
      */
-    Size getVideoSize(@NonNull List<Size> videoSizes,
-                      @NonNull AspectRatio expectAspectRatio,
-                      @Nullable Size expectSize);
+    void changeExpectSize(@Nullable Size expectSize);
 
     /**
-     * Get size for video preview.
+     * Change expect media quality
      *
-     * @param previewSizes preview sizes supported
-     * @param videoSize    final output video size,
-     *                     got from {@link #getVideoSize(List, AspectRatio, Size)}
-     * @return             final video preview size
+     * @param mediaQuality the new expect media quality
      */
-    Size getVideoPreviewSize(@NonNull List<Size> previewSizes, @NonNull Size videoSize);
+    void changeMediaQuality(@MediaQuality int mediaQuality);
+
+    /**
+     * Get calculated picture size
+     *
+     * @param cameraType camera type, aka, camera1 or camera2
+     * @return           the picture size
+     */
+    Size getPictureSize(@CameraType int cameraType);
+
+    /**
+     * Get calculated picture preview size
+     *
+     * @param cameraType camera type, aka, camera1 or camera2
+     * @return           the picture preview size
+     */
+    Size getPicturePreviewSize(@CameraType int cameraType);
+
+    /**
+     * Get calculated video size
+     *
+     * @param cameraType camera type, aka, camera1 or camera2
+     * @return           the video size
+     */
+    Size getVideoSize(@CameraType int cameraType);
+
+    /**
+     * Get calculated video preview size
+     *
+     * @param cameraType camera type, aka, camera1 or camera2
+     * @return           the video preview size
+     */
+    Size getVideoPreviewSize(@CameraType int cameraType);
 
 }

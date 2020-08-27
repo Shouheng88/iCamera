@@ -33,6 +33,7 @@ import me.shouheng.icamera.enums.CameraFace;
 import me.shouheng.icamera.enums.CameraSizeFor;
 import me.shouheng.icamera.enums.DeviceDefaultOrientation;
 import me.shouheng.icamera.enums.FlashMode;
+import me.shouheng.icamera.enums.MediaQuality;
 import me.shouheng.icamera.enums.MediaType;
 import me.shouheng.icamera.enums.PreviewAdjustType;
 import me.shouheng.icamera.enums.SensorPosition;
@@ -171,7 +172,7 @@ public class CameraView extends FrameLayout {
         cameraManager.addCameraSizeListener(new CameraSizeListener() {
             @Override
             public void onPreviewSizeUpdated(Size previewSize) {
-                aspectRatio = cameraManager.getAspectRatio();
+                aspectRatio = cameraManager.getAspectRatio(CameraSizeFor.SIZE_FOR_PREVIEW);
                 if (displayOrientationDetector.getLastKnownDisplayOrientation() % 180 == 0) {
                     aspectRatio = aspectRatio.inverse();
                 }
@@ -433,6 +434,15 @@ public class CameraView extends FrameLayout {
     }
 
     /**
+     * Set expected media quality
+     *
+     * @param mediaQuality media quality
+     */
+    public void setMediaQuality(@MediaQuality int mediaQuality) {
+        cameraManager.setMediaQuality(mediaQuality);
+    }
+
+    /**
      * Current using size of camera
      *
      * @param sizeFor the size for
@@ -452,8 +462,16 @@ public class CameraView extends FrameLayout {
         return cameraManager.getSizes(sizeFor);
     }
 
-    public AspectRatio getAspectRatio() {
-        return cameraManager.getAspectRatio();
+    /**
+     * Get current aspect ratio of preview, picture or video. Since the size might not be calculated
+     * when the time trying to get the ratio, the returned value might be null.
+     *
+     * @param sizeFor the aspect ratio for
+     * @return        the aspect ratio
+     */
+    @Nullable
+    public AspectRatio getAspectRatio(@CameraSizeFor int sizeFor) {
+        return cameraManager.getAspectRatio(sizeFor);
     }
 
     public void addCameraSizeListener(CameraSizeListener cameraSizeListener) {

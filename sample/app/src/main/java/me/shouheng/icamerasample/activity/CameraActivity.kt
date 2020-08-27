@@ -224,7 +224,7 @@ class CameraActivity : CommonActivity<EmptyViewModel, ActivityCameraBinding>() {
                 }
 
                 override fun onCameraOpenError(throwable: Throwable?) {
-                    L.e("error : $throwable")
+                    L.e(throwable)
                     toast("Camera open error : $throwable")
                 }
             })
@@ -252,7 +252,7 @@ class CameraActivity : CommonActivity<EmptyViewModel, ActivityCameraBinding>() {
         val fileToSave = getSavedFile("jpg")
         binding.cv.takePicture(fileToSave, object : CameraPhotoListener {
             override fun onCaptureFailed(throwable: Throwable?) {
-                L.e("onCaptureFailed : $throwable")
+                L.e(throwable)
                 toast("onCaptureFailed : $throwable")
             }
 
@@ -289,6 +289,7 @@ class CameraActivity : CommonActivity<EmptyViewModel, ActivityCameraBinding>() {
                 override fun onVideoRecordError(throwable: Throwable?) {
                     isCameraRecording = false
                     toast("$throwable")
+                    L.e(throwable)
                 }
             })
         } else {

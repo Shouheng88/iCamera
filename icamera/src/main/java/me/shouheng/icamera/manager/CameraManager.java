@@ -1,6 +1,7 @@
 package me.shouheng.icamera.manager;
 
 import android.content.Context;
+import android.support.annotation.Nullable;
 
 import java.io.File;
 
@@ -10,6 +11,7 @@ import me.shouheng.icamera.config.size.SizeMap;
 import me.shouheng.icamera.enums.CameraFace;
 import me.shouheng.icamera.enums.CameraSizeFor;
 import me.shouheng.icamera.enums.FlashMode;
+import me.shouheng.icamera.enums.MediaQuality;
 import me.shouheng.icamera.enums.MediaType;
 import me.shouheng.icamera.listener.CameraCloseListener;
 import me.shouheng.icamera.listener.CameraOpenListener;
@@ -142,7 +144,7 @@ public interface CameraManager {
      *
      * @param expectSize the size
      */
-    void setExpectSize(Size expectSize);
+    void setExpectSize(@Nullable Size expectSize);
 
     /**
      * Sed desired aspect ratio.
@@ -150,6 +152,8 @@ public interface CameraManager {
      * @param expectAspectRatio the desired aspect ratio
      */
     void setExpectAspectRatio(AspectRatio expectAspectRatio);
+
+    void setMediaQuality(@MediaQuality int mediaQuality);
 
     /**
      * Get current size for usage.
@@ -168,11 +172,12 @@ public interface CameraManager {
     SizeMap getSizes(@CameraSizeFor int sizeFor);
 
     /**
-     * Get current aspect ratio.
+     * Get current aspect ratio of preview, picture or video.
      *
      * @return aspect ratio
      */
-    AspectRatio getAspectRatio();
+    @Nullable
+    AspectRatio getAspectRatio(@CameraSizeFor int sizeFor);
 
     /**
      * Set display orientation

@@ -41,7 +41,7 @@ class App : Application() {
         private lateinit var application: Application
         fun app(): Application = application
         fun configCrashHelper(application: Application) {
-            // 配置崩溃工具，文件存储在：data/data/package_name/files/crash 下面
+            // crash detect tools, the crash log was saved to : data/data/package_name/files/crash
             if (PermissionUtils.hasPermissions(Permission.STORAGE)) {
                 CrashHelper.init(application,
                     File(PathUtils.getExternalAppFilesPath(), "crash")

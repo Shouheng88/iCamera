@@ -9,10 +9,13 @@ import android.hardware.camera2.CameraManager;
 import android.media.CamcorderProfile;
 import android.os.Build;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.text.TextUtils;
 import android.view.Surface;
 import android.view.WindowManager;
 
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -179,7 +182,8 @@ public final class CameraHelper {
     }
 
     /**
-     * 先获取宽高比最小的宽高比，然后从满足这个宽高比的尺寸中选择高度差最小的。
+     * Ratio first, we will find out the minimum ratio diff and then get the closet
+     * size of the same ratio from sizes.
      *
      * @param sizes      sizes to get from
      * @param expectSize expect size
@@ -220,6 +224,97 @@ public final class CameraHelper {
 
         XLog.d(TAG, "getSizeWithClosestRatio : expected " + expectSize + ", result " + optimalSize);
         return optimalSize;
+    }
+
+    /**
+     * Aspect first, then size, the quality.
+     *
+     * @param sizes        sizes to get from
+     * @param aspectRatio  expect aspect ratio
+     * @param expectSize   expect size
+     * @param mediaQuality expect media quality
+     * @return             the final output size
+     */
+    public static Size getSizeWithClosestRatioSizeAndQuality(List<Size> sizes,
+                                               AspectRatio aspectRatio,
+                                               @Nullable Size expectSize,
+                                               @MediaQuality int mediaQuality) {
+        if (expectSize != null && aspectRatio.ratio() != expectSize.ratio()) {
+            XLog.w(TAG, "The expected ratio differs from ratio of expected size.");
+        }
+
+        Size optimalSize = null;
+        double targetRatio = aspectRatio.ratio();
+        double minRatioDiff = Double.MAX_VALUE;
+
+        // 1. find closet ratio first
+        for (Size size : sizes) {
+            // ratio first
+            if (size.equals(expectSize)) {
+                // bingo!!
+                return size;
+            }
+            // get size with minimum ratio diff
+            double ratioDiff = Math.abs(size.ratio() - targetRatio);
+            if (ratioDiff < minRatioDiff) {
+                optimalSize = size;
+                minRatioDiff = ratioDiff;
+            }
+        }
+
+        // 2. find closet area
+        if (expectSize != null) {
+            int minAreaDiff = Integer.MAX_VALUE;
+            for (Size size : sizes) {
+                if (size.ratio() == minRatioDiff) {
+                    if (size.area() == expectSize.area()) {
+                        // bingo!!
+                        return size;
+                    }
+                    int areaDiff = Math.abs(size.area() - expectSize.area());
+                    if (areaDiff <= minAreaDiff) {
+                        minAreaDiff = areaDiff;
+                        optimalSize = size;
+                    }
+                }
+            }
+            return optimalSize;
+        }
+
+        // 3. find closet media quality (area)
+        List<Size> sameSizes = new LinkedList<>();
+        for (Size size : sizes) {
+            if (size.ratio() == minRatioDiff) {
+                sameSizes.add(size);
+            }
+        }
+        Collections.sort(sameSizes, new Comparator<Size>() {
+            @Override
+            public int compare(Size o1, Size o2) {
+                return o1.area() - o2.area();
+            }
+        });
+        int index;
+        int size = sameSizes.size();
+        switch (mediaQuality) {
+            case MediaQuality.QUALITY_LOWEST:
+                index = 0;
+                break;
+            case MediaQuality.QUALITY_LOW:
+                index = size / 4;
+                break;
+            case MediaQuality.QUALITY_MEDIUM:
+                index = size * 2 / 4;
+                break;
+            case MediaQuality.QUALITY_HIGH:
+                index = size * 3 / 4;
+                break;
+            case MediaQuality.QUALITY_HIGHEST:
+            case MediaQuality.QUALITY_AUTO:
+            default:
+                index = size;
+        }
+        return sizes.get(index);
     }
 
     private static double calculateApproximateVideoSize(CamcorderProfile camcorderProfile, int seconds) {
