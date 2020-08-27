@@ -33,7 +33,8 @@
         </activity>
 
         <activity android:name=".activity.CameraActivity"
-                android:configChanges="orientation|keyboardHidden|screenSize" />
+                android:theme="@style/ThemeFullscreen"
+                android:screenOrientation="portrait" />
 
         <provider
                 android:name="android.support.v4.content.FileProvider"

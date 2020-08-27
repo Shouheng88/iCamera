@@ -1,11 +1,17 @@
 package me.shouheng.icamera.manager.impl;
 
 import android.content.Context;
+import android.graphics.PixelFormat;
+import android.hardware.Camera;
+import android.media.ExifInterface;
 import android.media.MediaRecorder;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.util.Log;
 
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.List;
 
@@ -17,6 +23,7 @@ import me.shouheng.icamera.config.size.SizeMap;
 import me.shouheng.icamera.enums.CameraFace;
 import me.shouheng.icamera.enums.CameraSizeFor;
 import me.shouheng.icamera.enums.FlashMode;
+import me.shouheng.icamera.enums.MediaQuality;
 import me.shouheng.icamera.enums.MediaType;
 import me.shouheng.icamera.enums.PreviewViewType;
 import me.shouheng.icamera.listener.CameraCloseListener;
@@ -69,7 +76,6 @@ public class Camera1Manager extends BaseCameraManager<Integer> {
             public void run() {
                 XLog.d(TAG, "openCamera");
                 try {
-                    // TODO test the order of this method with callback from preview
                     camera = android.hardware.Camera.open(currentCameraId);
                     prepareCameraOutputs();
                     adjustCameraParameters(false, true, true);
@@ -296,8 +302,8 @@ public class Camera1Manager extends BaseCameraManager<Integer> {
     }
 
     @Override
-    public void takePicture(CameraPhotoListener cameraPhotoListener) {
-        super.takePicture(cameraPhotoListener);
+    public void takePicture(File fileToSave, CameraPhotoListener cameraPhotoListener) {
+        super.takePicture(fileToSave, cameraPhotoListener);
         if (!isCameraOpened()) {
             notifyCameraCaptureFailed(new RuntimeException("Camera not open yet!"));
             return;
@@ -308,6 +314,7 @@ public class Camera1Manager extends BaseCameraManager<Integer> {
                 try {
                     if (!takingPicture) {
                         takingPicture = true;
+                        setCameraPhotoQualityInternal(camera);
                         camera.takePicture(voiceEnabled ? new android.hardware.Camera.ShutterCallback() {
                             @Override
                             public void onShutter() {
@@ -316,8 +323,8 @@ public class Camera1Manager extends BaseCameraManager<Integer> {
                         } : null, null, new android.hardware.Camera.PictureCallback() {
                             @Override
                             public void onPictureTaken(byte[] bytes, android.hardware.Camera camera) {
+                                onPictureTakenInternal(bytes);
                                 takingPicture = false;
-                                notifyCameraPictureTaken(bytes);
                             }
                         });
                     } else {
@@ -476,6 +483,78 @@ public class Camera1Manager extends BaseCameraManager<Integer> {
             camera.startPreview();
         }
         XLog.d(TAG, "adjustCameraParameters restart preview cost : " + (System.currentTimeMillis() - start) + " ms");
+    }
+
+    private void setCameraPhotoQualityInternal(Camera camera) {
+        final Camera.Parameters parameters = camera.getParameters();
+
+        parameters.setPictureFormat(PixelFormat.JPEG);
+
+        if (mediaQuality == MediaQuality.QUALITY_LOWEST) {
+            parameters.setJpegQuality(25);
+        } else if (mediaQuality == MediaQuality.QUALITY_LOW) {
+            parameters.setJpegQuality(50);
+        } else if (mediaQuality == MediaQuality.QUALITY_MEDIUM) {
+            parameters.setJpegQuality(75);
+        } else if (mediaQuality == MediaQuality.QUALITY_HIGH) {
+            parameters.setJpegQuality(100);
+        } else if (mediaQuality == MediaQuality.QUALITY_HIGHEST) {
+            parameters.setJpegQuality(100);
+        }
+
+        camera.setParameters(parameters);
+    }
+
+    private int getPhotoOrientationInternal() {
+        final int rotate;
+        if (cameraFace == CameraFace.FACE_FRONT) {
+            rotate = (360 + frontCameraOrientation + ConfigurationProvider.get().getDegrees()) % 360;
+        } else {
+            rotate = (360 + rearCameraOrientation - ConfigurationProvider.get().getDegrees()) % 360;
+        }
+
+        int orientation = ExifInterface.ORIENTATION_NORMAL;
+        if (rotate == 90) {
+            orientation = ExifInterface.ORIENTATION_ROTATE_90;
+        } else if (rotate == 180) {
+            orientation = ExifInterface.ORIENTATION_ROTATE_180;
+        } else if (rotate == 270) {
+            orientation = ExifInterface.ORIENTATION_ROTATE_270;
+        }
+
+        return orientation;
+    }
+
+    private void onPictureTakenInternal(byte[] bytes) {
+        if (pictureFile == null) {
+            notifyCameraCaptureFailed(new RuntimeException("Error creating media file, check storage permissions."));
+            XLog.d(TAG, "Error creating media file, check storage permissions.");
+            return;
+        }
+        // do write
+        try {
+            FileOutputStream fileOutputStream = new FileOutputStream(pictureFile);
+            fileOutputStream.write(bytes);
+            fileOutputStream.close();
+        } catch (FileNotFoundException error) {
+            Log.e(TAG, "File not found: " + error.getMessage());
+            notifyCameraCaptureFailed(new RuntimeException("File not found: " + error.getMessage()));
+        } catch (IOException error) {
+            Log.e(TAG, "Error accessing file: " + error.getMessage());
+            notifyCameraCaptureFailed(new RuntimeException("Error accessing file: " + error.getMessage()));
+        } catch (Throwable error) {
+            Log.e(TAG, "Error saving file: " + error.getMessage());
+            notifyCameraCaptureFailed(new RuntimeException("Error saving file: " + error.getMessage()));
+        }
+        // rotate
+        try {
+            final ExifInterface exif = new ExifInterface(pictureFile.getAbsolutePath());
+            exif.setAttribute(ExifInterface.TAG_ORIENTATION, "" + getPhotoOrientationInternal());
+            exif.saveAttributes();
+            notifyCameraPictureTaken(bytes);
+        } catch (Throwable error) {
+            Log.e(TAG, "Can't save exif info: " + error.getMessage());
+        }
     }
 
     private void setupPreview() {

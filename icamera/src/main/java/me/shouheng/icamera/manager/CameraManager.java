@@ -193,7 +193,7 @@ public interface CameraManager {
      *
      * @param cameraPhotoListener camera capture callback
      */
-    void takePicture(CameraPhotoListener cameraPhotoListener);
+    void takePicture(File fileToSave, CameraPhotoListener cameraPhotoListener);
 
     /**
      * Set maximum video size in bytes.

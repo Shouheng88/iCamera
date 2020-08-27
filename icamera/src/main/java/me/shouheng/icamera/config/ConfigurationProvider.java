@@ -22,9 +22,11 @@ import me.shouheng.icamera.config.size.Size;
 import me.shouheng.icamera.enums.CameraFace;
 import me.shouheng.icamera.enums.CameraSizeFor;
 import me.shouheng.icamera.enums.CameraType;
+import me.shouheng.icamera.enums.DeviceDefaultOrientation;
 import me.shouheng.icamera.enums.FlashMode;
 import me.shouheng.icamera.enums.MediaQuality;
 import me.shouheng.icamera.enums.MediaType;
+import me.shouheng.icamera.enums.SensorPosition;
 import me.shouheng.icamera.util.XLog;
 
 /**
@@ -64,17 +66,21 @@ public final class ConfigurationProvider {
      * hash = {@link CameraFace} | {@link CameraType} */
     private SparseArray<List<Float>> ratioMap;
 
-    @CameraFace
-    private int defaultCameraFace;
+    @CameraFace private int defaultCameraFace;
     @MediaType private int defaultMediaType;
     @MediaQuality private int defaultMediaQuality;
     private AspectRatio defaultAspectRatio;
     private boolean isVoiceEnable;
     private boolean isAutoFocus;
-    @FlashMode
-    private int defaultFlashMode;
+    @FlashMode private int defaultFlashMode;
     private long defaultVideoFileSize = -1;
     private int defaultVideoDuration = -1;
+
+    /** Device default orientation */
+    @DeviceDefaultOrientation private int deviceDefaultOrientation;
+    /** The sensor position */
+    @SensorPosition private int sensorPosition;
+    private int degrees = -1;
 
     private boolean isDebug;
 
@@ -353,4 +359,29 @@ public final class ConfigurationProvider {
         XLog.setDebug(debug);
     }
 
+    @DeviceDefaultOrientation
+    public int getDeviceDefaultOrientation() {
+        return deviceDefaultOrientation;
+    }
+
+    public void setDeviceDefaultOrientation(@DeviceDefaultOrientation int deviceDefaultOrientation) {
+        this.deviceDefaultOrientation = deviceDefaultOrientation;
+    }
+
+    @SensorPosition
+    public int getSensorPosition() {
+        return sensorPosition;
+    }
+
+    public void setSensorPosition(@SensorPosition int sensorPosition) {
+        this.sensorPosition = sensorPosition;
+    }
+
+    public int getDegrees() {
+        return degrees;
+    }
+
+    public void setDegrees(int degrees) {
+        this.degrees = degrees;
+    }
 }

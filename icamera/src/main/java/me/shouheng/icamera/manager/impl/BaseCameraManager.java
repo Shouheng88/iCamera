@@ -66,6 +66,7 @@ abstract class BaseCameraManager<CameraId> implements CameraManager, MediaRecord
     Size pictureSize;
     Size videoSize;
     CamcorderProfile camcorderProfile;
+    File pictureFile;
     File videoOutFile;
     MediaRecorder videoRecorder;
     boolean voiceEnabled;
@@ -153,7 +154,8 @@ abstract class BaseCameraManager<CameraId> implements CameraManager, MediaRecord
     }
 
     @Override
-    public void takePicture(CameraPhotoListener cameraPhotoListener) {
+    public void takePicture(File fileToSave, CameraPhotoListener cameraPhotoListener) {
+        this.pictureFile = fileToSave;
         this.cameraPhotoListener = cameraPhotoListener;
     }
 
@@ -221,7 +223,7 @@ abstract class BaseCameraManager<CameraId> implements CameraManager, MediaRecord
             uiHandler.post(new Runnable() {
                 @Override
                 public void run() {
-                    cameraPhotoListener.onPictureTaken(data);
+                    cameraPhotoListener.onPictureTaken(data, pictureFile);
                 }
             });
         }

@@ -3,6 +3,7 @@ package me.shouheng.icamerasample.activity
 import android.animation.Animator
 import android.content.res.Configuration
 import android.os.Bundle
+import android.support.v4.view.ViewCompat
 import android.support.v7.widget.PopupMenu
 import android.view.Gravity
 import android.view.View
@@ -25,7 +26,6 @@ import me.shouheng.icamerasample.utils.FileHelper.getSavedFile
 import me.shouheng.icamerasample.utils.FileHelper.saveImageToGallery
 import me.shouheng.uix.common.listener.NoDoubleClickListener
 import me.shouheng.utils.stability.L
-import me.shouheng.utils.store.IOUtils
 import me.shouheng.utils.ui.BarUtils
 import me.shouheng.utils.ui.ViewUtils
 import me.shouheng.vmlib.base.CommonActivity
@@ -188,6 +188,13 @@ class CameraActivity : CommonActivity<EmptyViewModel, ActivityCameraBinding>() {
             }
         })
 
+        binding.cv.addOrientationChangedListener { degree ->
+            ViewCompat.setRotation(binding.ivFlash, degree.toFloat())
+            ViewCompat.setRotation(binding.ivSwitch, degree.toFloat())
+            ViewCompat.setRotation(binding.ivTypeSwitch, degree.toFloat())
+            ViewCompat.setRotation(binding.ivSetting, degree.toFloat())
+        }
+
         displayCameraInfo()
     }
 
@@ -241,15 +248,15 @@ class CameraActivity : CommonActivity<EmptyViewModel, ActivityCameraBinding>() {
     }
 
     private fun takePicture() {
-        binding.cv.takePicture(object : CameraPhotoListener {
+        val fileToSave = getSavedFile("jpg")
+        binding.cv.takePicture(fileToSave, object : CameraPhotoListener {
             override fun onCaptureFailed(throwable: Throwable?) {
                 L.e("onCaptureFailed : $throwable")
                 toast("onCaptureFailed : $throwable")
             }
 
-            override fun onPictureTaken(data: ByteArray?) {
-                val fileToSave = getSavedFile("jpg")
-                IOUtils.writeFileFromBytesByStream(fileToSave, data)
+            override fun onPictureTaken(data: ByteArray?, picture: File) {
+//                IOUtils.writeFileFromBytesByStream(fileToSave, data)
                 saveImageToGallery(context, fileToSave, fileToSave.name)
                 toast("Saved to $fileToSave")
                 binding.cv.resumePreview()

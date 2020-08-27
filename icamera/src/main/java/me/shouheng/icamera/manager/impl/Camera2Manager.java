@@ -433,8 +433,8 @@ public class Camera2Manager extends BaseCameraManager<String> implements ImageRe
     }
 
     @Override
-    public void takePicture(CameraPhotoListener cameraPhotoListener) {
-        super.takePicture(cameraPhotoListener);
+    public void takePicture(File fileToSave, CameraPhotoListener cameraPhotoListener) {
+        super.takePicture(fileToSave, cameraPhotoListener);
         backgroundHandler.post(new Runnable() {
             @Override
             public void run() {

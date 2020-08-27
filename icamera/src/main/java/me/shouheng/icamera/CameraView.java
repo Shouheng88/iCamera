@@ -1,7 +1,13 @@
 package me.shouheng.icamera;
 
+import android.app.Activity;
 import android.content.Context;
+import android.content.res.Configuration;
 import android.content.res.TypedArray;
+import android.hardware.Sensor;
+import android.hardware.SensorEvent;
+import android.hardware.SensorEventListener;
+import android.hardware.SensorManager;
 import android.os.Build;
 import android.support.annotation.FloatRange;
 import android.support.annotation.IntRange;
@@ -15,6 +21,8 @@ import android.view.ViewGroup;
 import android.widget.FrameLayout;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
 
 import me.shouheng.icamera.config.ConfigurationProvider;
 import me.shouheng.icamera.config.calculator.CameraSizeCalculator;
@@ -23,9 +31,11 @@ import me.shouheng.icamera.config.size.Size;
 import me.shouheng.icamera.config.size.SizeMap;
 import me.shouheng.icamera.enums.CameraFace;
 import me.shouheng.icamera.enums.CameraSizeFor;
+import me.shouheng.icamera.enums.DeviceDefaultOrientation;
 import me.shouheng.icamera.enums.FlashMode;
 import me.shouheng.icamera.enums.MediaType;
 import me.shouheng.icamera.enums.PreviewAdjustType;
+import me.shouheng.icamera.enums.SensorPosition;
 import me.shouheng.icamera.listener.CameraCloseListener;
 import me.shouheng.icamera.listener.CameraOpenListener;
 import me.shouheng.icamera.listener.CameraPhotoListener;
@@ -33,8 +43,10 @@ import me.shouheng.icamera.listener.CameraSizeListener;
 import me.shouheng.icamera.listener.CameraVideoListener;
 import me.shouheng.icamera.listener.DisplayOrientationDetector;
 import me.shouheng.icamera.listener.OnMoveListener;
+import me.shouheng.icamera.listener.OnOrientationChangedListener;
 import me.shouheng.icamera.manager.CameraManager;
 import me.shouheng.icamera.preview.CameraPreview;
+import me.shouheng.icamera.util.CameraHelper;
 import me.shouheng.icamera.util.XLog;
 import me.shouheng.icamera.widget.FocusMarkerLayout;
 
@@ -75,6 +87,51 @@ public class CameraView extends FrameLayout {
     private AspectRatio aspectRatio;
     private FocusMarkerLayout focusMarkerLayout;
     private DisplayOrientationDetector displayOrientationDetector;
+    private SensorManager sensorManager = null;
+    private List<OnOrientationChangedListener> orientationChangedListeners = new ArrayList<>();
+    private SensorEventListener sensorEventListener = new SensorEventListener() {
+        @Override
+        public void onSensorChanged(SensorEvent sensorEvent) {
+            synchronized (this) {
+                if (sensorEvent.sensor.getType() == Sensor.TYPE_ACCELEROMETER) {
+                    if (sensorEvent.values[0] < 4 && sensorEvent.values[0] > -4) {
+                        if (sensorEvent.values[1] > 0) {
+                            // UP
+                            ConfigurationProvider.get().setSensorPosition(SensorPosition.SENSOR_POSITION_UP);
+                            ConfigurationProvider.get().setDegrees(ConfigurationProvider.get().getDeviceDefaultOrientation()
+                                    == DeviceDefaultOrientation.ORIENTATION_PORTRAIT ? 0 : 90);
+                        } else if (sensorEvent.values[1] < 0) {
+                            // UP SIDE DOWN
+                            ConfigurationProvider.get().setSensorPosition(SensorPosition.SENSOR_POSITION_UP_SIDE_DOWN);
+                            ConfigurationProvider.get().setDegrees(ConfigurationProvider.get().getDeviceDefaultOrientation()
+                                    == DeviceDefaultOrientation.ORIENTATION_PORTRAIT ? 180 : 270);
+                        }
+                    } else if (sensorEvent.values[1] < 4 && sensorEvent.values[1] > -4) {
+                        if (sensorEvent.values[0] > 0) {
+                            // LEFT
+                            ConfigurationProvider.get().setSensorPosition(SensorPosition.SENSOR_POSITION_LEFT);
+                            ConfigurationProvider.get().setDegrees(ConfigurationProvider.get().getDeviceDefaultOrientation()
+                                    == DeviceDefaultOrientation.ORIENTATION_PORTRAIT ? 90 : 180);
+                        } else if (sensorEvent.values[0] < 0) {
+                            // RIGHT
+                            ConfigurationProvider.get().setSensorPosition(SensorPosition.SENSOR_POSITION_RIGHT);
+                            ConfigurationProvider.get().setDegrees(ConfigurationProvider.get().getDeviceDefaultOrientation()
+                                    == DeviceDefaultOrientation.ORIENTATION_PORTRAIT ? 270 : 0);
+                        }
+                    }
+                    // notify screen orientation changed
+                    if (!orientationChangedListeners.isEmpty()) {
+                        for (OnOrientationChangedListener listener : orientationChangedListeners) {
+                            listener.onOrientationChanged(ConfigurationProvider.get().getDegrees());
+                        }
+                    }
+                }
+            }
+        }
+
+        @Override
+        public void onAccuracyChanged(Sensor sensor, int i) { /*noop*/ }
+    };
 
     public CameraView(@NonNull Context context) {
         this(context, null);
@@ -96,6 +153,18 @@ public class CameraView extends FrameLayout {
     }
 
     private void initCameraView(@NonNull Context context, @Nullable AttributeSet attrs, int defStyleAttr, int defStyleRes) {
+        // set the device default orientation and register orientation change sensor events
+        final int defaultOrientation = CameraHelper.getDeviceDefaultOrientation(getContext());
+        if (defaultOrientation == Configuration.ORIENTATION_LANDSCAPE) {
+            ConfigurationProvider.get().setDeviceDefaultOrientation(DeviceDefaultOrientation.ORIENTATION_LANDSCAPE);
+        } else {
+            ConfigurationProvider.get().setDeviceDefaultOrientation(DeviceDefaultOrientation.ORIENTATION_PORTRAIT);
+        }
+        this.sensorManager = (SensorManager) getContext().getSystemService(Activity.SENSOR_SERVICE);
+        sensorManager.registerListener(sensorEventListener,
+                sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER),
+                SensorManager.SENSOR_DELAY_NORMAL);
+        // initialize camera
         cameraPreview = ConfigurationProvider.get().getCameraPreviewCreator().create(context, this);
         cameraManager = ConfigurationProvider.get().getCameraManagerCreator().create(context, cameraPreview);
         cameraManager.initialize(context);
@@ -392,12 +461,29 @@ public class CameraView extends FrameLayout {
     }
 
     /**
+     * Add screen orientation change listener. You may listen and update rotate the controls
+     * according to the screen change.
+     *
+     * @param orientationChangedListener the orientation change listener
+     */
+    public void addOrientationChangedListener(OnOrientationChangedListener orientationChangedListener) {
+        if (!orientationChangedListeners.contains(orientationChangedListener)) {
+            orientationChangedListeners.add(orientationChangedListener);
+        }
+    }
+
+    public void removeOrientationChangedListener(OnOrientationChangedListener orientationChangedListener) {
+        orientationChangedListeners.remove(orientationChangedListener);
+    }
+
+    /**
      * Call to take a picture, you can get the output from the callback.
      *
+     * @param fileToSave          the file to save picture
      * @param cameraPhotoListener the result callback
      */
-    public void takePicture(CameraPhotoListener cameraPhotoListener) {
-        cameraManager.takePicture(cameraPhotoListener);
+    public void takePicture(File fileToSave, CameraPhotoListener cameraPhotoListener) {
+        cameraManager.takePicture(fileToSave, cameraPhotoListener);
     }
 
     /**
@@ -445,6 +531,10 @@ public class CameraView extends FrameLayout {
 
     public void releaseCamera() {
         cameraManager.releaseCamera();
+        if (sensorManager != null) {
+            sensorManager.unregisterListener(sensorEventListener);
+            orientationChangedListeners.clear();
+        }
     }
 
     /**
