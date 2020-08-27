@@ -5,6 +5,7 @@ import android.graphics.PixelFormat;
 import android.hardware.Camera;
 import android.media.ExifInterface;
 import android.media.MediaRecorder;
+import android.os.Build;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.util.Log;
@@ -276,7 +277,6 @@ public class Camera1Manager extends BaseCameraManager<Integer> {
         }
     }
 
-    // FIXME the output picture and video rotation
     @Override
     public void setDisplayOrientation(int displayOrientation) {
         XLog.d(TAG, "displayOrientation : " + displayOrientation);
@@ -315,14 +315,17 @@ public class Camera1Manager extends BaseCameraManager<Integer> {
                     if (!takingPicture) {
                         takingPicture = true;
                         setCameraPhotoQualityInternal(camera);
-                        camera.takePicture(voiceEnabled ? new android.hardware.Camera.ShutterCallback() {
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
+                            camera.enableShutterSound(voiceEnabled);
+                        }
+                        camera.takePicture(voiceEnabled ? new Camera.ShutterCallback() {
                             @Override
                             public void onShutter() {
                                 XLog.d(TAG, "onShutter <<<");
                             }
-                        } : null, null, new android.hardware.Camera.PictureCallback() {
+                        } : null, null, new Camera.PictureCallback() {
                             @Override
-                            public void onPictureTaken(byte[] bytes, android.hardware.Camera camera) {
+                            public void onPictureTaken(byte[] bytes, Camera camera) {
                                 onPictureTakenInternal(bytes);
                                 takingPicture = false;
                             }
