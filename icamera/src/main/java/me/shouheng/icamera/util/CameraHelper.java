@@ -195,6 +195,7 @@ public final class CameraHelper {
         Size optimalSize = null;
         double targetRatio = expectSize.ratio();
         double minRatioDiff = Double.MAX_VALUE;
+        double closetRatio = targetRatio;
 
         for (Size size : sizes) {
             // ratio first
@@ -206,13 +207,14 @@ public final class CameraHelper {
             if (ratioDiff < minRatioDiff) {
                 optimalSize = size;
                 minRatioDiff = ratioDiff;
+                closetRatio = size.ratio();
             }
         }
 
         int minHeightDiff = Integer.MAX_VALUE;
         int targetHeight = expectSize.height;
         for (Size size : sizes) {
-            if (size.ratio() == minHeightDiff) {
+            if (size.ratio() == closetRatio) {
                 // get size of same ratio, but with minimum height diff
                 int heightDiff = Math.abs(size.height - targetHeight);
                 if (heightDiff <= minHeightDiff) {
@@ -246,6 +248,7 @@ public final class CameraHelper {
         Size optimalSize = null;
         double targetRatio = aspectRatio.ratio();
         double minRatioDiff = Double.MAX_VALUE;
+        double closetRatio = targetRatio;
 
         // 1. find closet ratio first
         for (Size size : sizes) {
@@ -259,6 +262,7 @@ public final class CameraHelper {
             if (ratioDiff < minRatioDiff) {
                 optimalSize = size;
                 minRatioDiff = ratioDiff;
+                closetRatio = size.ratio();
             }
         }
 
@@ -266,7 +270,7 @@ public final class CameraHelper {
         if (expectSize != null) {
             int minAreaDiff = Integer.MAX_VALUE;
             for (Size size : sizes) {
-                if (size.ratio() == minRatioDiff) {
+                if (size.ratio() == closetRatio) {
                     if (size.area() == expectSize.area()) {
                         // bingo!!
                         return size;
@@ -284,9 +288,12 @@ public final class CameraHelper {
         // 3. find closet media quality (area)
         List<Size> sameSizes = new LinkedList<>();
         for (Size size : sizes) {
-            if (size.ratio() == minRatioDiff) {
+            if (size.ratio() == closetRatio) {
                 sameSizes.add(size);
             }
+        }
+        if (sameSizes.isEmpty()) {
+            return optimalSize;
         }
         Collections.sort(sameSizes, new Comparator<Size>() {
             @Override
@@ -294,8 +301,9 @@ public final class CameraHelper {
                 return o1.area() - o2.area();
             }
         });
-        int index;
+        XLog.d(TAG, "sorted sizes : " + sameSizes);
         int size = sameSizes.size();
+        int index;
         switch (mediaQuality) {
             case MediaQuality.QUALITY_LOWEST:
                 index = 0;
@@ -312,9 +320,9 @@ public final class CameraHelper {
             case MediaQuality.QUALITY_HIGHEST:
             case MediaQuality.QUALITY_AUTO:
             default:
-                index = size;
+                index = size - 1;
         }
-        return sizes.get(index);
+        return sameSizes.get(index);
     }
 
     private static double calculateApproximateVideoSize(CamcorderProfile camcorderProfile, int seconds) {

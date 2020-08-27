@@ -32,6 +32,8 @@
             </intent-filter>
         </activity>
 
+        <!--you need to set the activity screen orientation always portrait,
+        the library will detect the orientation change and notify you.-->
         <activity android:name=".activity.CameraActivity"
                 android:theme="@style/ThemeFullscreen"
                 android:screenOrientation="portrait" />

@@ -21,7 +21,7 @@
                     app:cameraFace="rear"
                     android:adjustViewBounds="true"
                     app:clipScreen="false"
-                    app:aspectRatio="3:4"
+                    app:aspectRatio="4:3"
                     app:cameraAdjustType="heightFirst"
                     android:layout_centerInParent="true"
                     android:layout_width="match_parent"

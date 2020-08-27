@@ -102,7 +102,7 @@ public final class ConfigurationProvider {
         defaultCameraFace = CameraFace.FACE_REAR;
         defaultMediaType = MediaType.TYPE_PICTURE;
         defaultMediaQuality = MediaQuality.QUALITY_HIGH;
-        defaultAspectRatio = AspectRatio.of(3, 4);
+        defaultAspectRatio = AspectRatio.of(4, 3);
         isVoiceEnable = true;
         isAutoFocus = true;
         defaultFlashMode = FlashMode.FLASH_AUTO;
