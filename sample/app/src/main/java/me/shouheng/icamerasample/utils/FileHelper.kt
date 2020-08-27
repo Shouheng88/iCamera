@@ -31,6 +31,10 @@ object FileHelper {
         context.sendBroadcast(Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE, getUriFromFile(context, file)))
     }
 
+    fun saveVideoToGallery(context: Context, file: File, fileName: String) {
+        context.sendBroadcast(Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE, getUriFromFile(context, file)))
+    }
+
     fun getSavedFile(appendix: String): File {
         val appDir = File(PathUtils.getExternalPicturesPath(), ResUtils.getString(R.string.app_name))
         FileUtils.createOrExistsDir(appDir.path)

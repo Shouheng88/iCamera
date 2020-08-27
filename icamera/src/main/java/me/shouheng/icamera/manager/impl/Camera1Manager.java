@@ -525,6 +525,16 @@ public class Camera1Manager extends BaseCameraManager<Integer> {
         return orientation;
     }
 
+    private int getVideoOrientationInternal() {
+        final int rotate;
+        if (cameraFace == CameraFace.FACE_FRONT) {
+            rotate = (360 + frontCameraOrientation + ConfigurationProvider.get().getDegrees()) % 360;
+        } else {
+            rotate = (360 + rearCameraOrientation - ConfigurationProvider.get().getDegrees()) % 360;
+        }
+        return rotate;
+    }
+
     private void onPictureTakenInternal(byte[] bytes) {
         if (pictureFile == null) {
             notifyCameraCaptureFailed(new RuntimeException("Error creating media file, check storage permissions."));
@@ -613,6 +623,7 @@ public class Camera1Manager extends BaseCameraManager<Integer> {
             }
 
             videoRecorder.setPreviewDisplay(cameraPreview.getSurface());
+            videoRecorder.setOrientationHint(getVideoOrientationInternal());
             videoRecorder.prepare();
 
             return true;

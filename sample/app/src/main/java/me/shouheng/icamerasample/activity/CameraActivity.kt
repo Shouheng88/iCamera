@@ -24,6 +24,7 @@ import me.shouheng.icamerasample.R
 import me.shouheng.icamerasample.databinding.ActivityCameraBinding
 import me.shouheng.icamerasample.utils.FileHelper.getSavedFile
 import me.shouheng.icamerasample.utils.FileHelper.saveImageToGallery
+import me.shouheng.icamerasample.utils.FileHelper.saveVideoToGallery
 import me.shouheng.uix.common.listener.NoDoubleClickListener
 import me.shouheng.utils.stability.L
 import me.shouheng.utils.ui.BarUtils
@@ -281,7 +282,7 @@ class CameraActivity : CommonActivity<EmptyViewModel, ActivityCameraBinding>() {
 
                 override fun onVideoRecordStop(file: File?) {
                     isCameraRecording = false
-                    saveImageToGallery(context, fileToSave, fileToSave.name)
+                    saveVideoToGallery(context, fileToSave, fileToSave.name)
                     toast("Saved to $file")
                 }
 
