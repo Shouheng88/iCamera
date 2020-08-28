@@ -4,15 +4,13 @@ import android.content.Context;
 import android.graphics.PixelFormat;
 import android.hardware.Camera;
 import android.media.ExifInterface;
+import android.media.MediaActionSound;
 import android.media.MediaRecorder;
 import android.os.Build;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
-import android.util.Log;
 
 import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.List;
 
@@ -47,9 +45,10 @@ public class Camera1Manager extends BaseCameraManager<Integer> {
 
     private static final String TAG = "Camera1Manager";
 
-    private android.hardware.Camera camera;
+    private Camera camera;
     private List<Float> zoomRatios;
     private volatile boolean showingPreview;
+    private boolean canDisableShutterSound;
 
     public Camera1Manager(CameraPreview cameraPreview) {
         super(cameraPreview);
@@ -78,7 +77,7 @@ public class Camera1Manager extends BaseCameraManager<Integer> {
             public void run() {
                 XLog.d(TAG, "openCamera");
                 try {
-                    camera = android.hardware.Camera.open(currentCameraId);
+                    camera = Camera.open(currentCameraId);
                     prepareCameraOutputs();
                     adjustCameraParameters(false, true, true);
                     if (cameraPreview.isAvailable()) {
@@ -286,7 +285,7 @@ public class Camera1Manager extends BaseCameraManager<Integer> {
         }
         this.displayOrientation = displayOrientation;
         if (isCameraOpened()) {
-            android.hardware.Camera.Parameters parameters = camera.getParameters();
+            Camera.Parameters parameters = camera.getParameters();
             CameraHelper.onOrientationChanged(currentCameraId, displayOrientation, parameters);
             camera.setParameters(parameters);
             if (showingPreview) {
@@ -316,15 +315,17 @@ public class Camera1Manager extends BaseCameraManager<Integer> {
                     if (!takingPicture) {
                         takingPicture = true;
                         setCameraPhotoQualityInternal(camera);
-                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
-                            camera.enableShutterSound(voiceEnabled);
-                        }
-                        camera.takePicture(voiceEnabled ? new Camera.ShutterCallback() {
-                            @Override
-                            public void onShutter() {
-                                XLog.d(TAG, "onShutter <<<");
+                        // Disable shutter default and play it by custom MediaActionSound.
+                        // Make it consistent with camera 2. The shutter of camera1
+                        // was not based on the phone mode, so even when the phone is in silent mode
+                        // it makes sound still.
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1 && canDisableShutterSound) {
+                            camera.enableShutterSound(false);
+                            if (voiceEnabled && mediaActionSound != null) {
+                                mediaActionSound.play(MediaActionSound.SHUTTER_CLICK);
                             }
-                        } : null, null, new Camera.PictureCallback() {
+                        } // else, let it go ... there is nothing we could do.
+                        camera.takePicture(null, null, new Camera.PictureCallback() {
                             @Override
                             public void onPictureTaken(byte[] bytes, Camera camera) {
                                 onPictureTakenInternal(bytes);
@@ -405,16 +406,19 @@ public class Camera1Manager extends BaseCameraManager<Integer> {
     /*-------------------------------------- Inner Methods Region -----------------------------------------*/
 
     private void initCameraInfo() {
-        numberOfCameras = android.hardware.Camera.getNumberOfCameras();
+        numberOfCameras = Camera.getNumberOfCameras();
         for (int i=0; i<numberOfCameras; i++) {
-            android.hardware.Camera.CameraInfo cameraInfo = new android.hardware.Camera.CameraInfo();
-            android.hardware.Camera.getCameraInfo(i, cameraInfo);
-            if (cameraInfo.facing == android.hardware.Camera.CameraInfo.CAMERA_FACING_BACK) {
+            Camera.CameraInfo cameraInfo = new Camera.CameraInfo();
+            Camera.getCameraInfo(i, cameraInfo);
+            if (cameraInfo.facing == Camera.CameraInfo.CAMERA_FACING_BACK) {
                 rearCameraId = i;
                 rearCameraOrientation = cameraInfo.orientation;
-            } else if (cameraInfo.facing == android.hardware.Camera.CameraInfo.CAMERA_FACING_FRONT) {
+            } else if (cameraInfo.facing == Camera.CameraInfo.CAMERA_FACING_FRONT) {
                 frontCameraId = i;
                 frontCameraOrientation = cameraInfo.orientation;
+            }
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
+                canDisableShutterSound = cameraInfo.canDisableShutterSound;
             }
         }
 
@@ -428,7 +432,8 @@ public class Camera1Manager extends BaseCameraManager<Integer> {
             pictureSizes = ConfigurationProvider.get().getSizes(camera, cameraFace, CameraSizeFor.SIZE_FOR_PICTURE);
             videoSizes = ConfigurationProvider.get().getSizes(camera, cameraFace, CameraSizeFor.SIZE_FOR_VIDEO);
             zoomRatios = ConfigurationProvider.get().getZoomRatios(camera, cameraFace);
-            ConfigurationProvider.get().getCameraSizeCalculator().init(expectAspectRatio, expectSize, mediaQuality, previewSizes, pictureSizes, videoSizes);
+            ConfigurationProvider.get().getCameraSizeCalculator().init(
+                    expectAspectRatio, expectSize, mediaQuality, previewSizes, pictureSizes, videoSizes);
             XLog.d(TAG, "prepareCameraOutputs cost : " + (System.currentTimeMillis() - start) + " ms");
         } catch (Exception ex) {
             XLog.e(TAG, "error : " + ex);
@@ -440,7 +445,7 @@ public class Camera1Manager extends BaseCameraManager<Integer> {
         Size oldPreview = previewSize;
         long start = System.currentTimeMillis();
         CameraSizeCalculator cameraSizeCalculator = ConfigurationProvider.get().getCameraSizeCalculator();
-        android.hardware.Camera.Parameters parameters = camera.getParameters();
+        Camera.Parameters parameters = camera.getParameters();
         if (mediaType == MediaType.TYPE_PICTURE && (pictureSize == null || forceCalculateSizes)) {
             pictureSize = cameraSizeCalculator.getPictureSize(CameraType.TYPE_CAMERA1);
             previewSize = cameraSizeCalculator.getPicturePreviewSize(CameraType.TYPE_CAMERA1);
@@ -541,26 +546,7 @@ public class Camera1Manager extends BaseCameraManager<Integer> {
     }
 
     private void onPictureTakenInternal(byte[] bytes) {
-        if (pictureFile == null) {
-            notifyCameraCaptureFailed(new RuntimeException("Error creating media file, check storage permissions."));
-            XLog.d(TAG, "Error creating media file, check storage permissions.");
-            return;
-        }
-        // do write
-        try {
-            FileOutputStream fileOutputStream = new FileOutputStream(pictureFile);
-            fileOutputStream.write(bytes);
-            fileOutputStream.close();
-        } catch (FileNotFoundException error) {
-            Log.e(TAG, "File not found: " + error.getMessage());
-            notifyCameraCaptureFailed(new RuntimeException("File not found: " + error.getMessage()));
-        } catch (IOException error) {
-            Log.e(TAG, "Error accessing file: " + error.getMessage());
-            notifyCameraCaptureFailed(new RuntimeException("Error accessing file: " + error.getMessage()));
-        } catch (Throwable error) {
-            Log.e(TAG, "Error saving file: " + error.getMessage());
-            notifyCameraCaptureFailed(new RuntimeException("Error saving file: " + error.getMessage()));
-        }
+        handlePictureTakenResult(bytes);
         // rotate
         try {
             final ExifInterface exif = new ExifInterface(pictureFile.getAbsolutePath());
@@ -568,7 +554,7 @@ public class Camera1Manager extends BaseCameraManager<Integer> {
             exif.saveAttributes();
             notifyCameraPictureTaken(bytes);
         } catch (Throwable error) {
-            Log.e(TAG, "Can't save exif info: " + error.getMessage());
+            XLog.e(TAG, "Can't save exif info: " + error.getMessage());
         }
     }
 
@@ -647,7 +633,7 @@ public class Camera1Manager extends BaseCameraManager<Integer> {
         return false;
     }
 
-    private void setFocusModeInternal(@Nullable android.hardware.Camera.Parameters parameters) {
+    private void setFocusModeInternal(@Nullable Camera.Parameters parameters) {
         boolean nullParameters = parameters == null;
         parameters = nullParameters ? camera.getParameters() : parameters;
         if (mediaType == MediaType.TYPE_VIDEO) {
@@ -664,33 +650,33 @@ public class Camera1Manager extends BaseCameraManager<Integer> {
         }
     }
 
-    private boolean turnPhotoCameraFeaturesOn(@NonNull android.hardware.Camera.Parameters parameters) {
+    private boolean turnPhotoCameraFeaturesOn(@NonNull Camera.Parameters parameters) {
         if (parameters.getSupportedFocusModes().contains(
-                android.hardware.Camera.Parameters.FOCUS_MODE_CONTINUOUS_PICTURE)) {
-            parameters.setFocusMode(android.hardware.Camera.Parameters.FOCUS_MODE_CONTINUOUS_PICTURE);
+                Camera.Parameters.FOCUS_MODE_CONTINUOUS_PICTURE)) {
+            parameters.setFocusMode(Camera.Parameters.FOCUS_MODE_CONTINUOUS_PICTURE);
             return true;
         }
         return false;
     }
 
-    private boolean turnVideoCameraFeaturesOn(@NonNull android.hardware.Camera.Parameters parameters) {
+    private boolean turnVideoCameraFeaturesOn(@NonNull Camera.Parameters parameters) {
         if (parameters.getSupportedFocusModes().contains(
-                android.hardware.Camera.Parameters.FOCUS_MODE_CONTINUOUS_VIDEO)) {
-            parameters.setFocusMode(android.hardware.Camera.Parameters.FOCUS_MODE_CONTINUOUS_VIDEO);
+                Camera.Parameters.FOCUS_MODE_CONTINUOUS_VIDEO)) {
+            parameters.setFocusMode(Camera.Parameters.FOCUS_MODE_CONTINUOUS_VIDEO);
             return true;
         }
         return false;
     }
 
-    private void setAutoFocusInternal(@NonNull android.hardware.Camera.Parameters parameters) {
+    private void setAutoFocusInternal(@NonNull Camera.Parameters parameters) {
         try {
             final List<String> modes = parameters.getSupportedFocusModes();
-            if (isAutoFocus && modes.contains(android.hardware.Camera.Parameters.FOCUS_MODE_AUTO)) {
-                parameters.setFocusMode(android.hardware.Camera.Parameters.FOCUS_MODE_AUTO);
-            } else if (modes.contains(android.hardware.Camera.Parameters.FOCUS_MODE_FIXED)) {
-                parameters.setFocusMode(android.hardware.Camera.Parameters.FOCUS_MODE_FIXED);
-            } else if (modes.contains(android.hardware.Camera.Parameters.FOCUS_MODE_INFINITY)) {
-                parameters.setFocusMode(android.hardware.Camera.Parameters.FOCUS_MODE_INFINITY);
+            if (isAutoFocus && modes.contains(Camera.Parameters.FOCUS_MODE_AUTO)) {
+                parameters.setFocusMode(Camera.Parameters.FOCUS_MODE_AUTO);
+            } else if (modes.contains(Camera.Parameters.FOCUS_MODE_FIXED)) {
+                parameters.setFocusMode(Camera.Parameters.FOCUS_MODE_FIXED);
+            } else if (modes.contains(Camera.Parameters.FOCUS_MODE_INFINITY)) {
+                parameters.setFocusMode(Camera.Parameters.FOCUS_MODE_INFINITY);
             } else {
                 parameters.setFocusMode(modes.get(0));
             }
@@ -699,22 +685,22 @@ public class Camera1Manager extends BaseCameraManager<Integer> {
         }
     }
 
-    private void setFlashModeInternal(@Nullable android.hardware.Camera.Parameters parameters) {
+    private void setFlashModeInternal(@Nullable Camera.Parameters parameters) {
         boolean nullParameters = parameters == null;
         parameters = nullParameters ? camera.getParameters() : parameters;
         List<String> modes = parameters.getSupportedFlashModes();
         try {
             switch (flashMode) {
                 case FlashMode.FLASH_ON:
-                    setFlashModeOrAuto(parameters, modes, android.hardware.Camera.Parameters.FLASH_MODE_ON);
+                    setFlashModeOrAuto(parameters, modes, Camera.Parameters.FLASH_MODE_ON);
                     break;
                 case FlashMode.FLASH_OFF:
-                    setFlashModeOrAuto(parameters, modes, android.hardware.Camera.Parameters.FLASH_MODE_OFF);
+                    setFlashModeOrAuto(parameters, modes, Camera.Parameters.FLASH_MODE_OFF);
                     break;
                 case FlashMode.FLASH_AUTO:
                 default:
-                    if (modes.contains(android.hardware.Camera.Parameters.FLASH_MODE_AUTO)) {
-                        parameters.setFlashMode(android.hardware.Camera.Parameters.FLASH_MODE_AUTO);
+                    if (modes.contains(Camera.Parameters.FLASH_MODE_AUTO)) {
+                        parameters.setFlashMode(Camera.Parameters.FLASH_MODE_AUTO);
                     }
                     break;
             }
@@ -726,17 +712,17 @@ public class Camera1Manager extends BaseCameraManager<Integer> {
         }
     }
 
-    private void setFlashModeOrAuto(android.hardware.Camera.Parameters parameters, List<String> supportModes, String mode) {
+    private void setFlashModeOrAuto(Camera.Parameters parameters, List<String> supportModes, String mode) {
         if (supportModes.contains(mode)) {
             parameters.setFlashMode(mode);
         } else {
-            if (supportModes.contains(android.hardware.Camera.Parameters.FLASH_MODE_AUTO)) {
-                parameters.setFlashMode(android.hardware.Camera.Parameters.FLASH_MODE_AUTO);
+            if (supportModes.contains(Camera.Parameters.FLASH_MODE_AUTO)) {
+                parameters.setFlashMode(Camera.Parameters.FLASH_MODE_AUTO);
             }
         }
     }
 
-    private void setZoomInternal(@Nullable android.hardware.Camera.Parameters parameters) {
+    private void setZoomInternal(@Nullable Camera.Parameters parameters) {
         boolean nullParameters = parameters == null;
         parameters = nullParameters ? camera.getParameters() : parameters;
         if (parameters.isZoomSupported()) {

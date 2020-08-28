@@ -2,6 +2,7 @@ package me.shouheng.icamera.manager.impl;
 
 import android.content.Context;
 import android.media.CamcorderProfile;
+import android.media.MediaActionSound;
 import android.media.MediaRecorder;
 import android.os.Build;
 import android.os.Handler;
@@ -11,6 +12,9 @@ import android.os.Process;
 import android.support.annotation.Nullable;
 
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -68,6 +72,7 @@ abstract class BaseCameraManager<CameraId> implements CameraManager, MediaRecord
     File pictureFile;
     File videoOutFile;
     MediaRecorder videoRecorder;
+    MediaActionSound mediaActionSound;
     boolean voiceEnabled;
     boolean isAutoFocus;
     @FlashMode int flashMode;
@@ -104,6 +109,9 @@ abstract class BaseCameraManager<CameraId> implements CameraManager, MediaRecord
         cameraSizeListeners = new LinkedList<>();
         videoFileSize = ConfigurationProvider.get().getDefaultVideoFileSize();
         videoDuration = ConfigurationProvider.get().getDefaultVideoDuration();
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
+            mediaActionSound = new MediaActionSound();
+        }
     }
 
     @Override
@@ -201,6 +209,9 @@ abstract class BaseCameraManager<CameraId> implements CameraManager, MediaRecord
     @Override
     public void releaseCamera() {
         stopBackgroundThread();
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN && mediaActionSound != null) {
+            mediaActionSound.release();
+        }
     }
 
     @Override
@@ -218,6 +229,29 @@ abstract class BaseCameraManager<CameraId> implements CameraManager, MediaRecord
     }
 
     /*----------------------------------- Protected Methods Region -----------------------------------*/
+
+    void handlePictureTakenResult(byte[] bytes) {
+        if (pictureFile == null) {
+            notifyCameraCaptureFailed(new RuntimeException("Error creating media file, check storage permissions."));
+            XLog.d(TAG, "Error creating media file, check storage permissions.");
+            return;
+        }
+        // do write
+        try {
+            FileOutputStream fileOutputStream = new FileOutputStream(pictureFile);
+            fileOutputStream.write(bytes);
+            fileOutputStream.close();
+        } catch (FileNotFoundException error) {
+            XLog.e(TAG, "File not found: " + error.getMessage());
+            notifyCameraCaptureFailed(new RuntimeException("File not found: " + error.getMessage()));
+        } catch (IOException error) {
+            XLog.e(TAG, "Error accessing file: " + error.getMessage());
+            notifyCameraCaptureFailed(new RuntimeException("Error accessing file: " + error.getMessage()));
+        } catch (Throwable error) {
+            XLog.e(TAG, "Error saving file: " + error.getMessage());
+            notifyCameraCaptureFailed(new RuntimeException("Error saving file: " + error.getMessage()));
+        }
+    }
 
     void notifyCameraOpened() {
         if (cameraOpenListener != null) {

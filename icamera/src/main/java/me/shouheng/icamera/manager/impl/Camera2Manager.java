@@ -88,7 +88,7 @@ public class Camera2Manager extends BaseCameraManager<String> implements ImageRe
 
     private CaptureSessionCallback captureSessionCallback = new CaptureSessionCallback() {
 
-        private void processCaptureResultInternal(@NonNull CaptureResult result, int cameraPreviewState) {
+        private void processCaptureResultInternal(@NonNull CaptureResult result, @CameraState int cameraPreviewState) {
             switch (cameraPreviewState) {
                 case STATE_PREVIEW:
                     break;
@@ -133,7 +133,7 @@ public class Camera2Manager extends BaseCameraManager<String> implements ImageRe
         }
 
         @Override
-        void processCaptureResult(@NonNull CaptureResult result, int cameraPreviewState) {
+        void processCaptureResult(@NonNull CaptureResult result, @CameraState int cameraPreviewState) {
             processCaptureResultInternal(result, cameraPreviewState);
         }
     };
@@ -441,10 +441,10 @@ public class Camera2Manager extends BaseCameraManager<String> implements ImageRe
             @Override
             public void run() {
                 try {
-                    lockFocus();
                     if (voiceEnabled) {
-                        new MediaActionSound().play(MediaActionSound.SHUTTER_CLICK);
+                        mediaActionSound.play(MediaActionSound.SHUTTER_CLICK);
                     }
+                    lockFocus();
                 } catch (Exception ex) {
                     notifyCameraCaptureFailed(ex);
                 }
@@ -460,7 +460,7 @@ public class Camera2Manager extends BaseCameraManager<String> implements ImageRe
         }
         if (isCameraOpened()) {
             if (voiceEnabled) {
-                new MediaActionSound().play(MediaActionSound.START_VIDEO_RECORDING);
+                mediaActionSound.play(MediaActionSound.START_VIDEO_RECORDING);
             }
             backgroundHandler.post(new Runnable() {
                 @Override
@@ -489,7 +489,7 @@ public class Camera2Manager extends BaseCameraManager<String> implements ImageRe
                     videoRecording = false;
                     notifyVideoRecordStop(videoOutFile);
                     if (voiceEnabled) {
-                        new MediaActionSound().play(MediaActionSound.STOP_VIDEO_RECORDING);
+                        mediaActionSound.play(MediaActionSound.STOP_VIDEO_RECORDING);
                     }
                     createPreviewSession();
                 }
@@ -532,6 +532,7 @@ public class Camera2Manager extends BaseCameraManager<String> implements ImageRe
                 ByteBuffer buffer = image.getPlanes()[0].getBuffer();
                 byte[] bytes = new byte[buffer.remaining()];
                 buffer.get(bytes);
+                handlePictureTakenResult(bytes);
                 notifyCameraPictureTaken(bytes);
             } catch (IllegalStateException e) {
                 XLog.e(TAG, "onImageAvailable error" + e);
