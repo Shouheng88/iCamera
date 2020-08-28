@@ -320,7 +320,7 @@ public class Camera2Manager extends BaseCameraManager<String> implements ImageRe
         }
         this.zoom = zoom;
         if (isCameraOpened()) {
-            boolean succeed = setZoomInternal();
+            boolean succeed = setZoomInternal(previewRequestBuilder);
             if (succeed) {
                 previewRequest = previewRequestBuilder.build();
                 if (captureSession != null) {
@@ -713,8 +713,8 @@ public class Camera2Manager extends BaseCameraManager<String> implements ImageRe
                 captureBuilder.set(CaptureRequest.JPEG_ORIENTATION,
                         CameraHelper.getJpegOrientation(cameraCharacteristics, displayOrientation));
 
-                // FIXME the zoomed result is invalid
-                setZoomInternal();
+                // calculate zoom for capture request
+                setZoomInternal(captureBuilder);
 
                 captureSession.stopRepeating();
                 captureSession.capture(captureBuilder.build(), new CameraCaptureSession.CaptureCallback() {
@@ -863,9 +863,9 @@ public class Camera2Manager extends BaseCameraManager<String> implements ImageRe
         }
     }
 
-    private boolean setZoomInternal() {
+    private boolean setZoomInternal(CaptureRequest.Builder builder) {
         float maxZoom = getMaxZoom();
-        if (maxZoom == 1.0f || previewRequestBuilder == null) {
+        if (maxZoom == 1.0f || builder == null) {
             return false;
         }
 
@@ -883,7 +883,7 @@ public class Camera2Manager extends BaseCameraManager<String> implements ImageRe
         int cropH = (rect.height() - (int) ((float) rect.height() / zoom)) / 2;
 
         Rect zoomRect = new Rect(cropW, cropH, rect.width() - cropW, rect.height() - cropH);
-        previewRequestBuilder.set(CaptureRequest.SCALER_CROP_REGION, zoomRect);
+        builder.set(CaptureRequest.SCALER_CROP_REGION, zoomRect);
         return true;
     }
 
@@ -1010,8 +1010,7 @@ public class Camera2Manager extends BaseCameraManager<String> implements ImageRe
         /** Camera state: Picture was taken. */
         static final int STATE_PICTURE_TAKEN = 4;
 
-        @CameraState
-        private int cameraPreviewState;
+        @CameraState private int cameraPreviewState;
 
         void setCameraPreviewState(@CameraState int cameraPreviewState) {
             this.cameraPreviewState = cameraPreviewState;
