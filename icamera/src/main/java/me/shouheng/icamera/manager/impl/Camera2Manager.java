@@ -431,7 +431,6 @@ public class Camera2Manager extends BaseCameraManager<String> implements ImageRe
             return;
         }
         this.displayOrientation = displayOrientation;
-        // FIXME the display orientation
     }
 
     @Override
@@ -548,7 +547,13 @@ public class Camera2Manager extends BaseCameraManager<String> implements ImageRe
 
     /*---------------------------------inner methods------------------------------------*/
 
-    // TODO this method cost a lot of time to finish
+    /**
+     * This method cost more but little time (10ms) to finish, we could get the params here
+     * before initialize camera information here to accelerate the camera launch. For
+     * example get them from {@link ConfigurationProvider#get()} and then use theme here.
+     *
+     * @param context context
+     */
     private void initCameraInfo(Context context) {
         cameraManager = (CameraManager) context.getSystemService(Context.CAMERA_SERVICE);
 
@@ -618,7 +623,7 @@ public class Camera2Manager extends BaseCameraManager<String> implements ImageRe
             previewSize = cameraSizeCalculator.getPicturePreviewSize(CameraType.TYPE_CAMERA2);
             notifyPictureSizeUpdated(pictureSize);
 
-            // Fix: CaptureRequest contains unconfigured Input/Output Surface!
+            // Fix: CaptureRequest contains un-configured Input/Output Surface!
             imageReader = ImageReader.newInstance(pictureSize.width, pictureSize.height, ImageFormat.JPEG, /*maxImages*/2);
             imageReader.setOnImageAvailableListener(this, backgroundHandler);
         }
