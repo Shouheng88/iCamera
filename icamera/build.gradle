@@ -1,4 +1,5 @@
 apply plugin: 'com.android.library'
+apply plugin: 'com.novoda.bintray-release'
 
 android {
     compileSdkVersion rootProject.ext.compileSdkVersion
@@ -15,9 +16,24 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
+    android {
+        lintOptions {
+            abortOnError false
+        }
+    }
 }
 
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
     implementation "com.android.support:appcompat-v7:$supportLibVersion"
+}
+
+publish {
+    userOrg = 'easymark'
+    groupId = 'me.shouheng.icamera'
+    artifactId = 'icamera'
+    repoName = 'Android'
+    publishVersion = rootProject.ext.publishVersion
+    desc = 'The camera library for Android.'
+    website = 'https://github.com/Shouheng88/iCamera'
 }

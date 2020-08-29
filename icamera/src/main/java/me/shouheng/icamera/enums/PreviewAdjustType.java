@@ -2,7 +2,14 @@ package me.shouheng.icamera.enums;
 
 import android.support.annotation.IntDef;
 
-import static me.shouheng.icamera.enums.PreviewAdjustType.*;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+
+import static me.shouheng.icamera.enums.PreviewAdjustType.HEIGHT_FIRST;
+import static me.shouheng.icamera.enums.PreviewAdjustType.LARGER_FIRST;
+import static me.shouheng.icamera.enums.PreviewAdjustType.NONE;
+import static me.shouheng.icamera.enums.PreviewAdjustType.SMALLER_FIRST;
+import static me.shouheng.icamera.enums.PreviewAdjustType.WIDTH_FIRST;
 
 /**
  * Camera preview adjust type, will be used to decide how
@@ -13,6 +20,7 @@ import static me.shouheng.icamera.enums.PreviewAdjustType.*;
  * @version 2019-12-28 11:55
  */
 @IntDef({NONE, WIDTH_FIRST, HEIGHT_FIRST, SMALLER_FIRST, LARGER_FIRST})
+@Retention(RetentionPolicy.SOURCE)
 public @interface PreviewAdjustType {
 
     /** The imagery will be stretched to fit the view */

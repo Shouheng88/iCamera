@@ -23,6 +23,11 @@ android {
     dataBinding {
         enabled = true
     }
+    android {
+        lintOptions {
+            abortOnError false
+        }
+    }
 }
 
 dependencies {
