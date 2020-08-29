@@ -623,11 +623,13 @@ public class Camera2Manager extends BaseCameraManager<String> implements ImageRe
             previewSize = cameraSizeCalculator.getPicturePreviewSize(CameraType.TYPE_CAMERA2);
             notifyPictureSizeUpdated(pictureSize);
 
-            // Fix: CaptureRequest contains un-configured Input/Output Surface!
+            // fix: CaptureRequest contains un-configured Input/Output Surface!
             imageReader = ImageReader.newInstance(pictureSize.width, pictureSize.height, ImageFormat.JPEG, /*maxImages*/2);
             imageReader.setOnImageAvailableListener(this, backgroundHandler);
         }
-        if (mediaType == MediaType.TYPE_VIDEO && (videoSize == null || forceCalculate)) {
+        // fixed 2020-08-29 : the video size might be null if quickly switched
+        // from media types while first time launch the camera.
+        if (videoSize == null || forceCalculate) {
             camcorderProfile = CameraHelper.getCamcorderProfile(mediaQuality, currentCameraId);
             videoSize = cameraSizeCalculator.getVideoSize(CameraType.TYPE_CAMERA2);
             previewSize = cameraSizeCalculator.getVideoPreviewSize(CameraType.TYPE_CAMERA2);

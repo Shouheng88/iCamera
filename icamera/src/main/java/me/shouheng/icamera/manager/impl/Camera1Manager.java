@@ -452,13 +452,15 @@ public class Camera1Manager extends BaseCameraManager<Integer> {
             parameters.setPictureSize(pictureSize.width, pictureSize.height);
             notifyPictureSizeUpdated(pictureSize);
         }
-        if (mediaType == MediaType.TYPE_VIDEO && (camcorderProfile == null || forceCalculateSizes)) {
+        // fixed 2020-08-29 : the video size might be null if quickly switched
+        // from media types while first time launch the camera.
+        if (camcorderProfile == null || forceCalculateSizes) {
             camcorderProfile = CameraHelper.getCamcorderProfile(mediaQuality, currentCameraId);
         }
-        if (mediaType == MediaType.TYPE_VIDEO && (videoSize == null || forceCalculateSizes)) {
+        if (videoSize == null || forceCalculateSizes) {
             videoSize = cameraSizeCalculator.getVideoSize(CameraType.TYPE_CAMERA1);
             previewSize = cameraSizeCalculator.getVideoPreviewSize(CameraType.TYPE_CAMERA1);
-            notifyVideoSizeUpdated(previewSize);
+            notifyVideoSizeUpdated(videoSize);
         }
         if (!previewSize.equals(oldPreview)) {
             parameters.setPreviewSize(previewSize.width, previewSize.height);
