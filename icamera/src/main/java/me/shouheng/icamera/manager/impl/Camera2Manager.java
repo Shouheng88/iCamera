@@ -56,6 +56,12 @@ import me.shouheng.icamera.preview.CameraPreviewCallback;
 import me.shouheng.icamera.util.CameraHelper;
 import me.shouheng.icamera.util.XLog;
 
+import static me.shouheng.icamera.manager.impl.Camera2Manager.CaptureSessionCallback.CameraState.STATE_PICTURE_TAKEN;
+import static me.shouheng.icamera.manager.impl.Camera2Manager.CaptureSessionCallback.CameraState.STATE_PREVIEW;
+import static me.shouheng.icamera.manager.impl.Camera2Manager.CaptureSessionCallback.CameraState.STATE_WAITING_LOCK;
+import static me.shouheng.icamera.manager.impl.Camera2Manager.CaptureSessionCallback.CameraState.STATE_WAITING_NON_PRE_CAPTURE;
+import static me.shouheng.icamera.manager.impl.Camera2Manager.CaptureSessionCallback.CameraState.STATE_WAITING_PRE_CAPTURE;
+
 /**
  * Camera manager for camera2.
  *
@@ -813,7 +819,7 @@ public class Camera2Manager extends BaseCameraManager<String> implements ImageRe
     private void runPreCaptureSequence() {
         try {
             previewRequestBuilder.set(CaptureRequest.CONTROL_AE_PRECAPTURE_TRIGGER, CaptureRequest.CONTROL_AE_PRECAPTURE_TRIGGER_START);
-            captureSessionCallback.setCameraPreviewState(CaptureSessionCallback.STATE_WAITING_PRE_CAPTURE);
+            captureSessionCallback.setCameraPreviewState(CaptureSessionCallback.CameraState.STATE_WAITING_PRE_CAPTURE);
             captureSession.capture(previewRequestBuilder.build(), captureSessionCallback, backgroundHandler);
         } catch (CameraAccessException e) {
             XLog.e(TAG, "runPreCaptureSequence error " + e);
@@ -897,7 +903,7 @@ public class Camera2Manager extends BaseCameraManager<String> implements ImageRe
     private void lockFocus() {
         try {
             previewRequestBuilder.set(CaptureRequest.CONTROL_AF_TRIGGER, CameraMetadata.CONTROL_AF_TRIGGER_START);
-            captureSessionCallback.setCameraPreviewState(CaptureSessionCallback.STATE_WAITING_LOCK);
+            captureSessionCallback.setCameraPreviewState(CaptureSessionCallback.CameraState.STATE_WAITING_LOCK);
             captureSession.capture(previewRequestBuilder.build(), captureSessionCallback, backgroundHandler);
         } catch (Exception e) {
             XLog.e(TAG, "lockFocus : error during focus locking");
@@ -908,7 +914,7 @@ public class Camera2Manager extends BaseCameraManager<String> implements ImageRe
         try {
             previewRequestBuilder.set(CaptureRequest.CONTROL_AF_TRIGGER, CameraMetadata.CONTROL_AF_TRIGGER_CANCEL);
             captureSession.capture(previewRequestBuilder.build(), captureSessionCallback, backgroundHandler);
-            captureSessionCallback.setCameraPreviewState(CaptureSessionCallback.STATE_PREVIEW);
+            captureSessionCallback.setCameraPreviewState(CaptureSessionCallback.CameraState.STATE_PREVIEW);
             captureSession.setRepeatingRequest(previewRequest, captureSessionCallback, backgroundHandler);
         } catch (Exception e) {
             XLog.e(TAG, "unlockFocus : error during focus unlocking");
@@ -1000,22 +1006,7 @@ public class Camera2Manager extends BaseCameraManager<String> implements ImageRe
         }
     }
 
-    private abstract static class CaptureSessionCallback extends CameraCaptureSession.CaptureCallback {
-
-        /** Camera state: Showing camera preview. */
-        static final int STATE_PREVIEW = 0;
-
-        /** Camera state: Waiting for the focus to be locked. */
-        static final int STATE_WAITING_LOCK = 1;
-
-        /** Camera state: Waiting for the exposure to be precapture state. */
-        static final int STATE_WAITING_PRE_CAPTURE = 2;
-
-        /** Camera state: Waiting for the exposure state to be something other than precapture. */
-        static final int STATE_WAITING_NON_PRE_CAPTURE = 3;
-
-        /** Camera state: Picture was taken. */
-        static final int STATE_PICTURE_TAKEN = 4;
+    abstract static class CaptureSessionCallback extends CameraCaptureSession.CaptureCallback {
 
         @CameraState private int cameraPreviewState;
 
@@ -1039,9 +1030,24 @@ public class Camera2Manager extends BaseCameraManager<String> implements ImageRe
             processCaptureResult(result, cameraPreviewState);
         }
 
-        @IntDef({STATE_PREVIEW, STATE_WAITING_LOCK, STATE_WAITING_PRE_CAPTURE, STATE_WAITING_NON_PRE_CAPTURE, STATE_PICTURE_TAKEN})
+        @IntDef({STATE_PREVIEW, STATE_WAITING_LOCK, STATE_WAITING_PRE_CAPTURE,
+                STATE_WAITING_NON_PRE_CAPTURE, STATE_PICTURE_TAKEN})
         @Retention(RetentionPolicy.SOURCE)
         @interface CameraState {
+            /** Camera state: Showing camera preview. */
+            int STATE_PREVIEW = 0;
+
+            /** Camera state: Waiting for the focus to be locked. */
+            int STATE_WAITING_LOCK = 1;
+
+            /** Camera state: Waiting for the exposure to be precapture state. */
+            int STATE_WAITING_PRE_CAPTURE = 2;
+
+            /** Camera state: Waiting for the exposure state to be something other than precapture. */
+            int STATE_WAITING_NON_PRE_CAPTURE = 3;
+
+            /** Camera state: Picture was taken. */
+            int STATE_PICTURE_TAKEN = 4;
         }
     }
 
