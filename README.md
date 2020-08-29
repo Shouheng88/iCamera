@@ -52,7 +52,7 @@
 - 内置传感器监听，解决手机横屏和竖屏拍摄和录制的问题
 - 最低 API 支持到 14
 
-如上所诉，我们提供了多种可供用户自定义的接口，你可以按照我们指定的接口对相机进行自定义配置。
+如上所述，我们提供了多种可供用户自定义的接口，你可以按照我们指定的接口对相机进行自定义配置。
 
 ## 2、使用
 
@@ -133,7 +133,7 @@ ConfigurationProvider.get().cameraManagerCreator = Camera1OnlyCreator()
 
 **相机库的整体架构设计**：
 
-[![相机整体架构](https://user-gold-cdn.xitu.io/2019/4/23/16a4aae65580a62c?imageView2/0/w/1280/h/960/format/webp/ignore-error/1)](https://www.processon.com/view/link/5c976af8e4b0d1a5b10a4049)
+[![相机整体架构](images/design.png)](https://www.processon.com/view/link/5c976af8e4b0d1a5b10a4049)
 
 - [作者翻译的 Camera2 文档](https://github.com/Shouheng88/Android-notes/blob/master/%E6%80%A7%E8%83%BD%E4%BC%98%E5%8C%96/Android%E7%9B%B8%E6%9C%BACamera2%E8%B5%84%E6%96%99.md)
 
