@@ -168,18 +168,24 @@ public class Camera2Manager extends BaseCameraManager<String> implements ImageRe
         backgroundHandler.post(new Runnable() {
             @Override
             public void run() {
+                final long start0 = System.currentTimeMillis();
                 prepareCameraOutputs();
                 adjustCameraConfiguration(false);
                 try {
+                    final long start1 = System.currentTimeMillis();
                     cameraManager.openCamera(currentCameraId, new CameraDevice.StateCallback() {
                         @Override
                         public void onOpened(@NonNull CameraDevice camera) {
-                            XLog.d(TAG, "Camera opened.");
+                            final long start2 = System.currentTimeMillis();
                             cameraDevice = camera;
                             if (cameraPreview.isAvailable()) {
                                 createPreviewSession();
                             }
                             notifyCameraOpened();
+                            XLog.d(TAG, "Camera opened cost : "
+                                    + (System.currentTimeMillis() - start2) + "ms "
+                                    + (System.currentTimeMillis() - start1) + "ms "
+                                    + (System.currentTimeMillis() - start0) + "ms.");
                         }
 
                         @Override
@@ -565,24 +571,13 @@ public class Camera2Manager extends BaseCameraManager<String> implements ImageRe
 
         long start = System.currentTimeMillis();
         try {
-            assert cameraManager != null;
-            final String[] ids = cameraManager.getCameraIdList();
-            numberOfCameras = ids.length;
-            for (String id : ids) {
-                final CameraCharacteristics characteristics = cameraManager.getCameraCharacteristics(id);
-                final Integer facing = characteristics.get(CameraCharacteristics.LENS_FACING);
-                if (facing != null && facing == CameraCharacteristics.LENS_FACING_FRONT) {
-                    frontCameraId = id;
-                    Integer iFrontCameraOrientation = characteristics.get(CameraCharacteristics.SENSOR_ORIENTATION);
-                    frontCameraOrientation = iFrontCameraOrientation == null ? 0 : frontCameraOrientation;
-                    frontCameraCharacteristics = characteristics;
-                } else if (facing != null && facing == CameraCharacteristics.LENS_FACING_BACK){
-                    rearCameraId = id;
-                    Integer iRearCameraOrientation = characteristics.get(CameraCharacteristics.SENSOR_ORIENTATION);
-                    rearCameraOrientation = iRearCameraOrientation == null ? 0 : rearCameraOrientation;
-                    rearCameraCharacteristics = characteristics;
-                }
-            }
+            numberOfCameras = ConfigurationProvider.get().getNumberOfCameras(context);
+            frontCameraId = ConfigurationProvider.get().getCameraId(context, CameraFace.FACE_FRONT);
+            rearCameraId = ConfigurationProvider.get().getCameraId(context, CameraFace.FACE_REAR);
+            frontCameraOrientation = ConfigurationProvider.get().getCameraOrientation(context, CameraFace.FACE_FRONT);
+            rearCameraOrientation = ConfigurationProvider.get().getCameraOrientation(context, CameraFace.FACE_REAR);
+            frontCameraCharacteristics = ConfigurationProvider.get().getCameraCharacteristics(context, CameraFace.FACE_FRONT);
+            rearCameraCharacteristics = ConfigurationProvider.get().getCameraCharacteristics(context, CameraFace.FACE_REAR);
         } catch (Exception e) {
             XLog.e(TAG, "initCameraInfo error " + e);
         }
@@ -595,11 +590,10 @@ public class Camera2Manager extends BaseCameraManager<String> implements ImageRe
         boolean isFrontCamera = cameraFace == CameraFace.FACE_REAR;
         long start = System.currentTimeMillis();
         try {
-            final CameraCharacteristics characteristics = isFrontCamera ? frontCameraCharacteristics : rearCameraCharacteristics;
             if (isFrontCamera && frontStreamConfigurationMap == null) {
-                frontStreamConfigurationMap = characteristics.get(CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP);
+                frontStreamConfigurationMap = ConfigurationProvider.get().getStreamConfigurationMap(context, CameraFace.FACE_REAR);
             } else if (!isFrontCamera && rearStreamConfigurationMap == null) {
-                rearStreamConfigurationMap = characteristics.get(CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP);
+                rearStreamConfigurationMap = ConfigurationProvider.get().getStreamConfigurationMap(context, CameraFace.FACE_FRONT);
             }
         } catch (Exception ex) {
             XLog.e(TAG, "initCameraInfo error " + ex);

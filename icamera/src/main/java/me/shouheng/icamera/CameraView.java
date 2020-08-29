@@ -176,6 +176,7 @@ public class CameraView extends FrameLayout {
                 if (displayOrientationDetector.getLastKnownDisplayOrientation() % 180 == 0) {
                     aspectRatio = aspectRatio.inverse();
                 }
+                XLog.d(TAG, "onPreviewSizeUpdated : " + previewSize);
                 requestLayout();
             }
 

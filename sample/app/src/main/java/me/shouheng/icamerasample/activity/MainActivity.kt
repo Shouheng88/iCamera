@@ -1,5 +1,6 @@
 package me.shouheng.icamerasample.activity
 
+import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import android.view.View
@@ -65,6 +66,10 @@ class MainActivity : CommonActivity<EmptyViewModel, ActivityMainBinding>() {
             if (isChecked) {
                 ConfigurationProvider.get().cameraPreviewCreator = CameraPreviewCreatorImpl()
             }
+        }
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            ConfigurationProvider.get().prepareCamera2(this)
         }
     }
 
