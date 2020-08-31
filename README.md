@@ -10,7 +10,7 @@
     <img src="https://img.shields.io/maven-metadata/v/https/dl.bintray.com/easymark/Android/me/shouheng/icamera/icamera/maven-metadata.xml.svg" alt="Version" />
   </a>
   <a href="https://www.codacy.com/manual/Shouheng88/iCamera?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=Shouheng88/iCamera&amp;utm_campaign=Badge_Grade">
-    <img src="https://api.codacy.com/project/badge/Grade/412a91540f254721ac63757eeded9ba5" alt="Code Grade"/>
+    <img src="https://api.codacy.com/project/badge/Grade/67d7f34109e34c20941ccd1e9ecb6318" alt="Code Grade"/>
   </a>
   <a href="https://travis-ci.org/Shouheng88/iCamera">
     <img src="https://travis-ci.org/Shouheng88/iCamera.svg?branch=master" alt="Build"/>
