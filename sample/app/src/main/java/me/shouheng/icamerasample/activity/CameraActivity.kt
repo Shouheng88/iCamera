@@ -304,6 +304,7 @@ class CameraActivity : CommonActivity<EmptyViewModel, ActivityCameraBinding>() {
                 "3.Video Size: ${binding.cv.getSize(CameraSizeFor.SIZE_FOR_VIDEO)?.toString()}\n" +
                 "4.Media Type (0:Picture, 1:Video): ${binding.cv.mediaType}\n" +
                 "5.Zoom: ${binding.cv.zoom}\n" +
-                "6.MaxZoom: ${binding.cv.maxZoom}"
+                "6.MaxZoom: ${binding.cv.maxZoom}\n" +
+                "7.CameraFace: ${binding.cv.cameraFace}"
     }
 }
