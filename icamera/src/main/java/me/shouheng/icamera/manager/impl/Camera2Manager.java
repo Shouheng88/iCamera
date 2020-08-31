@@ -635,6 +635,7 @@ public class Camera2Manager extends BaseCameraManager<String> implements ImageRe
             previewSize = cameraSizeCalculator.getVideoPreviewSize(CameraType.TYPE_CAMERA2);
             notifyVideoSizeUpdated(videoSize);
         }
+        XLog.d(TAG, "previewSize: " + previewSize + " oldPreviewSize:" + oldPreviewSize);
         if (!previewSize.equals(oldPreviewSize)) {
             notifyPreviewSizeUpdated(previewSize);
         }

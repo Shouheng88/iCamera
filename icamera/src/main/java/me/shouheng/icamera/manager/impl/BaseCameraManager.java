@@ -141,11 +141,13 @@ abstract class BaseCameraManager<CameraId> implements CameraManager, MediaRecord
 
     @Override
     public void setExpectSize(@Nullable Size expectSize) {
-        if (expectSize != null && expectSize.equals(this.expectSize)) {
+        if (expectSize == null || expectSize.equals(this.expectSize)) {
             return;
         }
         this.expectSize = expectSize;
+        this.expectAspectRatio = AspectRatio.of(this.expectSize);
         ConfigurationProvider.get().getCameraSizeCalculator().changeExpectSize(expectSize);
+        ConfigurationProvider.get().getCameraSizeCalculator().changeExpectAspectRatio(expectAspectRatio);
     }
 
     @Override
