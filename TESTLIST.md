@@ -116,4 +116,4 @@ Tested on Devices: OnePlus6
 
 - [x] Crash when get max zoom while the camera was not prepared (the camera parameters was not calculated when trying to get max zoom)
 - [x] sometime failed to calculate video size when switch camera face
-- [ ] sometime preview is distorted when switch camera face for camera2
+- [x] sometime preview is distorted when switch camera face for camera2

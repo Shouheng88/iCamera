@@ -176,6 +176,7 @@ public class CameraView extends FrameLayout {
                 if (displayOrientationDetector.getLastKnownDisplayOrientation() % 180 == 0) {
                     aspectRatio = aspectRatio.inverse();
                 }
+                XLog.d(TAG, "onPreviewSizeUpdated : " + previewSize);
                 requestLayout();
             }
 
@@ -252,9 +253,11 @@ public class CameraView extends FrameLayout {
             super.onMeasure(widthMeasureSpec, heightMeasureSpec);
             return;
         }
+        XLog.d(TAG, "clipScreen: " + clipScreen + " adjustViewBounds: " + adjustViewBounds);
         if (clipScreen) {
             int width = MeasureSpec.getSize(widthMeasureSpec);
             int height = MeasureSpec.getSize(heightMeasureSpec);
+            XLog.d(TAG, "width: " + width + " height: " + height);
             switch (adjustType) {
                 case WIDTH_FIRST:
                     height = width * aspectRatio.heightRatio / aspectRatio.widthRatio;
@@ -285,12 +288,10 @@ public class CameraView extends FrameLayout {
         }
 
         if (adjustViewBounds) {
-            if (!isCameraOpened()) {
-                super.onMeasure(widthMeasureSpec, heightMeasureSpec);
-                return;
-            }
+            // fix 2020-08-31 : preview is distorted when switch face for camera2 while it's not opened
             final int widthMode = MeasureSpec.getMode(widthMeasureSpec);
             final int heightMode = MeasureSpec.getMode(heightMeasureSpec);
+            XLog.d(TAG, "widthMode: " + widthMode + " heightMode: " + heightMode);
             if (widthMode == MeasureSpec.EXACTLY && heightMode != MeasureSpec.EXACTLY) {
                 final AspectRatio ratio = aspectRatio;
                 int height = (int) (MeasureSpec.getSize(widthMeasureSpec) * ratio.ratio());
@@ -314,6 +315,7 @@ public class CameraView extends FrameLayout {
         int width = getMeasuredWidth();
         int height = getMeasuredHeight();
         // Always smaller first! But use the effect to the CameraPreview instead of the CameraView.
+        XLog.d(TAG, "width: " + width + " height: " + height);
         if (height < width * aspectRatio.heightRatio / aspectRatio.widthRatio) {
             cameraPreview.getView().measure(
                     MeasureSpec.makeMeasureSpec(width, MeasureSpec.EXACTLY),

@@ -67,7 +67,7 @@ repositories { jcenter() }
 然后，在项目依赖中直接引用我们的库即可：
 
 ```groovy
-implementation 'me.shouheng.icamera:icamera:0.0.1-beta'
+implementation 'me.shouheng.icamera:icamera:latest-version'
 ```
 
 ### 2.2 使用相机控件

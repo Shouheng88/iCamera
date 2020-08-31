@@ -56,28 +56,31 @@ public class CameraSizeCalculatorImpl implements CameraSizeCalculator {
 
     @Override
     public void changeExpectAspectRatio(@NonNull AspectRatio expectAspectRatio) {
+        XLog.d(TAG, "changeExpectAspectRatio : cache cleared");
         this.expectAspectRatio = expectAspectRatio;
         outPictureSizes.clear();
         outPicturePreviewSizes.clear();
-        outVideoPreviewSizes.clear();
+        outVideoSizes.clear();
         outVideoPreviewSizes.clear();
     }
 
     @Override
     public void changeExpectSize(@Nullable Size expectSize) {
+        XLog.d(TAG, "changeExpectSize : cache cleared");
         this.expectSize = expectSize;
         outPictureSizes.clear();
         outPicturePreviewSizes.clear();
-        outVideoPreviewSizes.clear();
+        outVideoSizes.clear();
         outVideoPreviewSizes.clear();
     }
 
     @Override
     public void changeMediaQuality(int mediaQuality) {
+        XLog.d(TAG, "changeMediaQuality : cache cleared");
         this.mediaQuality = mediaQuality;
         outPictureSizes.clear();
         outPicturePreviewSizes.clear();
-        outVideoPreviewSizes.clear();
+        outVideoSizes.clear();
         outVideoPreviewSizes.clear();
     }
 
