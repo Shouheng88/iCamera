@@ -7,13 +7,17 @@ import android.content.res.Configuration;
 import android.hardware.camera2.CameraCharacteristics;
 import android.hardware.camera2.CameraManager;
 import android.media.CamcorderProfile;
+import android.media.Image;
 import android.os.Build;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.annotation.RequiresApi;
 import android.text.TextUtils;
 import android.view.Surface;
 import android.view.WindowManager;
 
+import java.nio.ByteBuffer;
+import java.nio.ReadOnlyBufferException;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.LinkedList;
@@ -238,9 +242,9 @@ public final class CameraHelper {
      * @return             the final output size
      */
     public static Size getSizeWithClosestRatioSizeAndQuality(List<Size> sizes,
-                                               AspectRatio aspectRatio,
-                                               @Nullable Size expectSize,
-                                               @MediaQuality int mediaQuality) {
+                                                             AspectRatio aspectRatio,
+                                                             @Nullable Size expectSize,
+                                                             @MediaQuality int mediaQuality) {
         if (expectSize != null && aspectRatio.ratio() != expectSize.ratio()) {
             XLog.w(TAG, "The expected ratio differs from ratio of expected size.");
         }
