@@ -81,9 +81,7 @@ public class Camera1Manager extends BaseCameraManager<Integer> {
                     camera.setPreviewCallback(new Camera.PreviewCallback() {
                         @Override
                         public void onPreviewFrame(byte[] bytes, Camera camera) {
-                            if (cameraPreviewListener != null) {
-                                cameraPreviewListener.onPreviewFrame(bytes, previewSize, camera.getParameters().getPreviewFormat());
-                            }
+                            notifyPreviewFrameChanged(bytes, previewSize, camera.getParameters().getPreviewFormat());
                         }
                     });
                     prepareCameraOutputs();

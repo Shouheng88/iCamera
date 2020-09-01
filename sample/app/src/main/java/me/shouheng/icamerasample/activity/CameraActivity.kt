@@ -15,10 +15,8 @@ import me.shouheng.icamera.enums.CameraFace
 import me.shouheng.icamera.enums.CameraSizeFor
 import me.shouheng.icamera.enums.FlashMode
 import me.shouheng.icamera.enums.MediaType
-import me.shouheng.icamera.listener.CameraOpenListener
-import me.shouheng.icamera.listener.CameraPhotoListener
-import me.shouheng.icamera.listener.CameraSizeListener
-import me.shouheng.icamera.listener.CameraVideoListener
+import me.shouheng.icamera.listener.*
+import me.shouheng.icamera.util.ImageHelper
 import me.shouheng.icamera.util.XLog
 import me.shouheng.icamerasample.R
 import me.shouheng.icamerasample.databinding.ActivityCameraBinding
@@ -26,6 +24,7 @@ import me.shouheng.icamerasample.utils.FileHelper.getSavedFile
 import me.shouheng.icamerasample.utils.FileHelper.saveImageToGallery
 import me.shouheng.icamerasample.utils.FileHelper.saveVideoToGallery
 import me.shouheng.uix.common.listener.NoDoubleClickListener
+import me.shouheng.utils.app.ResUtils
 import me.shouheng.utils.stability.L
 import me.shouheng.utils.ui.BarUtils
 import me.shouheng.utils.ui.ViewUtils
@@ -195,6 +194,29 @@ class CameraActivity : CommonActivity<EmptyViewModel, ActivityCameraBinding>() {
             ViewCompat.setRotation(binding.ivTypeSwitch, degree.toFloat())
             ViewCompat.setRotation(binding.ivSetting, degree.toFloat())
         }
+
+        binding.cv.setCameraPreviewListener(object : CameraPreviewListener {
+            /*used to slow the calculation*/
+            private var frame: Int = 0
+            override fun onPreviewFrame(data: ByteArray?, size: Size, format: Int) {
+                L.d("onPreviewFrame")
+                if (frame % 25 == 0) {
+                    frame = 1
+                    try {
+                        val light = ImageHelper.convertYUV420_NV21toARGB8888(data, size.width, size.height)
+                        if (light <= 30) {
+                            binding.tvLightTip.text = ResUtils.getText(R.string.camera_main_light_tip)
+                        } else {
+                            binding.tvLightTip.text = ""
+                        }
+                        binding.ivPreview.setImageBitmap(ImageHelper.convertNV21ToBitmap(data, size.width, size.height))
+                    } catch (e: Exception) {
+                        e.printStackTrace()
+                    }
+                }
+                frame++
+            }
+        })
 
         displayCameraInfo()
     }

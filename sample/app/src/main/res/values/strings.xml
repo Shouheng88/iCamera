@@ -27,4 +27,6 @@
 
     <string name="camera_main_video">Video</string>
     <string name="camera_main_picture">Picture</string>
+
+    <string name="camera_main_light_tip">Too dark, open the flash?</string>
 </resources>

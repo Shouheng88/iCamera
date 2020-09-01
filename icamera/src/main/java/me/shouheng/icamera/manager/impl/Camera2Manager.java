@@ -55,6 +55,7 @@ import me.shouheng.icamera.listener.CameraVideoListener;
 import me.shouheng.icamera.preview.CameraPreview;
 import me.shouheng.icamera.preview.CameraPreviewCallback;
 import me.shouheng.icamera.util.CameraHelper;
+import me.shouheng.icamera.util.ImageHelper;
 import me.shouheng.icamera.util.XLog;
 
 import static me.shouheng.icamera.manager.impl.Camera2Manager.CaptureSessionCallback.CameraState.STATE_PICTURE_TAKEN;
@@ -152,15 +153,17 @@ public class Camera2Manager extends BaseCameraManager<String> implements ImageRe
 
         @Override
         public void onImageAvailable(ImageReader reader) {
-            Image image = reader.acquireNextImage();
-            // Y:U:V == 4:2:2
-            if (cameraPreviewListener != null && image.getFormat() == ImageFormat.YUV_420_888) {
-                // lock to ensure that all data from same Image object
-                lock.lock();
-                cameraPreviewListener.onPreviewFrame(CameraHelper.convertYUV_420_888toNV21(image), previewSize, ImageFormat.NV21);
-                lock.unlock();
+            try (Image image = reader.acquireNextImage()) {
+                // Y:U:V == 4:2:2
+                if (cameraPreviewListener != null && image.getFormat() == ImageFormat.YUV_420_888) {
+                    // lock to ensure that all data from same Image object
+                    lock.lock();
+                    notifyPreviewFrameChanged(ImageHelper.convertYUV_420_888toNV21(image), previewSize, ImageFormat.NV21);
+                    lock.unlock();
+                }
+            } catch (Exception ex) {
+                XLog.e(TAG, "error for image preview : " + ex);
             }
-            image.close();
         }
     };
 
@@ -672,7 +675,8 @@ public class Camera2Manager extends BaseCameraManager<String> implements ImageRe
                     try {
                         previewRequestBuilder = cameraDevice.createCaptureRequest(CameraDevice.TEMPLATE_PREVIEW);
                         previewRequestBuilder.addTarget(workingSurface);
-                        cameraDevice.createCaptureSession(Arrays.asList(workingSurface, imageReader.getSurface()),
+                        previewRequestBuilder.addTarget(previewReader.getSurface());
+                        cameraDevice.createCaptureSession(Arrays.asList(workingSurface, imageReader.getSurface(), previewReader.getSurface()),
                                 new CameraCaptureSession.StateCallback() {
                                     @Override
                                     public void onConfigured(@NonNull CameraCaptureSession cameraCaptureSession) {
@@ -1020,6 +1024,10 @@ public class Camera2Manager extends BaseCameraManager<String> implements ImageRe
         if (null != imageReader) {
             imageReader.close();
             imageReader = null;
+        }
+        if (previewReader != null) {
+            previewReader.close();
+            previewReader = null;
         }
     }
 

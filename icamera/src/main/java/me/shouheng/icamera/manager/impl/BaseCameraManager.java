@@ -395,6 +395,19 @@ abstract class BaseCameraManager<CameraId> implements CameraManager, MediaRecord
         });
     }
 
+    void notifyPreviewFrameChanged(final byte[] data, final Size size, final int format) {
+        if (cameraPreviewListener != null) {
+            uiHandler.post(new Runnable() {
+                @Override
+                public void run() {
+                    if (cameraPreviewListener != null) {
+                        cameraPreviewListener.onPreviewFrame(data, size, format);
+                    }
+                }
+            });
+        }
+    }
+
     void notifyCameraClosed() {
         uiHandler.post(new Runnable() {
             @Override
