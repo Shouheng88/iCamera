@@ -35,6 +35,7 @@ import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.locks.ReentrantLock;
 
 import me.shouheng.icamera.config.ConfigurationProvider;
 import me.shouheng.icamera.config.calculator.CameraSizeCalculator;
@@ -83,6 +84,7 @@ public class Camera2Manager extends BaseCameraManager<String> implements ImageRe
     private StreamConfigurationMap rearStreamConfigurationMap;
 
     private ImageReader imageReader;
+    private ImageReader previewReader;
 
     private SurfaceHolder surfaceHolder;
     private SurfaceTexture surfaceTexture;
@@ -141,6 +143,24 @@ public class Camera2Manager extends BaseCameraManager<String> implements ImageRe
         @Override
         void processCaptureResult(@NonNull CaptureResult result, @CameraState int cameraPreviewState) {
             processCaptureResultInternal(result, cameraPreviewState);
+        }
+    };
+
+    private ImageReader.OnImageAvailableListener onPreviewImageAvailableListener = new ImageReader.OnImageAvailableListener() {
+
+        private ReentrantLock lock = new ReentrantLock();
+
+        @Override
+        public void onImageAvailable(ImageReader reader) {
+            Image image = reader.acquireNextImage();
+            // Y:U:V == 4:2:2
+            if (cameraPreviewListener != null && image.getFormat() == ImageFormat.YUV_420_888) {
+                // lock to ensure that all data from same Image object
+                lock.lock();
+                cameraPreviewListener.onPreviewFrame(CameraHelper.convertYUV_420_888toNV21(image), previewSize, ImageFormat.NV21);
+                lock.unlock();
+            }
+            image.close();
         }
     };
 
@@ -626,6 +646,9 @@ public class Camera2Manager extends BaseCameraManager<String> implements ImageRe
             // fix: CaptureRequest contains un-configured Input/Output Surface!
             imageReader = ImageReader.newInstance(pictureSize.width, pictureSize.height, ImageFormat.JPEG, /*maxImages*/2);
             imageReader.setOnImageAvailableListener(this, backgroundHandler);
+
+            previewReader = ImageReader.newInstance(previewSize.width, previewSize.height, ImageFormat.YUV_420_888, 2);
+            previewReader.setOnImageAvailableListener(onPreviewImageAvailableListener, backgroundHandler);
         }
         // fixed 2020-08-29 : the video size might be null if quickly switched
         // from media types while first time launch the camera.
@@ -884,8 +907,7 @@ public class Camera2Manager extends BaseCameraManager<String> implements ImageRe
             return false;
         }
 
-        zoom = zoom < 1.f ? 1.f : zoom;
-        zoom = zoom > maxZoom ? maxZoom : zoom;
+        zoom = Math.min(Math.max(zoom, 1.f), maxZoom);
 
         int cropW = (rect.width() - (int) ((float) rect.width() / zoom)) / 2;
         int cropH = (rect.height() - (int) ((float) rect.height() / zoom)) / 2;

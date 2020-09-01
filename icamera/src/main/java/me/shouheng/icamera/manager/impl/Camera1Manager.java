@@ -78,6 +78,14 @@ public class Camera1Manager extends BaseCameraManager<Integer> {
                 XLog.d(TAG, "openCamera");
                 try {
                     camera = Camera.open(currentCameraId);
+                    camera.setPreviewCallback(new Camera.PreviewCallback() {
+                        @Override
+                        public void onPreviewFrame(byte[] bytes, Camera camera) {
+                            if (cameraPreviewListener != null) {
+                                cameraPreviewListener.onPreviewFrame(bytes, previewSize, camera.getParameters().getPreviewFormat());
+                            }
+                        }
+                    });
                     prepareCameraOutputs();
                     adjustCameraParameters(false, true, true);
                     if (cameraPreview.isAvailable()) {

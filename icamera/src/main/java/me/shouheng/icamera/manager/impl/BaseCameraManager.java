@@ -30,6 +30,7 @@ import me.shouheng.icamera.enums.MediaType;
 import me.shouheng.icamera.listener.CameraCloseListener;
 import me.shouheng.icamera.listener.CameraOpenListener;
 import me.shouheng.icamera.listener.CameraPhotoListener;
+import me.shouheng.icamera.listener.CameraPreviewListener;
 import me.shouheng.icamera.listener.CameraSizeListener;
 import me.shouheng.icamera.listener.CameraVideoListener;
 import me.shouheng.icamera.manager.CameraManager;
@@ -85,6 +86,7 @@ abstract class BaseCameraManager<CameraId> implements CameraManager, MediaRecord
 
     CameraOpenListener cameraOpenListener;
     CameraCloseListener cameraCloseListener;
+    CameraPreviewListener cameraPreviewListener;
     private CameraPhotoListener cameraPhotoListener;
     private CameraVideoListener cameraVideoListener;
     private List<CameraSizeListener> cameraSizeListeners;
@@ -184,6 +186,11 @@ abstract class BaseCameraManager<CameraId> implements CameraManager, MediaRecord
     @Override
     public void addCameraSizeListener(CameraSizeListener cameraSizeListener) {
         this.cameraSizeListeners.add(cameraSizeListener);
+    }
+
+    @Override
+    public void setCameraPreviewListener(CameraPreviewListener cameraPreviewListener) {
+        this.cameraPreviewListener = cameraPreviewListener;
     }
 
     @Override

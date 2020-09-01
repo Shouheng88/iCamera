@@ -40,6 +40,7 @@ import me.shouheng.icamera.enums.SensorPosition;
 import me.shouheng.icamera.listener.CameraCloseListener;
 import me.shouheng.icamera.listener.CameraOpenListener;
 import me.shouheng.icamera.listener.CameraPhotoListener;
+import me.shouheng.icamera.listener.CameraPreviewListener;
 import me.shouheng.icamera.listener.CameraSizeListener;
 import me.shouheng.icamera.listener.CameraVideoListener;
 import me.shouheng.icamera.listener.DisplayOrientationDetector;
@@ -478,6 +479,15 @@ public class CameraView extends FrameLayout {
 
     public void addCameraSizeListener(CameraSizeListener cameraSizeListener) {
         cameraManager.addCameraSizeListener(cameraSizeListener);
+    }
+
+    /**
+     * Set the camera preview listener
+     *
+     * @param cameraPreviewListener the listener
+     */
+    public void setCameraPreviewListener(CameraPreviewListener cameraPreviewListener) {
+        cameraManager.setCameraPreviewListener(cameraPreviewListener);
     }
 
     /**

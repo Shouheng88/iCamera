@@ -16,6 +16,7 @@ import me.shouheng.icamera.enums.MediaType;
 import me.shouheng.icamera.listener.CameraCloseListener;
 import me.shouheng.icamera.listener.CameraOpenListener;
 import me.shouheng.icamera.listener.CameraPhotoListener;
+import me.shouheng.icamera.listener.CameraPreviewListener;
 import me.shouheng.icamera.listener.CameraSizeListener;
 import me.shouheng.icamera.listener.CameraVideoListener;
 
@@ -192,6 +193,13 @@ public interface CameraManager {
      * @param cameraSizeListener camera size callback
      */
     void addCameraSizeListener(CameraSizeListener cameraSizeListener);
+
+    /**
+     * Set the camera preview listener
+     *
+     * @param cameraPreviewListener the listener
+     */
+    void setCameraPreviewListener(CameraPreviewListener cameraPreviewListener);
 
     /**
      * Take a picture
