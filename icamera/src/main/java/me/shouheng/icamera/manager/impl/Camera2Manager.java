@@ -39,6 +39,7 @@ import java.util.concurrent.locks.ReentrantLock;
 
 import me.shouheng.icamera.config.ConfigurationProvider;
 import me.shouheng.icamera.config.calculator.CameraSizeCalculator;
+import me.shouheng.icamera.config.convert.ImageRawDataConverter;
 import me.shouheng.icamera.config.size.AspectRatio;
 import me.shouheng.icamera.config.size.Size;
 import me.shouheng.icamera.config.size.SizeMap;
@@ -150,6 +151,7 @@ public class Camera2Manager extends BaseCameraManager<String> implements ImageRe
     private ImageReader.OnImageAvailableListener onPreviewImageAvailableListener = new ImageReader.OnImageAvailableListener() {
 
         private ReentrantLock lock = new ReentrantLock();
+        private ImageRawDataConverter converter = ConfigurationProvider.get().getImageRawDataConverter();
 
         @Override
         public void onImageAvailable(ImageReader reader) {
@@ -158,7 +160,7 @@ public class Camera2Manager extends BaseCameraManager<String> implements ImageRe
                 if (cameraPreviewListener != null && image.getFormat() == ImageFormat.YUV_420_888) {
                     // lock to ensure that all data from same Image object
                     lock.lock();
-                    notifyPreviewFrameChanged(ImageHelper.convertYUV_420_888toNV21(image), previewSize, ImageFormat.NV21);
+                    notifyPreviewFrameChanged(converter.convertToNV21(image), previewSize, ImageFormat.NV21);
                     lock.unlock();
                 }
             } catch (Exception ex) {

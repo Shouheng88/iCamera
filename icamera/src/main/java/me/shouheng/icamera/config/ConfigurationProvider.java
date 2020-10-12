@@ -19,6 +19,8 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import me.shouheng.icamera.config.calculator.CameraSizeCalculator;
 import me.shouheng.icamera.config.calculator.impl.CameraSizeCalculatorImpl;
+import me.shouheng.icamera.config.convert.ImageRawDataConverter;
+import me.shouheng.icamera.config.convert.ImageRawDataConverterImpl;
 import me.shouheng.icamera.config.creator.CameraManagerCreator;
 import me.shouheng.icamera.config.creator.CameraPreviewCreator;
 import me.shouheng.icamera.config.creator.impl.CameraManagerCreatorImpl;
@@ -59,6 +61,9 @@ public final class ConfigurationProvider {
 
     /** The calculator for camera size. */
     private CameraSizeCalculator cameraSizeCalculator;
+
+    /** The image raw data converter. */
+    private ImageRawDataConverter imageRawDataConverter;
 
     /** Whether use memory cache in library. default is true. */
     private boolean useCacheValues;
@@ -111,6 +116,7 @@ public final class ConfigurationProvider {
         cameraManagerCreator = new CameraManagerCreatorImpl();
         cameraPreviewCreator = new CameraPreviewCreatorImpl();
         cameraSizeCalculator = new CameraSizeCalculatorImpl();
+        imageRawDataConverter = new ImageRawDataConverterImpl();
         useCacheValues = true;
         defaultCameraFace = CameraFace.FACE_REAR;
         defaultMediaType = MediaType.TYPE_PICTURE;
@@ -334,6 +340,14 @@ public final class ConfigurationProvider {
 
     public void setCameraSizeCalculator(CameraSizeCalculator cameraSizeCalculator) {
         this.cameraSizeCalculator = cameraSizeCalculator;
+    }
+
+    public ImageRawDataConverter getImageRawDataConverter() {
+        return imageRawDataConverter;
+    }
+
+    public void setImageRawDataConverter(ImageRawDataConverter imageRawDataConverter) {
+        this.imageRawDataConverter = imageRawDataConverter;
     }
 
     public boolean isUseCacheValues() {

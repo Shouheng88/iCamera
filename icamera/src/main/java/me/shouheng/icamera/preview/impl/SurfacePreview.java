@@ -44,9 +44,7 @@ public class SurfacePreview extends BaseCameraPreview {
              * @param holder The SurfaceHolder whose surface is being created.
              */
             @Override
-            public void surfaceCreated(SurfaceHolder holder) {
-                /* noop */
-            }
+            public void surfaceCreated(SurfaceHolder holder) { /* noop */}
 
             /**
              * This is called immediately after any structural changes (format or

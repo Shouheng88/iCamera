@@ -24,10 +24,13 @@ import me.shouheng.icamerasample.utils.FileHelper.getSavedFile
 import me.shouheng.icamerasample.utils.FileHelper.saveImageToGallery
 import me.shouheng.icamerasample.utils.FileHelper.saveVideoToGallery
 import me.shouheng.uix.common.listener.NoDoubleClickListener
+import me.shouheng.uix.common.listener.onDebouncedClick
 import me.shouheng.utils.app.ResUtils
+import me.shouheng.utils.ktx.*
 import me.shouheng.utils.stability.L
 import me.shouheng.utils.ui.BarUtils
 import me.shouheng.utils.ui.ViewUtils
+import me.shouheng.utils.ui.ViewUtils.dp2px
 import me.shouheng.vmlib.base.CommonActivity
 import me.shouheng.vmlib.comn.EmptyViewModel
 import java.io.File
@@ -46,7 +49,7 @@ class CameraActivity : CommonActivity<EmptyViewModel, ActivityCameraBinding>() {
     private var isCameraRecording = false
 
     override fun doCreateView(savedInstanceState: Bundle?) {
-        XLog.d("CameraActivity", "doCreateView")
+        logd("doCreateView")
         BarUtils.setStatusBarLightMode(window, false)
         configDrawer()
         configMain()
@@ -62,29 +65,19 @@ class CameraActivity : CommonActivity<EmptyViewModel, ActivityCameraBinding>() {
         binding.scTouchZoom.isChecked = true
         binding.scTouchZoom.setOnCheckedChangeListener { _, isChecked -> binding.cv.setTouchZoomEnable(isChecked) }
 
-        binding.tvPreviewSizes.setOnClickListener(object : NoDoubleClickListener() {
-            override fun onNoDoubleClick(v: View) {
-                showPopDialog(v, binding.cv.getSizes(CameraSizeFor.SIZE_FOR_PREVIEW))
-            }
-        })
-        binding.tvPictureSizes.setOnClickListener(object : NoDoubleClickListener() {
-            override fun onNoDoubleClick(v: View) {
-                showPopDialog(v, binding.cv.getSizes(CameraSizeFor.SIZE_FOR_PICTURE))
-            }
-        })
-        binding.tvVideoSizes.setOnClickListener(object : NoDoubleClickListener() {
-            override fun onNoDoubleClick(v: View) {
-                showPopDialog(v, binding.cv.getSizes(CameraSizeFor.SIZE_FOR_VIDEO))
-            }
-        })
+        binding.tvPreviewSizes.onDebouncedClick {
+            showPopDialog(it, binding.cv.getSizes(CameraSizeFor.SIZE_FOR_PREVIEW))
+        }
+        binding.tvPictureSizes.onDebouncedClick {
+            showPopDialog(it, binding.cv.getSizes(CameraSizeFor.SIZE_FOR_PICTURE))
+        }
+        binding.tvVideoSizes.onDebouncedClick {
+            showPopDialog(it, binding.cv.getSizes(CameraSizeFor.SIZE_FOR_VIDEO))
+        }
     }
 
     private fun configMain() {
-        binding.ivSetting.setOnClickListener(object : NoDoubleClickListener() {
-            override fun onNoDoubleClick(v: View) {
-                binding.drawer.openDrawer(Gravity.END)
-            }
-        })
+        binding.ivSetting.onDebouncedClick { binding.drawer.openDrawer(Gravity.END) }
         binding.ivFlash.setImageResource(
             when(ConfigurationProvider.get().defaultFlashMode) {
                 FlashMode.FLASH_AUTO -> R.drawable.ic_flash_auto_white_24dp
@@ -93,34 +86,30 @@ class CameraActivity : CommonActivity<EmptyViewModel, ActivityCameraBinding>() {
                 else -> R.drawable.ic_flash_auto_white_24dp
             }
         )
-        binding.ivFlash.setOnClickListener(object : NoDoubleClickListener() {
-            override fun onNoDoubleClick(v: View) {
-                val mode = when(binding.cv.flashMode) {
-                    FlashMode.FLASH_AUTO -> FlashMode.FLASH_ON
-                    FlashMode.FLASH_OFF -> FlashMode.FLASH_AUTO
-                    FlashMode.FLASH_ON -> FlashMode.FLASH_OFF
-                    else -> FlashMode.FLASH_AUTO
-                }
-                binding.cv.flashMode = mode
-                binding.ivFlash.setImageResource(
-                    when(mode) {
-                        FlashMode.FLASH_AUTO -> R.drawable.ic_flash_auto_white_24dp
-                        FlashMode.FLASH_OFF -> R.drawable.ic_flash_off_white_24dp
-                        FlashMode.FLASH_ON -> R.drawable.ic_flash_on_white_24dp
-                        else -> R.drawable.ic_flash_auto_white_24dp
-                    }
-                )
+        binding.ivFlash.onDebouncedClick {
+            val mode = when(binding.cv.flashMode) {
+                FlashMode.FLASH_AUTO -> FlashMode.FLASH_ON
+                FlashMode.FLASH_OFF -> FlashMode.FLASH_AUTO
+                FlashMode.FLASH_ON -> FlashMode.FLASH_OFF
+                else -> FlashMode.FLASH_AUTO
             }
-        })
+            binding.cv.flashMode = mode
+            binding.ivFlash.setImageResource(
+                when(mode) {
+                    FlashMode.FLASH_AUTO -> R.drawable.ic_flash_auto_white_24dp
+                    FlashMode.FLASH_OFF -> R.drawable.ic_flash_off_white_24dp
+                    FlashMode.FLASH_ON -> R.drawable.ic_flash_on_white_24dp
+                    else -> R.drawable.ic_flash_auto_white_24dp
+                }
+            )
+        }
 
         binding.sb.animate()
-            .translationX(ViewUtils.dp2px(130f).toFloat())
+            .translationX(130f.dp2px().toFloat())
             .setListener(object : Animator.AnimatorListener {
                 override fun onAnimationRepeat(animation: Animator?) { /*noop*/ }
 
-                override fun onAnimationEnd(animation: Animator?) {
-                    binding.sb.visibility = View.VISIBLE
-                }
+                override fun onAnimationEnd(animation: Animator?) { binding.sb.invisible() }
 
                 override fun onAnimationCancel(animation: Animator?) { /*noop*/ }
 
@@ -139,54 +128,45 @@ class CameraActivity : CommonActivity<EmptyViewModel, ActivityCameraBinding>() {
             }
         })
 
-        binding.ivSwitch.setOnClickListener(object : NoDoubleClickListener() {
-            override fun onNoDoubleClick(v: View) {
-                // switch camera between front and end camera
-                binding.cv.switchCamera(if (binding.cv.cameraFace == CameraFace.FACE_FRONT)
-                    CameraFace.FACE_REAR else CameraFace.FACE_FRONT)
+        binding.ivSwitch.onDebouncedClick {
+            // switch camera between front and end camera
+            binding.cv.switchCamera(if (binding.cv.cameraFace == CameraFace.FACE_FRONT)
+                CameraFace.FACE_REAR else CameraFace.FACE_FRONT)
+        }
+        binding.ivTypeSwitch.onDebouncedClick {
+            // switch camera between video and picture mode
+            if (binding.cv.mediaType == MediaType.TYPE_PICTURE) {
+                binding.ivTypeSwitch.setImageResource(R.drawable.ic_videocam_white_24dp)
+                binding.cv.mediaType = MediaType.TYPE_VIDEO
+            } else {
+                binding.ivTypeSwitch.setImageResource(R.drawable.ic_photo_camera_white_24dp)
+                binding.cv.mediaType = MediaType.TYPE_PICTURE
             }
-        })
-        binding.ivTypeSwitch.setOnClickListener(object : NoDoubleClickListener() {
-            override fun onNoDoubleClick(v: View) {
-                // switch camera between video and picture mode
-                if (binding.cv.mediaType == MediaType.TYPE_PICTURE) {
-                    binding.ivTypeSwitch.setImageResource(R.drawable.ic_videocam_white_24dp)
-                    binding.cv.mediaType = MediaType.TYPE_VIDEO
-                } else {
-                    binding.ivTypeSwitch.setImageResource(R.drawable.ic_photo_camera_white_24dp)
-                    binding.cv.mediaType = MediaType.TYPE_PICTURE
-                }
-                displayCameraInfo()
-            }
-        })
+            displayCameraInfo()
+        }
 
         binding.cv.setOnMoveListener { toast(if (it) "LEFT" else "RIGHT") }
         binding.cv.addCameraSizeListener(object : CameraSizeListener {
             override fun onPreviewSizeUpdated(previewSize: Size?) {
-                L.d("onPreviewSizeUpdated : $previewSize")
+                logd("onPreviewSizeUpdated : $previewSize")
                 displayCameraInfo()
             }
 
             override fun onVideoSizeUpdated(videoSize: Size?) {
-                L.d("onVideoSizeUpdated : $videoSize")
+                logd("onVideoSizeUpdated : $videoSize")
                 displayCameraInfo()
             }
 
             override fun onPictureSizeUpdated(pictureSize: Size?) {
-                L.d("onPictureSizeUpdated : $pictureSize")
+                logd("onPictureSizeUpdated : $pictureSize")
                 displayCameraInfo()
             }
         })
 
-        binding.ivShot.setOnClickListener(object : NoDoubleClickListener() {
-            override fun onNoDoubleClick(v: View) {
-                if (binding.cv.mediaType == MediaType.TYPE_PICTURE) {
-                    takePicture()
-                } else {
-                    takeVideo()
-                }
-            }
-        })
+        binding.ivShot.onDebouncedClick {
+            if (binding.cv.mediaType == MediaType.TYPE_PICTURE) { takePicture()
+            } else { takeVideo() }
+        }
 
         binding.cv.addOrientationChangedListener { degree ->
             ViewCompat.setRotation(binding.ivFlash, degree.toFloat())
@@ -199,16 +179,12 @@ class CameraActivity : CommonActivity<EmptyViewModel, ActivityCameraBinding>() {
             /*used to slow the calculation*/
             private var frame: Int = 0
             override fun onPreviewFrame(data: ByteArray?, size: Size, format: Int) {
-                L.d("onPreviewFrame")
+                logd("onPreviewFrame")
                 if (frame % 25 == 0) {
                     frame = 1
                     try {
                         val light = ImageHelper.convertYUV420_NV21toARGB8888(data, size.width, size.height)
-                        if (light <= 30) {
-                            binding.tvLightTip.text = ResUtils.getText(R.string.camera_main_light_tip)
-                        } else {
-                            binding.tvLightTip.text = ""
-                        }
+                        binding.tvLightTip.text = if (light <= 30) stringOf(R.string.camera_main_light_tip) else ""
                         binding.ivPreview.setImageBitmap(ImageHelper.convertNV21ToBitmap(data, size.width, size.height))
                     } catch (e: Exception) {
                         e.printStackTrace()
@@ -241,12 +217,10 @@ class CameraActivity : CommonActivity<EmptyViewModel, ActivityCameraBinding>() {
         super.onResume()
         if (!binding.cv.isCameraOpened) {
             binding.cv.openCamera(object : CameraOpenListener {
-                override fun onCameraOpened(cameraFace: Int) {
-                    L.d("onCameraOpened")
-                }
+                override fun onCameraOpened(cameraFace: Int) { logd("onCameraOpened") }
 
-                override fun onCameraOpenError(throwable: Throwable?) {
-                    L.e(throwable)
+                override fun onCameraOpenError(throwable: Throwable) {
+                    loge(throwable)
                     toast("Camera open error : $throwable")
                 }
             })
@@ -255,9 +229,7 @@ class CameraActivity : CommonActivity<EmptyViewModel, ActivityCameraBinding>() {
 
     override fun onPause() {
         super.onPause()
-        binding.cv.closeCamera {
-            L.d("closeCamera : $it")
-        }
+        binding.cv.closeCamera { logd("closeCamera : $it") }
     }
 
     override fun onDestroy() {
@@ -267,14 +239,14 @@ class CameraActivity : CommonActivity<EmptyViewModel, ActivityCameraBinding>() {
 
     override fun onConfigurationChanged(newConfig: Configuration?) {
         super.onConfigurationChanged(newConfig)
-        XLog.d("CameraActivity", "onConfigurationChanged")
+        logd("CameraActivity", "onConfigurationChanged")
     }
 
     private fun takePicture() {
         val fileToSave = getSavedFile("jpg")
         binding.cv.takePicture(fileToSave, object : CameraPhotoListener {
-            override fun onCaptureFailed(throwable: Throwable?) {
-                L.e(throwable)
+            override fun onCaptureFailed(throwable: Throwable) {
+                loge(throwable)
                 toast("onCaptureFailed : $throwable")
             }
 
@@ -290,7 +262,7 @@ class CameraActivity : CommonActivity<EmptyViewModel, ActivityCameraBinding>() {
     private fun takeVideo() {
         if (!isCameraRecording) {
             val seconds: Int = try {
-                Integer.parseInt(binding.etVideoDuration.text.toString())
+                binding.etVideoDuration.text.toString().toInt()
             } catch (ex: Exception) {
                 0
             }
@@ -320,7 +292,7 @@ class CameraActivity : CommonActivity<EmptyViewModel, ActivityCameraBinding>() {
     }
 
     private fun displayCameraInfo() {
-        binding.tvInfo.text = "Camera Info:\n" +
+        val info = "Camera Info:\n" +
                 "1.Preview Size: ${binding.cv.getSize(CameraSizeFor.SIZE_FOR_PREVIEW)?.toString()}\n" +
                 "2.Picture Size: ${binding.cv.getSize(CameraSizeFor.SIZE_FOR_PICTURE)?.toString()}\n" +
                 "3.Video Size: ${binding.cv.getSize(CameraSizeFor.SIZE_FOR_VIDEO)?.toString()}\n" +
@@ -328,5 +300,6 @@ class CameraActivity : CommonActivity<EmptyViewModel, ActivityCameraBinding>() {
                 "5.Zoom: ${binding.cv.zoom}\n" +
                 "6.MaxZoom: ${binding.cv.maxZoom}\n" +
                 "7.CameraFace: ${binding.cv.cameraFace}"
+        binding.tvInfo.text = info
     }
 }

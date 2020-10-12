@@ -50,8 +50,9 @@ dependencies {
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
     implementation "com.android.support:appcompat-v7:$supportLibVersion"
     implementation "com.android.support:design:$supportLibVersion"
-    implementation 'me.shouheng.vmlib:vmlib-core:1.4.7'
-    implementation 'me.shouheng.ui:uix-core:1.4.0'
+    implementation 'me.shouheng.vmlib:vmlib-core:1.5.0'
+    implementation 'me.shouheng.ui:uix-core:1.4.5'
+    implementation 'me.shouheng.utils:utils-ktx:2.1.1'
     // leakcanarye
     debugImplementation 'com.squareup.leakcanary:leakcanary-android:1.6.2'
     releaseImplementation 'com.squareup.leakcanary:leakcanary-android-no-op:1.6.1'
