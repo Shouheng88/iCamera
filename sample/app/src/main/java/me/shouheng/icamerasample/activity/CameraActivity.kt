@@ -2,6 +2,8 @@ package me.shouheng.icamerasample.activity
 
 import android.animation.Animator
 import android.content.res.Configuration
+import android.graphics.Bitmap
+import android.graphics.Canvas
 import android.os.Bundle
 import android.support.v4.view.ViewCompat
 import android.support.v7.widget.PopupMenu
@@ -17,20 +19,17 @@ import me.shouheng.icamera.enums.FlashMode
 import me.shouheng.icamera.enums.MediaType
 import me.shouheng.icamera.listener.*
 import me.shouheng.icamera.util.ImageHelper
-import me.shouheng.icamera.util.XLog
 import me.shouheng.icamerasample.R
 import me.shouheng.icamerasample.databinding.ActivityCameraBinding
 import me.shouheng.icamerasample.utils.FileHelper.getSavedFile
 import me.shouheng.icamerasample.utils.FileHelper.saveImageToGallery
 import me.shouheng.icamerasample.utils.FileHelper.saveVideoToGallery
-import me.shouheng.uix.common.listener.NoDoubleClickListener
-import me.shouheng.uix.common.listener.onDebouncedClick
-import me.shouheng.utils.app.ResUtils
-import me.shouheng.utils.ktx.*
+import me.shouheng.utils.ktx.dp2px
+import me.shouheng.utils.ktx.invisible
+import me.shouheng.utils.ktx.onDebouncedClick
+import me.shouheng.utils.ktx.stringOf
 import me.shouheng.utils.stability.L
 import me.shouheng.utils.ui.BarUtils
-import me.shouheng.utils.ui.ViewUtils
-import me.shouheng.utils.ui.ViewUtils.dp2px
 import me.shouheng.vmlib.base.CommonActivity
 import me.shouheng.vmlib.comn.EmptyViewModel
 import java.io.File
@@ -49,7 +48,7 @@ class CameraActivity : CommonActivity<EmptyViewModel, ActivityCameraBinding>() {
     private var isCameraRecording = false
 
     override fun doCreateView(savedInstanceState: Bundle?) {
-        logd("doCreateView")
+        L.d("doCreateView")
         BarUtils.setStatusBarLightMode(window, false)
         configDrawer()
         configMain()
@@ -148,17 +147,17 @@ class CameraActivity : CommonActivity<EmptyViewModel, ActivityCameraBinding>() {
         binding.cv.setOnMoveListener { toast(if (it) "LEFT" else "RIGHT") }
         binding.cv.addCameraSizeListener(object : CameraSizeListener {
             override fun onPreviewSizeUpdated(previewSize: Size?) {
-                logd("onPreviewSizeUpdated : $previewSize")
+                L.d("onPreviewSizeUpdated : $previewSize")
                 displayCameraInfo()
             }
 
             override fun onVideoSizeUpdated(videoSize: Size?) {
-                logd("onVideoSizeUpdated : $videoSize")
+                L.d("onVideoSizeUpdated : $videoSize")
                 displayCameraInfo()
             }
 
             override fun onPictureSizeUpdated(pictureSize: Size?) {
-                logd("onPictureSizeUpdated : $pictureSize")
+                L.d("onPictureSizeUpdated : $pictureSize")
                 displayCameraInfo()
             }
         })
@@ -179,7 +178,7 @@ class CameraActivity : CommonActivity<EmptyViewModel, ActivityCameraBinding>() {
             /*used to slow the calculation*/
             private var frame: Int = 0
             override fun onPreviewFrame(data: ByteArray?, size: Size, format: Int) {
-                logd("onPreviewFrame")
+                L.d("onPreviewFrame")
                 if (frame % 25 == 0) {
                     frame = 1
                     try {
@@ -217,10 +216,10 @@ class CameraActivity : CommonActivity<EmptyViewModel, ActivityCameraBinding>() {
         super.onResume()
         if (!binding.cv.isCameraOpened) {
             binding.cv.openCamera(object : CameraOpenListener {
-                override fun onCameraOpened(cameraFace: Int) { logd("onCameraOpened") }
+                override fun onCameraOpened(cameraFace: Int) { L.d("onCameraOpened") }
 
                 override fun onCameraOpenError(throwable: Throwable) {
-                    loge(throwable)
+                    L.e(throwable)
                     toast("Camera open error : $throwable")
                 }
             })
@@ -229,7 +228,7 @@ class CameraActivity : CommonActivity<EmptyViewModel, ActivityCameraBinding>() {
 
     override fun onPause() {
         super.onPause()
-        binding.cv.closeCamera { logd("closeCamera : $it") }
+        binding.cv.closeCamera { L.d("closeCamera : $it") }
     }
 
     override fun onDestroy() {
@@ -239,14 +238,14 @@ class CameraActivity : CommonActivity<EmptyViewModel, ActivityCameraBinding>() {
 
     override fun onConfigurationChanged(newConfig: Configuration?) {
         super.onConfigurationChanged(newConfig)
-        logd("CameraActivity", "onConfigurationChanged")
+        L.d("CameraActivity", "onConfigurationChanged")
     }
 
     private fun takePicture() {
         val fileToSave = getSavedFile("jpg")
         binding.cv.takePicture(fileToSave, object : CameraPhotoListener {
             override fun onCaptureFailed(throwable: Throwable) {
-                loge(throwable)
+                L.e(throwable)
                 toast("onCaptureFailed : $throwable")
             }
 
