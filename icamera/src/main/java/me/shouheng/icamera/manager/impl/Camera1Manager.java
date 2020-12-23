@@ -2,6 +2,7 @@ package me.shouheng.icamera.manager.impl;
 
 import android.content.Context;
 import android.graphics.PixelFormat;
+import android.graphics.SurfaceTexture;
 import android.hardware.Camera;
 import android.media.ExifInterface;
 import android.media.MediaActionSound;
@@ -579,7 +580,8 @@ public class Camera1Manager extends BaseCameraManager<Integer> {
                     showingPreview = true;
                 }
             } else {
-                camera.setPreviewTexture(cameraPreview.getSurfaceTexture());
+                SurfaceTexture surfaceTexture = cameraPreview.getSurfaceTexture();
+                camera.setPreviewTexture(surfaceTexture);
             }
 
             camera.setDisplayOrientation(CameraHelper.calDisplayOrientation(context, cameraFace,

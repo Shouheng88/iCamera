@@ -178,7 +178,6 @@ class CameraActivity : CommonActivity<EmptyViewModel, ActivityCameraBinding>() {
             /*used to slow the calculation*/
             private var frame: Int = 0
             override fun onPreviewFrame(data: ByteArray?, size: Size, format: Int) {
-                L.d("onPreviewFrame")
                 if (frame % 25 == 0) {
                     frame = 1
                     try {

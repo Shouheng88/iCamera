@@ -133,7 +133,6 @@
 
             <android.support.v7.widget.AppCompatImageView
                 android:id="@+id/iv_preview"
-                android:visibility="gone"
                 android:layout_marginTop="?actionBarSize"
                 android:layout_alignParentRight="true"
                 android:layout_alignParentEnd="true"

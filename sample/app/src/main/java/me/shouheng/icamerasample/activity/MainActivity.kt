@@ -5,8 +5,10 @@ import android.os.Bundle
 import android.support.annotation.RequiresApi
 import android.view.View
 import me.shouheng.icamera.config.ConfigurationProvider
+import me.shouheng.icamera.config.creator.CameraPreviewCreator
 import me.shouheng.icamera.config.creator.impl.*
 import me.shouheng.icamerasample.R
+import me.shouheng.icamerasample.camera.FilterTexturePreview
 import me.shouheng.icamerasample.databinding.ActivityMainBinding
 import me.shouheng.utils.ktx.checkPermissions
 import me.shouheng.utils.ktx.start
@@ -75,7 +77,7 @@ class MainActivity : CommonActivity<EmptyViewModel, ActivityMainBinding>() {
         ConfigurationProvider.get().cameraPreviewCreator = when(option) {
             0 -> SurfaceViewOnlyCreator()
             1 -> TextureViewOnlyCreator()
-            else -> CameraPreviewCreatorImpl()
+            else -> CameraPreviewCreator { context, parent -> FilterTexturePreview(context, parent) }
         }
         when(option) {
             0 -> binding.rbSurface

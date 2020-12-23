@@ -12,7 +12,7 @@ import me.shouheng.icamera.preview.CameraPreviewCallback;
  * @author WngShhng (shouheng2015@gmail.com)
  * @version 2019/4/13 22:53
  */
-abstract class BaseCameraPreview implements CameraPreview {
+public abstract class BaseCameraPreview implements CameraPreview {
 
     private int width;
 
@@ -20,7 +20,7 @@ abstract class BaseCameraPreview implements CameraPreview {
 
     private CameraPreviewCallback cameraPreviewCallback;
 
-    BaseCameraPreview(Context context, ViewGroup parent) {
+    protected BaseCameraPreview(Context context, ViewGroup parent) {
     }
 
     @Override
@@ -28,7 +28,7 @@ abstract class BaseCameraPreview implements CameraPreview {
         this.cameraPreviewCallback = cameraPreviewCallback;
     }
 
-    void notifyPreviewAvailable() {
+    protected void notifyPreviewAvailable() {
         if (cameraPreviewCallback != null) {
             cameraPreviewCallback.onAvailable(this);
         }
@@ -44,7 +44,7 @@ abstract class BaseCameraPreview implements CameraPreview {
         return Size.of(width, height);
     }
 
-    void setSize(int width, int height) {
+    protected void setSize(int width, int height) {
         this.width = width;
         this.height = height;
     }
