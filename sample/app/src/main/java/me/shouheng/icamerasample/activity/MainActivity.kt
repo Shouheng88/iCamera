@@ -77,7 +77,7 @@ class MainActivity : CommonActivity<EmptyViewModel, ActivityMainBinding>() {
         ConfigurationProvider.get().cameraPreviewCreator = when(option) {
             0 -> SurfaceViewOnlyCreator()
             1 -> TextureViewOnlyCreator()
-            else -> CameraPreviewCreator { context, parent -> FilterTexturePreview(context, parent) }
+            else -> CameraPreviewCreatorImpl()
         }
         when(option) {
             0 -> binding.rbSurface
