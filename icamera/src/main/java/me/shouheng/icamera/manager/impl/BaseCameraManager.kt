@@ -103,6 +103,7 @@ abstract class BaseCameraManager<CameraId>(var cameraPreview: CameraPreview) : C
         if (cameraFace == this.cameraFace) return
         this.cameraFace = cameraFace
         currentCameraId = if (cameraFace == CameraFace.FACE_FRONT) frontCameraId else rearCameraId
+        if (ConfigurationProvider.get().useCameraFallback) cameraFallback()
     }
 
     override fun getMaxZoom(): Float = maxZoomValue
@@ -274,6 +275,18 @@ abstract class BaseCameraManager<CameraId>(var cameraPreview: CameraPreview) : C
 
     fun notifyCameraClosed() {
         uiHandler.post { cameraCloseListener?.onCameraClosed(cameraFace) }
+    }
+
+    fun cameraFallback() {
+        if (currentCameraId == null) {
+            if (cameraFace == CameraFace.FACE_REAR) {
+                cameraFace = CameraFace.FACE_FRONT
+                currentCameraId = frontCameraId
+            } else {
+                cameraFace = CameraFace.FACE_REAR
+                currentCameraId = rearCameraId
+            }
+        }
     }
 
     /*----------------------------------- Private Methods Region -----------------------------------*/

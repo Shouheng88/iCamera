@@ -15,6 +15,7 @@ import android.media.MediaRecorder
 import android.os.Build
 import android.support.annotation.IntDef
 import android.support.annotation.RequiresApi
+import android.text.TextUtils
 import android.view.Surface
 import android.view.SurfaceHolder
 import me.shouheng.icamera.config.ConfigurationProvider
@@ -497,6 +498,8 @@ class Camera2Manager(cameraPreview: CameraPreview) : BaseCameraManager<String>(c
         }
         d("Camera2Manager", "initCameraInfo basic cost : " + (System.currentTimeMillis() - start) + " ms")
         currentCameraId = if (cameraFace == CameraFace.FACE_REAR) rearCameraId else frontCameraId
+        // fix 2021-01-09 if failed to get rear camera id, then use front camera, instead of just let it crash
+        if (ConfigurationProvider.get().useCameraFallback) cameraFallback()
     }
 
     private fun prepareCameraOutputs() {

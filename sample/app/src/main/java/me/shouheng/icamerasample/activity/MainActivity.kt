@@ -67,7 +67,6 @@ class MainActivity : CommonActivity<EmptyViewModel, ActivityMainBinding>() {
                     toast("Device only has one camera [$face]")
                 }
                 else -> {
-                    ConfigurationProvider.get().defaultCameraFace = CameraFace.FACE_FRONT
                     start(CameraActivity::class.java)
                 }
             }
