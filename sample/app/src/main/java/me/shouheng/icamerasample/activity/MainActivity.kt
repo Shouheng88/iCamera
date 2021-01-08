@@ -3,15 +3,15 @@ package me.shouheng.icamerasample.activity
 import android.os.Build
 import android.os.Bundle
 import android.support.annotation.RequiresApi
-import android.util.Log
 import android.view.View
 import me.shouheng.icamera.config.ConfigurationProvider
 import me.shouheng.icamera.config.creator.impl.*
 import me.shouheng.icamerasample.R
 import me.shouheng.icamerasample.databinding.ActivityMainBinding
+import me.shouheng.utils.ktx.checkPermissions
+import me.shouheng.utils.ktx.start
 import me.shouheng.utils.permission.Permission
-import me.shouheng.utils.permission.PermissionUtils
-import me.shouheng.utils.permission.callback.OnGetPermissionCallback
+import me.shouheng.utils.stability.L
 import me.shouheng.utils.store.SPUtils
 import me.shouheng.utils.ui.BarUtils
 import me.shouheng.vmlib.base.CommonActivity
@@ -29,7 +29,7 @@ class MainActivity : CommonActivity<EmptyViewModel, ActivityMainBinding>() {
 
     @RequiresApi(Build.VERSION_CODES.LOLLIPOP)
     override fun doCreateView(savedInstanceState: Bundle?) {
-        Log.d("MainActivity", "doCreateView")
+        L.d("MainActivity", "doCreateView")
         BarUtils.setStatusBarLightMode(window, false)
         ConfigurationProvider.get().isDebug = true
         setSupportActionBar(binding.toolbar)
@@ -52,9 +52,8 @@ class MainActivity : CommonActivity<EmptyViewModel, ActivityMainBinding>() {
     }
 
     fun openCamera(v: View) {
-        PermissionUtils.checkPermissions(this, OnGetPermissionCallback {
-            startActivity(CameraActivity::class.java)
-        }, Permission.CAMERA, Permission.STORAGE, Permission.MICROPHONE)
+        checkPermissions({ start(CameraActivity::class.java) },
+            Permission.CAMERA, Permission.STORAGE, Permission.MICROPHONE)
     }
 
     @RequiresApi(Build.VERSION_CODES.LOLLIPOP)

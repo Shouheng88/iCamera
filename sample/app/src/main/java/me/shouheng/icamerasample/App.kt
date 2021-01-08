@@ -1,5 +1,6 @@
 package me.shouheng.icamerasample
 
+import android.annotation.SuppressLint
 import android.app.Application
 import com.squareup.leakcanary.LeakCanary
 import me.shouheng.icamera.config.ConfigurationProvider
@@ -40,6 +41,7 @@ class App : Application() {
     companion object {
         private lateinit var application: Application
         fun app(): Application = application
+        @SuppressLint("MissingPermission")
         fun configCrashHelper(application: Application) {
             // crash detect tools, the crash log was saved to : data/data/package_name/files/crash
             if (PermissionUtils.hasPermissions(Permission.STORAGE)) {
