@@ -144,19 +144,23 @@ class CameraActivity : CommonActivity<EmptyViewModel, ActivityCameraBinding>() {
             displayCameraInfo()
         }
 
-        binding.cv.setOnMoveListener { toast(if (it) "LEFT" else "RIGHT") }
+        binding.cv.setOnMoveListener(object : OnMoveListener {
+            override fun onMove(left: Boolean) {
+                toast(if (left) "LEFT" else "RIGHT")
+            }
+        })
         binding.cv.addCameraSizeListener(object : CameraSizeListener {
-            override fun onPreviewSizeUpdated(previewSize: Size?) {
+            override fun onPreviewSizeUpdated(previewSize: Size) {
                 L.d("onPreviewSizeUpdated : $previewSize")
                 displayCameraInfo()
             }
 
-            override fun onVideoSizeUpdated(videoSize: Size?) {
+            override fun onVideoSizeUpdated(videoSize: Size) {
                 L.d("onVideoSizeUpdated : $videoSize")
                 displayCameraInfo()
             }
 
-            override fun onPictureSizeUpdated(pictureSize: Size?) {
+            override fun onPictureSizeUpdated(pictureSize: Size) {
                 L.d("onPictureSizeUpdated : $pictureSize")
                 displayCameraInfo()
             }
@@ -167,17 +171,18 @@ class CameraActivity : CommonActivity<EmptyViewModel, ActivityCameraBinding>() {
             } else { takeVideo() }
         }
 
-        binding.cv.addOrientationChangedListener { degree ->
-            ViewCompat.setRotation(binding.ivFlash, degree.toFloat())
-            ViewCompat.setRotation(binding.ivSwitch, degree.toFloat())
-            ViewCompat.setRotation(binding.ivTypeSwitch, degree.toFloat())
-            ViewCompat.setRotation(binding.ivSetting, degree.toFloat())
-        }
-
+        binding.cv.addOrientationChangedListener(object : OnOrientationChangedListener {
+            override fun onOrientationChanged(degree: Int) {
+                ViewCompat.setRotation(binding.ivFlash, degree.toFloat())
+                ViewCompat.setRotation(binding.ivSwitch, degree.toFloat())
+                ViewCompat.setRotation(binding.ivTypeSwitch, degree.toFloat())
+                ViewCompat.setRotation(binding.ivSetting, degree.toFloat())
+            }
+        })
         binding.cv.setCameraPreviewListener(object : CameraPreviewListener {
             /*used to slow the calculation*/
             private var frame: Int = 0
-            override fun onPreviewFrame(data: ByteArray?, size: Size, format: Int) {
+            override fun onPreviewFrame(data: ByteArray, size: Size, format: Int) {
                 if (frame % 25 == 0) {
                     frame = 1
                     try {
@@ -227,7 +232,11 @@ class CameraActivity : CommonActivity<EmptyViewModel, ActivityCameraBinding>() {
 
     override fun onPause() {
         super.onPause()
-        binding.cv.closeCamera { L.d("closeCamera : $it") }
+        binding.cv.closeCamera(object : CameraCloseListener {
+            override fun onCameraClosed(cameraFace: Int) {
+                L.d("closeCamera : $cameraFace")
+            }
+        })
     }
 
     override fun onDestroy() {
@@ -248,7 +257,7 @@ class CameraActivity : CommonActivity<EmptyViewModel, ActivityCameraBinding>() {
                 toast("onCaptureFailed : $throwable")
             }
 
-            override fun onPictureTaken(data: ByteArray?, picture: File) {
+            override fun onPictureTaken(data: ByteArray, picture: File) {
 //                IOUtils.writeFileFromBytesByStream(fileToSave, data)
                 saveImageToGallery(context, fileToSave, fileToSave.name)
                 toast("Saved to $fileToSave")
@@ -272,13 +281,13 @@ class CameraActivity : CommonActivity<EmptyViewModel, ActivityCameraBinding>() {
                     isCameraRecording = true
                 }
 
-                override fun onVideoRecordStop(file: File?) {
+                override fun onVideoRecordStop(file: File) {
                     isCameraRecording = false
                     saveVideoToGallery(context, fileToSave, fileToSave.name)
                     toast("Saved to $file")
                 }
 
-                override fun onVideoRecordError(throwable: Throwable?) {
+                override fun onVideoRecordError(throwable: Throwable) {
                     isCameraRecording = false
                     toast("$throwable")
                     L.e(throwable)

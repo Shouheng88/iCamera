@@ -4,7 +4,7 @@ import android.graphics.ImageFormat
 import android.media.Image
 import android.os.Build
 import android.support.annotation.RequiresApi
-import me.shouheng.icamera.util.ImageHelper.Companion.convertYUV_420_888toNV21
+import me.shouheng.icamera.util.ImageHelper.convertYUV_420_888toNV21
 
 /**
  * The default image raw data converter implementation.

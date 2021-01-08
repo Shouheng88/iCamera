@@ -36,7 +36,7 @@ class CameraSizeCalculatorImpl : CameraSizeCalculator {
 
     override fun init(
         expectAspectRatio: AspectRatio,
-        expectSize: Size,
+        expectSize: Size?,
         @MediaQuality mediaQuality: Int,
         previewSizes: List<Size>,
         pictureSizes: List<Size>,

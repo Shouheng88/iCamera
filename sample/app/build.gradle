@@ -51,7 +51,7 @@ dependencies {
     implementation "com.android.support:appcompat-v7:$supportLibVersion"
     implementation "com.android.support:design:$supportLibVersion"
     implementation 'me.shouheng.vmlib:vmlib-core:1.5.9'
-    implementation ('me.shouheng.ui:uix-core:1.5.7') {
+    implementation ('me.shouheng.ui:uix-core:1.6.20') {
         exclude group: "me.shouheng.icamera"
     }
     implementation 'me.shouheng.utils:utils-ktx:2.1.5'
