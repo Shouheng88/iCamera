@@ -35,6 +35,18 @@ object CameraHelper {
                 pm.hasSystemFeature(PackageManager.FEATURE_CAMERA_FRONT)
     }
 
+    fun getCameras(context: Context): List<Int> {
+        val list = mutableListOf<Int>()
+        val pm = context.packageManager
+        if (pm.hasSystemFeature(PackageManager.FEATURE_CAMERA)) {
+            list.add(CameraFace.FACE_REAR)
+        }
+        if (pm.hasSystemFeature(PackageManager.FEATURE_CAMERA_FRONT)) {
+            list.add(CameraFace.FACE_FRONT)
+        }
+        return list
+    }
+
     @TargetApi(Build.VERSION_CODES.LOLLIPOP)
     fun hasCamera2(context: Context): Boolean {
         return if (Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP) false else try {

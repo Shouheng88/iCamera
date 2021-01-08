@@ -312,7 +312,7 @@ class Camera2Manager(cameraPreview: CameraPreview) : BaseCameraManager<String>(c
     override fun getMaxZoom(): Float {
         if (maxZoomValue == 0f) {
             val cameraCharacteristics = if (cameraFace == CameraFace.FACE_FRONT) frontCameraCharacteristics else rearCameraCharacteristics
-            maxZoomValue = cameraCharacteristics!!.get(CameraCharacteristics.SCALER_AVAILABLE_MAX_DIGITAL_ZOOM) ?: 1.0f
+            maxZoomValue = cameraCharacteristics?.get(CameraCharacteristics.SCALER_AVAILABLE_MAX_DIGITAL_ZOOM) ?: 1.0f
         }
         return maxZoomValue
     }
@@ -542,26 +542,17 @@ class Camera2Manager(cameraPreview: CameraPreview) : BaseCameraManager<String>(c
         if (pictureSize == null || forceCalculate) {
             pictureSize = calculator.getPictureSize(CameraType.TYPE_CAMERA2)
             previewSize = calculator.getPicturePreviewSize(CameraType.TYPE_CAMERA2)
-            notifyPictureSizeUpdated(pictureSize!!)
+            pictureSize?.let {
+                notifyPictureSizeUpdated(it)
+                // fix: CaptureRequest contains un-configured Input/Output Surface!
+                imageReader = ImageReader.newInstance(it.width, it.height, ImageFormat.JPEG,  /*maxImages*/2)
+                imageReader!!.setOnImageAvailableListener(this, backgroundHandler)
+            }
 
-            // fix: CaptureRequest contains un-configured Input/Output Surface!
-            imageReader = ImageReader.newInstance(
-                pictureSize!!.width,
-                pictureSize!!.height,
-                ImageFormat.JPEG,  /*maxImages*/
-                2
-            )
-            imageReader!!.setOnImageAvailableListener(this, backgroundHandler)
-            previewReader = ImageReader.newInstance(
-                previewSize!!.width,
-                previewSize!!.height,
-                ImageFormat.YUV_420_888,
-                2
-            )
-            previewReader!!.setOnImageAvailableListener(
-                onPreviewImageAvailableListener,
-                backgroundHandler
-            )
+            previewSize?.let {
+                previewReader = ImageReader.newInstance(it.width, it.height, ImageFormat.YUV_420_888, 2)
+                previewReader!!.setOnImageAvailableListener(onPreviewImageAvailableListener, backgroundHandler)
+            }
         }
         // fixed 2020-08-29 : the video size might be null if quickly switched
         // from media types while first time launch the camera.

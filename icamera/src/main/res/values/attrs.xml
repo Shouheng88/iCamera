@@ -4,6 +4,7 @@
         <attr name="android:adjustViewBounds"/>
         <!--The front camera of rear camera.-->
         <attr name="cameraFace" format="enum">
+            <enum name="none" value="-1"/>
             <enum name="rear" value="0"/>
             <enum name="front" value="1"/>
         </attr>

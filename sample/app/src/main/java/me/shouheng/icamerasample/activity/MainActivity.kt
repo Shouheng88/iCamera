@@ -6,6 +6,8 @@ import android.support.annotation.RequiresApi
 import android.view.View
 import me.shouheng.icamera.config.ConfigurationProvider
 import me.shouheng.icamera.config.creator.impl.*
+import me.shouheng.icamera.enums.CameraFace
+import me.shouheng.icamera.util.CameraHelper
 import me.shouheng.icamerasample.R
 import me.shouheng.icamerasample.databinding.ActivityMainBinding
 import me.shouheng.utils.ktx.checkPermissions
@@ -52,8 +54,24 @@ class MainActivity : CommonActivity<EmptyViewModel, ActivityMainBinding>() {
     }
 
     fun openCamera(v: View) {
-        checkPermissions({ start(CameraActivity::class.java) },
-            Permission.CAMERA, Permission.STORAGE, Permission.MICROPHONE)
+        checkPermissions({
+            val cameras = CameraHelper.getCameras(context)
+            when {
+                cameras.isEmpty() -> {
+                    toast("No camera on this device")
+                }
+                cameras.size == 1 -> {
+                    val face = cameras[0]
+                    ConfigurationProvider.get().defaultCameraFace = face
+                    start(CameraActivity::class.java)
+                    toast("Device only has one camera [$face]")
+                }
+                else -> {
+                    ConfigurationProvider.get().defaultCameraFace = CameraFace.FACE_FRONT
+                    start(CameraActivity::class.java)
+                }
+            }
+        }, Permission.CAMERA, Permission.STORAGE, Permission.MICROPHONE)
     }
 
     @RequiresApi(Build.VERSION_CODES.LOLLIPOP)

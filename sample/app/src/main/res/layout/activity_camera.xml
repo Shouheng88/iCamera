@@ -18,7 +18,6 @@
                 android:id="@+id/cv"
                 app:scaleRate="10"
                 app:mediaType="picture"
-                app:cameraFace="rear"
                 android:adjustViewBounds="true"
                 app:clipScreen="false"
                 app:aspectRatio="4:3"
