@@ -1,4 +1,4 @@
-package me.shouheng.icamera.listener;
+package me.shouheng.icamera.listener
 
 /**
  * The finger move event listener on the focus maker.
@@ -7,7 +7,6 @@ package me.shouheng.icamera.listener;
  * @author WngShhng (shouheng2015@gmail.com)
  * @version 2019/4/15 8:31
  */
-public interface OnMoveListener {
-
-    void onMove(boolean left);
+interface OnMoveListener {
+    fun onMove(left: Boolean)
 }
