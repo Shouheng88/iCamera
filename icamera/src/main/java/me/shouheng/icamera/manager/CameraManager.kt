@@ -22,25 +22,34 @@ interface CameraManager {
     /** Open camera. */
     fun openCamera(cameraOpenListener: CameraOpenListener?)
 
+    /** Is camera opened */
     val isCameraOpened: Boolean
 
+    /** Get current camera face */
     @get:CameraFace
     var cameraFace: Int
 
+    /** Switch camera face */
     fun switchCamera(@CameraFace cameraFace: Int)
 
+    /** Get current media type */
     @get:MediaType
     var mediaType: Int
 
+    /** Is voice enabled */
     var isVoiceEnable: Boolean
 
+    /** Is current auto focus */
     var isAutoFocus: Boolean
 
+    /** Get current flash mode */
     @get:FlashMode
     var flashMode: Int
 
+    /** Current zoom */
     var zoom: Float
 
+    /** Get max zoom */
     fun getMaxZoom(): Float
 
     /** Set desired size */
@@ -49,6 +58,7 @@ interface CameraManager {
     /** Sed desired aspect ratio.*/
     fun setExpectAspectRatio(expectAspectRatio: AspectRatio)
 
+    /** Set desired media quality */
     fun setMediaQuality(@MediaQuality mediaQuality: Int)
 
     /** Get current size for usage. */
@@ -72,8 +82,10 @@ interface CameraManager {
     /** Take a picture */
     fun takePicture(fileToSave: File, cameraPhotoListener: CameraPhotoListener?)
 
+    /** Get max video file size */
     var videoFileSize: Long
 
+    /** Get max video duration */
     var videoDuration: Int
 
     /** Start video record */

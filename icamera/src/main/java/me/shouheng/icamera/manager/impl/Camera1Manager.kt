@@ -370,9 +370,9 @@ class Camera1Manager(cameraPreview: CameraPreview) : BaseCameraManager<Int?>(cam
         if (videoSize == null || forceCalculateSizes) {
             videoSize = calculator.getVideoSize(CameraType.TYPE_CAMERA1)
             previewSize = calculator.getVideoPreviewSize(CameraType.TYPE_CAMERA1)
-            notifyVideoSizeUpdated(videoSize!!)
+            videoSize?.let { notifyVideoSizeUpdated(it) }
         }
-        if (previewSize != oldPreview) {
+        if (previewSize != null && previewSize != oldPreview) {
             parameters.setPreviewSize(previewSize!!.width, previewSize!!.height)
             notifyPreviewSizeUpdated(previewSize!!)
         }
