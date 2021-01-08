@@ -300,7 +300,7 @@ abstract class BaseCameraManager<CameraId>(var cameraPreview: CameraPreview) : C
         try {
             backgroundThread?.join()
         } catch (e: InterruptedException) {
-            XLog.e("BaseCameraManager", "stopBackgroundThread: $e")
+            e("BaseCameraManager", "stopBackgroundThread: $e")
         } finally {
             backgroundThread = null
             backgroundHandler = null

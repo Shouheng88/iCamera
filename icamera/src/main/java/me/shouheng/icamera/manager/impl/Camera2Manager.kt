@@ -349,19 +349,19 @@ class Camera2Manager(cameraPreview: CameraPreview) : BaseCameraManager<String>(c
     override fun getSizes(@CameraSizeFor sizeFor: Int): SizeMap? {
         return when (sizeFor) {
             CameraSizeFor.SIZE_FOR_PREVIEW -> {
-                if (previewSizeMap == null) {
+                if (previewSizeMap == null && previewSizes != null) {
                     previewSizeMap = getSizeMapFromSizes(previewSizes!!)
                 }
                 previewSizeMap
             }
             CameraSizeFor.SIZE_FOR_PICTURE -> {
-                if (pictureSizeMap == null) {
+                if (pictureSizeMap == null && pictureSizes != null) {
                     pictureSizeMap = getSizeMapFromSizes(pictureSizes!!)
                 }
                 pictureSizeMap
             }
             CameraSizeFor.SIZE_FOR_VIDEO -> {
-                if (videoSizeMap == null) {
+                if (videoSizeMap == null && videoSizes != null) {
                     videoSizeMap = getSizeMapFromSizes(videoSizes!!)
                 }
                 videoSizeMap
@@ -569,11 +569,11 @@ class Camera2Manager(cameraPreview: CameraPreview) : BaseCameraManager<String>(c
             camcorderProfile = CameraHelper.getCamcorderProfile(expectedQuality, currentCameraId!!)
             videoSize = calculator.getVideoSize(CameraType.TYPE_CAMERA2)
             previewSize = calculator.getVideoPreviewSize(CameraType.TYPE_CAMERA2)
-            notifyVideoSizeUpdated(videoSize!!)
+            videoSize?.let { notifyVideoSizeUpdated(it) }
         }
         d("Camera2Manager", "previewSize: $previewSize oldPreviewSize:$oldPreviewSize")
         if (previewSize != oldPreviewSize) {
-            notifyPreviewSizeUpdated(previewSize!!)
+            previewSize?.let { notifyPreviewSizeUpdated(it) }
         }
     }
 
@@ -685,7 +685,7 @@ class Camera2Manager(cameraPreview: CameraPreview) : BaseCameraManager<String>(c
                 workingSurface = videoRecorder!!.surface
                 surfaces.add(workingSurface!!)
                 previewRequestBuilder?.addTarget(workingSurface!!)
-                cameraDevice!!.createCaptureSession(
+                cameraDevice?.createCaptureSession(
                     surfaces,
                     object : CameraCaptureSession.StateCallback() {
                         override fun onConfigured(cameraCaptureSession: CameraCaptureSession) {
@@ -695,7 +695,7 @@ class Camera2Manager(cameraPreview: CameraPreview) : BaseCameraManager<String>(c
                                 CameraMetadata.CONTROL_MODE_AUTO
                             )
                             try {
-                                captureSession!!.setRepeatingRequest(
+                                captureSession?.setRepeatingRequest(
                                     previewRequestBuilder!!.build(),
                                     null,
                                     backgroundHandler
@@ -705,7 +705,7 @@ class Camera2Manager(cameraPreview: CameraPreview) : BaseCameraManager<String>(c
                                 notifyVideoRecordError(e)
                             }
                             try {
-                                videoRecorder!!.start()
+                                videoRecorder?.start()
                                 videoRecording = true
                                 notifyVideoRecordStart()
                             } catch (e: Exception) {
@@ -728,7 +728,7 @@ class Camera2Manager(cameraPreview: CameraPreview) : BaseCameraManager<String>(c
         }
         if (cameraPreview.previewType == PreviewViewType.TEXTURE_VIEW) {
             val texture = surfaceTexture
-            texture!!.setDefaultBufferSize(videoSize!!.width, videoSize!!.height)
+            texture?.setDefaultBufferSize(videoSize!!.width, videoSize!!.height)
             sessionCreationTask.run()
         } else if (cameraPreview.previewType == PreviewViewType.SURFACE_VIEW) {
             uiHandler.post {
@@ -741,12 +741,12 @@ class Camera2Manager(cameraPreview: CameraPreview) : BaseCameraManager<String>(c
 
     private fun runPreCaptureSequence() {
         try {
-            previewRequestBuilder!!.set(
+            previewRequestBuilder?.set(
                 CaptureRequest.CONTROL_AE_PRECAPTURE_TRIGGER,
                 CaptureRequest.CONTROL_AE_PRECAPTURE_TRIGGER_START
             )
             captureSessionCallback.setCameraPreviewState(CameraState.STATE_WAITING_PRE_CAPTURE)
-            captureSession!!.capture(
+            captureSession?.capture(
                 previewRequestBuilder!!.build(),
                 captureSessionCallback,
                 backgroundHandler
@@ -760,7 +760,7 @@ class Camera2Manager(cameraPreview: CameraPreview) : BaseCameraManager<String>(c
         try {
             val cameraCharacteristics = if (cameraFace == CameraFace.FACE_FRONT)
                 frontCameraCharacteristics else rearCameraCharacteristics
-            val isFlashAvailable = cameraCharacteristics!!.get(CameraCharacteristics.FLASH_INFO_AVAILABLE)
+            val isFlashAvailable = cameraCharacteristics?.get(CameraCharacteristics.FLASH_INFO_AVAILABLE)
             if (isFlashAvailable == null || !isFlashAvailable) {
                 i("Camera2Manager", "Flash is not available.")
                 return false
@@ -818,7 +818,7 @@ class Camera2Manager(cameraPreview: CameraPreview) : BaseCameraManager<String>(c
         if (isAutoFocus) {
             val cameraCharacteristics = if (cameraFace == CameraFace.FACE_FRONT)
                 frontCameraCharacteristics else rearCameraCharacteristics
-            val modes = cameraCharacteristics!!.get(CameraCharacteristics.CONTROL_AF_AVAILABLE_MODES)
+            val modes = cameraCharacteristics?.get(CameraCharacteristics.CONTROL_AF_AVAILABLE_MODES)
             if (modes == null || modes.isEmpty() ||
                 modes.size == 1 && modes[0] == CameraCharacteristics.CONTROL_AF_MODE_OFF
             ) {
@@ -853,7 +853,7 @@ class Camera2Manager(cameraPreview: CameraPreview) : BaseCameraManager<String>(c
         }
         val cameraCharacteristics = if (cameraFace == CameraFace.FACE_FRONT)
             frontCameraCharacteristics else rearCameraCharacteristics
-        val rect = cameraCharacteristics!!.get(CameraCharacteristics.SENSOR_INFO_ACTIVE_ARRAY_SIZE) ?: return false
+        val rect = cameraCharacteristics?.get(CameraCharacteristics.SENSOR_INFO_ACTIVE_ARRAY_SIZE) ?: return false
         zoom = zoom.coerceAtLeast(1f).coerceAtMost(maxZoom)
         val cropW = (rect.width() - (rect.width().toFloat() / zoom).toInt()) / 2
         val cropH = (rect.height() - (rect.height().toFloat() / zoom).toInt()) / 2
@@ -932,9 +932,9 @@ class Camera2Manager(cameraPreview: CameraPreview) : BaseCameraManager<String>(c
 
     private fun closePreviewSession() {
         if (captureSession != null) {
-            captureSession!!.close()
+            captureSession?.close()
             try {
-                captureSession!!.abortCaptures()
+                captureSession?.abortCaptures()
             } catch (e: Exception) {
                 e("Camera2Manager", "closePreviewSession error : $e")
             } finally {

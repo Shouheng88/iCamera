@@ -99,7 +99,7 @@ class Camera1Manager(cameraPreview: CameraPreview) : BaseCameraManager<Int?>(cam
             if (isCameraOpened) {
                 backgroundHandler?.post {
                     try {
-                        adjustCameraParameters(true, false, false)
+                        adjustCameraParameters(forceCalculateSizes = true, changeFocusMode = false, changeFlashMode = false)
                     } catch (ex: Exception) {
                         e("Camera1Manager", "setMediaType : $ex")
                     }
@@ -187,19 +187,19 @@ class Camera1Manager(cameraPreview: CameraPreview) : BaseCameraManager<Int?>(cam
     override fun getSizes(@CameraSizeFor sizeFor: Int): SizeMap? {
         return when (sizeFor) {
             CameraSizeFor.SIZE_FOR_PREVIEW -> {
-                if (previewSizeMap == null) {
+                if (previewSizeMap == null && previewSizes != null) {
                     previewSizeMap = getSizeMapFromSizes(previewSizes!!)
                 }
                 previewSizeMap
             }
             CameraSizeFor.SIZE_FOR_PICTURE -> {
-                if (pictureSizeMap == null) {
+                if (pictureSizeMap == null && pictureSizes != null) {
                     pictureSizeMap = getSizeMapFromSizes(pictureSizes!!)
                 }
                 pictureSizeMap
             }
             CameraSizeFor.SIZE_FOR_VIDEO -> {
-                if (videoSizeMap == null) {
+                if (videoSizeMap == null && videoSizes != null) {
                     videoSizeMap = getSizeMapFromSizes(videoSizes!!)
                 }
                 videoSizeMap
@@ -474,7 +474,7 @@ class Camera1Manager(cameraPreview: CameraPreview) : BaseCameraManager<Int?>(cam
                     if (cameraFace == CameraFace.FACE_FRONT) frontCameraOrientation else rearCameraOrientation
                 )
             )
-        } catch (e: IOException) {
+        } catch (e: Exception) {
             notifyCameraOpenError(RuntimeException(e))
         }
     }
