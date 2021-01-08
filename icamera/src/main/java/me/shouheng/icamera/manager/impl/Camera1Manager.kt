@@ -329,17 +329,16 @@ class Camera1Manager(cameraPreview: CameraPreview) : BaseCameraManager<Int?>(cam
             }
         }
         currentCameraId = if (cameraFace == CameraFace.FACE_REAR) rearCameraId else frontCameraId
+        // fix 2021-01-09 if failed to get rear camera id, then use front camera, instead of just let it crash
+        if (ConfigurationProvider.get().useCameraFallback) cameraFallback()
     }
 
     private fun prepareCameraOutputs() {
         try {
             val start = System.currentTimeMillis()
-            previewSizes = ConfigurationProvider.get()
-                .getSizes(camera!!, cameraFace, CameraSizeFor.SIZE_FOR_PREVIEW)
-            pictureSizes = ConfigurationProvider.get()
-                .getSizes(camera!!, cameraFace, CameraSizeFor.SIZE_FOR_PICTURE)
-            videoSizes = ConfigurationProvider.get()
-                .getSizes(camera!!, cameraFace, CameraSizeFor.SIZE_FOR_VIDEO)
+            previewSizes = ConfigurationProvider.get().getSizes(camera!!, cameraFace, CameraSizeFor.SIZE_FOR_PREVIEW)
+            pictureSizes = ConfigurationProvider.get().getSizes(camera!!, cameraFace, CameraSizeFor.SIZE_FOR_PICTURE)
+            videoSizes = ConfigurationProvider.get().getSizes(camera!!, cameraFace, CameraSizeFor.SIZE_FOR_VIDEO)
             zoomRatios = ConfigurationProvider.get().getZoomRatios(camera!!, cameraFace)
             ConfigurationProvider.get().cameraSizeCalculator.init(
                 expectedRatio, expectedSize, expectedQuality, previewSizes!!, pictureSizes!!, videoSizes!!

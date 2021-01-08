@@ -171,15 +171,17 @@ class CameraView : FrameLayout {
         this.addView(focusMarkerLayout)
         val a = context.obtainStyledAttributes(attrs, R.styleable.CameraView, defStyleAttr, R.style.Widget_CameraView)
         adjustViewBounds = a.getBoolean(R.styleable.CameraView_android_adjustViewBounds, false)
-        cameraManager?.switchCamera(a.getInt(R.styleable.CameraView_cameraFace, CameraFace.FACE_REAR))
-        cameraManager?.mediaType = a.getInt(R.styleable.CameraView_mediaType, MediaType.TYPE_PICTURE)
+        var cameraFace = a.getInt(R.styleable.CameraView_cameraFace, -1)
+        cameraFace = if (cameraFace == -1) ConfigurationProvider.get().defaultCameraFace else cameraFace
+        cameraManager?.switchCamera(cameraFace)
+        cameraManager?.mediaType = a.getInt(R.styleable.CameraView_mediaType, ConfigurationProvider.get().defaultMediaType)
         cameraManager?.isVoiceEnable = a.getBoolean(R.styleable.CameraView_voiceEnable, true)
         val strAspectRatio = a.getString(R.styleable.CameraView_aspectRatio)
         val defaultRatio = ConfigurationProvider.get().defaultAspectRatio
         aspectRatio = if (TextUtils.isEmpty(strAspectRatio)) defaultRatio else AspectRatio.parse(strAspectRatio!!)
         cameraManager?.setExpectAspectRatio(aspectRatio)
         cameraManager?.isAutoFocus = a.getBoolean(R.styleable.CameraView_autoFocus, true)
-        cameraManager?.flashMode = a.getInt(R.styleable.CameraView_flash, FlashMode.FLASH_AUTO)
+        cameraManager?.flashMode = a.getInt(R.styleable.CameraView_flash, ConfigurationProvider.get().defaultFlashMode)
         val zoomString = a.getString(R.styleable.CameraView_zoom)
         zoom = try { (zoomString?:"").toFloat() } catch (e: Exception) { 1.0f }
         clipScreen = a.getBoolean(R.styleable.CameraView_clipScreen, false)

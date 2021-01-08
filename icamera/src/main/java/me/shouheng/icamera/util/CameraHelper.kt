@@ -35,6 +35,53 @@ object CameraHelper {
                 pm.hasSystemFeature(PackageManager.FEATURE_CAMERA_FRONT)
     }
 
+    /**
+     * Try to get available cameras. This method will try to get camera info from
+     * [PackageManager] first, and then detect if camera exists by getting camera
+     * id from camera info provided based on platform versions.
+     *
+     * @return a list contains supported camera faces of [CameraFace].
+     */
+    fun getCameras(context: Context): List<Int> {
+        val list = mutableListOf<Int>()
+        val pmgr = context.packageManager
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            val mgr = context.getSystemService(Context.CAMERA_SERVICE) as CameraManager
+            try {
+                for (id in  mgr.cameraIdList) {
+                    val characteristics = mgr.getCameraCharacteristics(id)
+                    val facing = characteristics.get(CameraCharacteristics.LENS_FACING)
+                    if (facing != null && facing == CameraCharacteristics.LENS_FACING_FRONT) {
+                        if (pmgr.hasSystemFeature(PackageManager.FEATURE_CAMERA_FRONT)) {
+                            list.add(CameraFace.FACE_FRONT)
+                        }
+                    } else if (facing != null && facing == CameraCharacteristics.LENS_FACING_BACK) {
+                        if (pmgr.hasSystemFeature(PackageManager.FEATURE_CAMERA)) {
+                            list.add(CameraFace.FACE_REAR)
+                        }
+                    }
+                }
+            } catch (e: Exception) {
+                XLog.e("ConfigurationProvider", "initCameraInfo error $e")
+            }
+        } else {
+            for (i in 0 until Camera.getNumberOfCameras()) {
+                val cameraInfo = CameraInfo()
+                Camera.getCameraInfo(i, cameraInfo)
+                if (cameraInfo.facing == CameraInfo.CAMERA_FACING_BACK) {
+                    if (pmgr.hasSystemFeature(PackageManager.FEATURE_CAMERA)) {
+                        list.add(CameraFace.FACE_REAR)
+                    }
+                } else if (cameraInfo.facing == CameraInfo.CAMERA_FACING_FRONT) {
+                    if (pmgr.hasSystemFeature(PackageManager.FEATURE_CAMERA_FRONT)) {
+                        list.add(CameraFace.FACE_FRONT)
+                    }
+                }
+            }
+        }
+        return list
+    }
+
     @TargetApi(Build.VERSION_CODES.LOLLIPOP)
     fun hasCamera2(context: Context): Boolean {
         return if (Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP) false else try {

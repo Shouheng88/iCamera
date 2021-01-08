@@ -49,5 +49,5 @@ ext {
     minSdkVersion = 14
     supportLibVersion = '28.0.0'
     androidUtilsVersion = '1.3.6'
-    publishVersion = "0.1.2-beta"
+    publishVersion = "0.1.5-beta"
 }

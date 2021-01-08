@@ -58,6 +58,9 @@ class ConfigurationProvider private constructor() {
     /** Whether use memory cache in library. default is true.  */
     var isUseCacheValues = true
 
+    /** If the rear camera failed to launch, use the front instead, otherwise, throw exception. */
+    var useCameraFallback = true
+
     /**
      * The sizes map from a int value, which was calculated from:
      * hash = [CameraFace] | [CameraSizeFor] | [CameraType]  */
