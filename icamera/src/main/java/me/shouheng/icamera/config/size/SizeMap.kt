@@ -8,4 +8,4 @@ import java.util.*
  * @author WngShhng (shouheng2015@gmail.com)
  * @version 2019/4/16 22:57
  */
-class SizeMap : HashMap<AspectRatio, List<Size>>()
+class SizeMap : HashMap<AspectRatio, MutableList<Size>>()
