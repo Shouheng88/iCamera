@@ -29,11 +29,13 @@ abstract class DisplayOrientationDetector protected constructor(context: Context
     var lastKnownDisplayOrientation = 0
         private set
 
-    fun enable(display: Display) {
+    fun enable(display: Display?) {
         this.display = display
         orientationEventListener.enable()
-        // Immediately dispatch the first callback
-        dispatchOnDisplayOrientationChanged(DISPLAY_ORIENTATIONS[display.rotation])
+        display?.let {
+            // Immediately dispatch the first callback
+            dispatchOnDisplayOrientationChanged(DISPLAY_ORIENTATIONS[it.rotation])
+        }
     }
 
     fun disable() {

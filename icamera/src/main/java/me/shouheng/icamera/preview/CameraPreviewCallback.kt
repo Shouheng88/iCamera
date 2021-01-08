@@ -12,5 +12,5 @@ interface CameraPreviewCallback {
      *
      * @param cameraPreview the camera preview.
      */
-    fun onAvailable(cameraPreview: CameraPreview?)
+    fun onAvailable(cameraPreview: CameraPreview)
 }
