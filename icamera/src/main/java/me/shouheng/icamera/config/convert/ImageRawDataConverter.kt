@@ -1,6 +1,6 @@
-package me.shouheng.icamera.config.convert;
+package me.shouheng.icamera.config.convert
 
-import android.media.Image;
+import android.media.Image
 
 /**
  * The image data convert.
@@ -8,13 +8,12 @@ import android.media.Image;
  * @author Jeff
  * @time 2020/10/12 23:46
  */
-public interface ImageRawDataConverter {
-
+interface ImageRawDataConverter {
     /**
      * Convert from given format to NV21.
      *
      * @param image the image data
      * @return      the image data in bytes
      */
-    byte[] convertToNV21(Image image);
+    fun convertToNV21(image: Image): ByteArray
 }

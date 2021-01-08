@@ -1,14 +1,9 @@
-package me.shouheng.icamera.config.calculator;
+package me.shouheng.icamera.config.calculator
 
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
-
-import java.util.List;
-
-import me.shouheng.icamera.config.size.AspectRatio;
-import me.shouheng.icamera.config.size.Size;
-import me.shouheng.icamera.enums.CameraType;
-import me.shouheng.icamera.enums.MediaQuality;
+import me.shouheng.icamera.config.size.AspectRatio
+import me.shouheng.icamera.config.size.Size
+import me.shouheng.icamera.enums.CameraType
+import me.shouheng.icamera.enums.MediaQuality
 
 /**
  * Calculator size for camera. You may implement this interface to add your own camera
@@ -16,11 +11,11 @@ import me.shouheng.icamera.enums.MediaQuality;
  *
  * @see me.shouheng.icamera.config.calculator.impl.CameraSizeCalculatorImpl as an example
  *
+ *
  * @author WngShhng (shouheng2015@gmail.com)
  * @version 2019/4/13 22:58
  */
-public interface CameraSizeCalculator {
-
+interface CameraSizeCalculator {
     /**
      * Initialize values of calculator.
      *
@@ -31,12 +26,14 @@ public interface CameraSizeCalculator {
      * @param pictureSizes      support picture sizes
      * @param videoSizes        support video sizes
      */
-    void init(@NonNull AspectRatio expectAspectRatio,
-              @Nullable Size expectSize,
-              @MediaQuality int mediaQuality,
-              @NonNull List<Size> previewSizes,
-              @NonNull List<Size> pictureSizes,
-              @NonNull List<Size> videoSizes);
+    fun init(
+        expectAspectRatio: AspectRatio,
+        expectSize: Size,
+        @MediaQuality mediaQuality: Int,
+        previewSizes: List<Size>,
+        pictureSizes: List<Size>,
+        videoSizes: List<Size>
+    )
 
     /**
      * Change expect aspect ratio. You can implement this method to get the new desired
@@ -44,26 +41,25 @@ public interface CameraSizeCalculator {
      * we used to notify you the camera state changed.
      *
      * See also,
-     * @see #changeExpectSize(Size)
-     * @see #changeMediaQuality(int)
-     *
+     * @see .changeExpectSize
+     * @see .changeMediaQuality
      * @param expectAspectRatio the new expect aspect ratio
      */
-    void changeExpectAspectRatio(@NonNull AspectRatio expectAspectRatio);
+    fun changeExpectAspectRatio(expectAspectRatio: AspectRatio)
 
     /**
      * Change expect size
      *
      * @param expectSize the new expect size
      */
-    void changeExpectSize(@Nullable Size expectSize);
+    fun changeExpectSize(expectSize: Size)
 
     /**
      * Change expect media quality
      *
      * @param mediaQuality the new expect media quality
      */
-    void changeMediaQuality(@MediaQuality int mediaQuality);
+    fun changeMediaQuality(@MediaQuality mediaQuality: Int)
 
     /**
      * Get calculated picture size
@@ -71,7 +67,7 @@ public interface CameraSizeCalculator {
      * @param cameraType camera type, aka, camera1 or camera2
      * @return           the picture size
      */
-    Size getPictureSize(@CameraType int cameraType);
+    fun getPictureSize(@CameraType cameraType: Int): Size?
 
     /**
      * Get calculated picture preview size
@@ -79,7 +75,7 @@ public interface CameraSizeCalculator {
      * @param cameraType camera type, aka, camera1 or camera2
      * @return           the picture preview size
      */
-    Size getPicturePreviewSize(@CameraType int cameraType);
+    fun getPicturePreviewSize(@CameraType cameraType: Int): Size?
 
     /**
      * Get calculated video size
@@ -87,7 +83,7 @@ public interface CameraSizeCalculator {
      * @param cameraType camera type, aka, camera1 or camera2
      * @return           the video size
      */
-    Size getVideoSize(@CameraType int cameraType);
+    fun getVideoSize(@CameraType cameraType: Int): Size?
 
     /**
      * Get calculated video preview size
@@ -95,6 +91,5 @@ public interface CameraSizeCalculator {
      * @param cameraType camera type, aka, camera1 or camera2
      * @return           the video preview size
      */
-    Size getVideoPreviewSize(@CameraType int cameraType);
-
+    fun getVideoPreviewSize(@CameraType cameraType: Int): Size?
 }
