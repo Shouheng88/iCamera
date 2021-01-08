@@ -24,7 +24,7 @@ class CameraSizeCalculatorImpl : CameraSizeCalculator {
     private var previewSizes: List<Size> = emptyList()
     private var pictureSizes: List<Size> = emptyList()
     private var videoSizes: List<Size> = emptyList()
-    private var expectAspectRatio: AspectRatio = ConfigurationProvider.get().defaultAspectRatio
+    private var expectAspectRatio: AspectRatio? = null
     private var expectSize: Size? = null
 
     @MediaQuality
