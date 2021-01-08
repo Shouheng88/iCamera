@@ -537,7 +537,7 @@ class Camera2Manager(cameraPreview: CameraPreview) : BaseCameraManager<String>(c
     }
 
     private fun adjustCameraConfiguration(forceCalculate: Boolean) {
-        val oldPreviewSize = previewSize!!
+        val oldPreviewSize = previewSize
         val calculator = ConfigurationProvider.get().cameraSizeCalculator
         if (pictureSize == null || forceCalculate) {
             pictureSize = calculator.getPictureSize(CameraType.TYPE_CAMERA2)
