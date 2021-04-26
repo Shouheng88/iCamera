@@ -486,15 +486,19 @@ class Camera1Manager(cameraPreview: CameraPreview) : BaseCameraManager<Int?>(cam
             videoRecorder!!.setCamera(camera)
             videoRecorder!!.setAudioSource(MediaRecorder.AudioSource.DEFAULT)
             videoRecorder!!.setVideoSource(MediaRecorder.VideoSource.DEFAULT)
-            videoRecorder!!.setOutputFormat(camcorderProfile!!.fileFormat)
-            videoRecorder!!.setVideoFrameRate(camcorderProfile!!.videoFrameRate)
-            videoRecorder!!.setVideoSize(videoSize!!.width, videoSize!!.height)
-            videoRecorder!!.setVideoEncodingBitRate(camcorderProfile!!.videoBitRate)
-            videoRecorder!!.setVideoEncoder(camcorderProfile!!.videoCodec)
-            videoRecorder!!.setAudioEncodingBitRate(camcorderProfile!!.audioBitRate)
-            videoRecorder!!.setAudioChannels(camcorderProfile!!.audioChannels)
-            videoRecorder!!.setAudioSamplingRate(camcorderProfile!!.audioSampleRate)
-            videoRecorder!!.setAudioEncoder(camcorderProfile!!.audioCodec)
+            if (camcorderProfile != null) {
+                videoRecorder?.setOutputFormat(camcorderProfile!!.fileFormat)
+                videoRecorder?.setVideoFrameRate(camcorderProfile!!.videoFrameRate)
+                videoRecorder?.setVideoSize(videoSize!!.width, videoSize!!.height)
+                videoRecorder?.setVideoEncodingBitRate(camcorderProfile!!.videoBitRate)
+                videoRecorder?.setVideoEncoder(camcorderProfile!!.videoCodec)
+                videoRecorder?.setAudioEncodingBitRate(camcorderProfile!!.audioBitRate)
+                videoRecorder?.setAudioChannels(camcorderProfile!!.audioChannels)
+                videoRecorder?.setAudioSamplingRate(camcorderProfile!!.audioSampleRate)
+                videoRecorder?.setAudioEncoder(camcorderProfile!!.audioCodec)
+            } else {
+                e("Camera1Manager", "Failed to initialize video recorder, the camcorder profile was null.")
+            }
             videoRecorder!!.setOutputFile(videoOutFile.toString())
             if (videoFileSize > 0) {
                 videoRecorder!!.setMaxFileSize(videoFileSize)

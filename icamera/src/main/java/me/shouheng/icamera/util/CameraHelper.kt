@@ -393,8 +393,13 @@ object CameraHelper {
     @TargetApi(Build.VERSION_CODES.LOLLIPOP)
     fun getCamcorderProfile(@MediaQuality quality: Int, cameraId: String): CamcorderProfile? {
         if (TextUtils.isEmpty(cameraId)) return null
-        val cameraIdInt = cameraId.toInt()
-        return getCamcorderProfile(quality, cameraIdInt)
+        return try {
+            // fix runtime error for given devices
+            val cameraIdInt = cameraId.toInt()
+            getCamcorderProfile(quality, cameraIdInt)
+        } catch (e: Exception) {
+            null
+        }
     }
 
     fun getCamcorderProfile(@MediaQuality mediaQuality: Int, cameraId: Int): CamcorderProfile {
