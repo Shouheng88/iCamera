@@ -361,7 +361,7 @@ object CameraHelper {
         currentCameraId: Int,
         maximumFileSize: Long,
         minimumDurationInSeconds: Int
-    ): CamcorderProfile {
+    ): CamcorderProfile? {
         if (maximumFileSize <= 0) return CamcorderProfile.get(currentCameraId, MediaQuality.QUALITY_HIGHEST)
         val qualities = intArrayOf(
             MediaQuality.QUALITY_HIGHEST,
@@ -370,22 +370,24 @@ object CameraHelper {
             MediaQuality.QUALITY_LOW,
             MediaQuality.QUALITY_LOWEST
         )
-        var camcorderProfile: CamcorderProfile
+        var camcorderProfile: CamcorderProfile?
         for (quality in qualities) {
             camcorderProfile = getCamcorderProfile(quality, currentCameraId)
-            val fileSize = calculateApproximateVideoSize(camcorderProfile, minimumDurationInSeconds)
-            if (fileSize > maximumFileSize) {
-                val minimumRequiredBitRate = calculateMinimumRequiredBitRate(
-                    camcorderProfile,
-                    maximumFileSize,
-                    minimumDurationInSeconds
-                )
-                if (minimumRequiredBitRate >= camcorderProfile.videoBitRate / 4
-                    && minimumRequiredBitRate <= camcorderProfile.videoBitRate) {
-                    camcorderProfile.videoBitRate = minimumRequiredBitRate.toInt()
-                    return camcorderProfile
-                }
-            } else return camcorderProfile
+            if (camcorderProfile != null) {
+                val fileSize = calculateApproximateVideoSize(camcorderProfile, minimumDurationInSeconds)
+                if (fileSize > maximumFileSize) {
+                    val minimumRequiredBitRate = calculateMinimumRequiredBitRate(
+                        camcorderProfile,
+                        maximumFileSize,
+                        minimumDurationInSeconds
+                    )
+                    if (minimumRequiredBitRate >= camcorderProfile.videoBitRate / 4
+                        && minimumRequiredBitRate <= camcorderProfile.videoBitRate) {
+                        camcorderProfile.videoBitRate = minimumRequiredBitRate.toInt()
+                        return camcorderProfile
+                    }
+                } else return camcorderProfile
+            }
         }
         return getCamcorderProfile(MediaQuality.QUALITY_LOWEST, currentCameraId)
     }
@@ -398,48 +400,41 @@ object CameraHelper {
             val cameraIdInt = cameraId.toInt()
             getCamcorderProfile(quality, cameraIdInt)
         } catch (e: Exception) {
+            XLog.e("CameraHelper", "Failed to get camcorder profile: \n" + e.printStackTrace())
             null
         }
     }
 
-    fun getCamcorderProfile(@MediaQuality mediaQuality: Int, cameraId: Int): CamcorderProfile {
-        return if (mediaQuality == MediaQuality.QUALITY_HIGHEST) {
-            CamcorderProfile.get(cameraId, CamcorderProfile.QUALITY_HIGH)
-        } else if (mediaQuality == MediaQuality.QUALITY_HIGH) {
-            when {
-                CamcorderProfile.hasProfile(cameraId, CamcorderProfile.QUALITY_1080P) -> {
-                    CamcorderProfile.get(cameraId, CamcorderProfile.QUALITY_1080P)
-                }
-                CamcorderProfile.hasProfile(cameraId, CamcorderProfile.QUALITY_720P) -> {
-                    CamcorderProfile.get(cameraId, CamcorderProfile.QUALITY_720P)
-                }
-                else -> {
-                    CamcorderProfile.get(cameraId, CamcorderProfile.QUALITY_HIGH)
-                }
-            }
-        } else if (mediaQuality == MediaQuality.QUALITY_MEDIUM) {
-            when {
-                CamcorderProfile.hasProfile(cameraId, CamcorderProfile.QUALITY_720P) -> {
-                    CamcorderProfile.get(cameraId, CamcorderProfile.QUALITY_720P)
-                }
-                CamcorderProfile.hasProfile(cameraId, CamcorderProfile.QUALITY_480P) -> {
-                    CamcorderProfile.get(cameraId, CamcorderProfile.QUALITY_480P)
-                }
-                else -> {
-                    CamcorderProfile.get(cameraId, CamcorderProfile.QUALITY_LOW)
-                }
-            }
-        } else if (mediaQuality == MediaQuality.QUALITY_LOW) {
-            if (CamcorderProfile.hasProfile(cameraId, CamcorderProfile.QUALITY_480P)) {
-                CamcorderProfile.get(cameraId, CamcorderProfile.QUALITY_480P)
-            } else {
-                CamcorderProfile.get(cameraId, CamcorderProfile.QUALITY_LOW)
-            }
-        } else if (mediaQuality == MediaQuality.QUALITY_LOWEST) {
-            CamcorderProfile.get(cameraId, CamcorderProfile.QUALITY_LOW)
-        } else {
-            CamcorderProfile.get(cameraId, CamcorderProfile.QUALITY_HIGH)
+    fun getCamcorderProfile(@MediaQuality mediaQuality: Int, cameraId: Int): CamcorderProfile? {
+        val qualities = listOf(
+            CamcorderProfile.QUALITY_HIGH,
+            CamcorderProfile.QUALITY_1080P,
+            CamcorderProfile.QUALITY_HIGH,
+            CamcorderProfile.QUALITY_720P,
+            CamcorderProfile.QUALITY_1080P,
+            CamcorderProfile.QUALITY_HIGH,
+            CamcorderProfile.QUALITY_480P,
+            CamcorderProfile.QUALITY_LOW,
+            CamcorderProfile.QUALITY_480P,
+            CamcorderProfile.QUALITY_720P,
+            CamcorderProfile.QUALITY_1080P,
+            CamcorderProfile.QUALITY_HIGH)
+        val start = when (mediaQuality) {
+            MediaQuality.QUALITY_HIGHEST -> { CamcorderProfile.QUALITY_HIGH }
+            MediaQuality.QUALITY_HIGH -> { CamcorderProfile.QUALITY_1080P }
+            MediaQuality.QUALITY_MEDIUM -> { CamcorderProfile.QUALITY_720P }
+            MediaQuality.QUALITY_LOW -> { CamcorderProfile.QUALITY_480P }
+            MediaQuality.QUALITY_LOWEST -> { CamcorderProfile.QUALITY_LOW }
+            else -> { CamcorderProfile.QUALITY_HIGH }
         }
+        val idx = qualities.indexOf(start)
+        val subList = qualities.subList(idx, qualities.size)
+        for (quality in subList) {
+            if (CamcorderProfile.hasProfile(cameraId, quality)) {
+                return CamcorderProfile.get(cameraId, quality)
+            }
+        }
+        return null
     }
 
     fun getZoomIdxForZoomFactor(zoomRatios: List<Int>, zoom: Float): Int {
