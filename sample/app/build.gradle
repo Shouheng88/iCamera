@@ -58,6 +58,6 @@ dependencies {
     // leakcanarye
     debugImplementation 'com.squareup.leakcanary:leakcanary-android:1.6.2'
     releaseImplementation 'com.squareup.leakcanary:leakcanary-android-no-op:1.6.1'
-    implementation 'com.github.Shouheng88:icamera:0.1.5-beta'
-//    implementation project(path: ':icamera')
+//    implementation 'com.github.Shouheng88:icamera:0.1.5-beta'
+    implementation project(path: ':icamera')
 }
