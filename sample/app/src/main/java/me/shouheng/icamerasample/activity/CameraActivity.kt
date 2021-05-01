@@ -18,6 +18,7 @@ import me.shouheng.icamera.enums.CameraSizeFor
 import me.shouheng.icamera.enums.FlashMode
 import me.shouheng.icamera.enums.MediaType
 import me.shouheng.icamera.listener.*
+import me.shouheng.icamera.util.CameraHelper
 import me.shouheng.icamera.util.ImageHelper
 import me.shouheng.icamerasample.R
 import me.shouheng.icamerasample.databinding.ActivityCameraBinding
@@ -299,14 +300,16 @@ class CameraActivity : CommonActivity<EmptyViewModel, ActivityCameraBinding>() {
     }
 
     private fun displayCameraInfo() {
-        val info = "Camera Info:\n" +
-                "1.Preview Size: ${binding.cv.getSize(CameraSizeFor.SIZE_FOR_PREVIEW)?.toString()}\n" +
-                "2.Picture Size: ${binding.cv.getSize(CameraSizeFor.SIZE_FOR_PICTURE)?.toString()}\n" +
-                "3.Video Size: ${binding.cv.getSize(CameraSizeFor.SIZE_FOR_VIDEO)?.toString()}\n" +
-                "4.Media Type (0:Picture, 1:Video): ${binding.cv.mediaType}\n" +
+        val info = "Camera info:\n" +
+                "1.Preview size: ${binding.cv.getSize(CameraSizeFor.SIZE_FOR_PREVIEW)}\n" +
+                "2.Picture size: ${binding.cv.getSize(CameraSizeFor.SIZE_FOR_PICTURE)}\n" +
+                "3.Video size: ${binding.cv.getSize(CameraSizeFor.SIZE_FOR_VIDEO)}\n" +
+                "4.Media type: ${if (binding.cv.mediaType == MediaType.TYPE_PICTURE) "picture" else "video" }\n" +
                 "5.Zoom: ${binding.cv.zoom}\n" +
-                "6.MaxZoom: ${binding.cv.maxZoom}\n" +
-                "7.CameraFace: ${binding.cv.cameraFace}"
+                "6.Max zoom: ${binding.cv.maxZoom}\n" +
+                "7.Camera face: ${if (binding.cv.cameraFace == CameraFace.FACE_REAR) "rear" else "front"}\n" +
+                "8.Has camera: ${CameraHelper.hasCamera(context)}\n" +
+                "9.Camera2: ${if (CameraHelper.hasCamera2(context)) "support" else "not support" }"
         binding.tvInfo.text = info
     }
 }
