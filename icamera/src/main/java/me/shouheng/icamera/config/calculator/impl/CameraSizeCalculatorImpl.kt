@@ -99,11 +99,13 @@ class CameraSizeCalculatorImpl : CameraSizeCalculator {
     override fun getVideoSize(cameraType: Int): Size? {
         var size = outVideoSizes[cameraType]
         if (size != null) return size
-        size = getSizeWithClosestRatioSizeAndQuality(
-            videoSizes, expectAspectRatio, expectSize, mediaQuality)
+        // fix 2020-05-01 the video size might be empty if the camera don't separate video size and preview size
+        val sizes = if (videoSizes.isNotEmpty()) videoSizes else previewSizes
+        size = getSizeWithClosestRatioSizeAndQuality(sizes, expectAspectRatio, expectSize, mediaQuality)
         outVideoSizes.put(cameraType, size)
         d("CameraSizeCalculator", "getVideoSize : $size")
-        return null
+        // fix 2020-05-01, should return the camera video size
+        return size
     }
 
     override fun getVideoPreviewSize(cameraType: Int): Size? {

@@ -86,9 +86,7 @@ class Size private constructor(
          * @return            the standard size
          */
         fun fromList(cameraSizes: List<Camera.Size>): List<Size> {
-            val sizes: MutableList<Size> = ArrayList(cameraSizes.size)
-            cameraSizes.forEach { sizes.add(of(it.width, it.height)) }
-            return sizes
+            return cameraSizes.map { of(it.width, it.height) }
         }
 
         /**
@@ -99,9 +97,7 @@ class Size private constructor(
          */
         @TargetApi(Build.VERSION_CODES.LOLLIPOP)
         fun fromList(cameraSizes: Array<android.util.Size>): List<Size> {
-            val sizes: MutableList<Size> = ArrayList(cameraSizes.size)
-            cameraSizes.forEach { sizes.add(of(it.width, it.height)) }
-            return sizes
+            return cameraSizes.map { of(it.width, it.height) }
         }
     }
 

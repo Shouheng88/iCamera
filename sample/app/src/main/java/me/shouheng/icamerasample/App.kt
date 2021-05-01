@@ -2,8 +2,11 @@ package me.shouheng.icamerasample
 
 import android.annotation.SuppressLint
 import android.app.Application
+import android.util.Log
 import com.squareup.leakcanary.LeakCanary
 import me.shouheng.icamera.config.ConfigurationProvider
+import me.shouheng.icamera.util.LogLevel
+import me.shouheng.icamera.util.LogWatcher
 import me.shouheng.icamerasample.activity.MainActivity
 import me.shouheng.uix.common.bean.TextStyleBean
 import me.shouheng.uix.pages.CrashReportActivity
@@ -36,6 +39,17 @@ class App : Application() {
         ConfigurationProvider.get().isDebug = BuildConfig.DEBUG
         // leak canary used to detect memory leak of camera
         LeakCanary.install(this)
+        ConfigurationProvider.get().addLogWatcher(object : LogWatcher {
+            override fun onLog(level: LogLevel, tag: String, msg: String?) {
+                when(level) {
+                    LogLevel.V -> { Log.v("__I_CAMERA_$tag", msg) }
+                    LogLevel.I -> { Log.i("__I_CAMERA_$tag", msg) }
+                    LogLevel.D -> { Log.d("__I_CAMERA_$tag", msg)  }
+                    LogLevel.W -> { Log.w("__I_CAMERA_$tag", msg)  }
+                    LogLevel.E -> { Log.e("__I_CAMERA_$tag", msg)  }
+                }
+            }
+        })
     }
 
     companion object {

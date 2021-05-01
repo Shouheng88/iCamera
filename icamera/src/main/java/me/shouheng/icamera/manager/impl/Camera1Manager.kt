@@ -143,13 +143,8 @@ class Camera1Manager(cameraPreview: CameraPreview) : BaseCameraManager<Int?>(cam
         }
 
     override fun getMaxZoom(): Float {
-        if (zoomRatios == null) {
-            w("Camera1Manager", "Try to get max zoom while it's not ready.")
-            return 0f
-        }
-        if (maxZoomValue == 0f) {
-            maxZoomValue = zoomRatios!![zoomRatios!!.size - 1]
-        }
+        if (zoomRatios == null || zoomRatios!!.isEmpty()) return 1.0f
+        if (maxZoomValue == 0f) maxZoomValue = zoomRatios!!.last()
         return maxZoomValue
     }
 

@@ -25,6 +25,7 @@ import me.shouheng.icamera.config.size.AspectRatio
 import me.shouheng.icamera.config.size.AspectRatio.Companion.of
 import me.shouheng.icamera.config.size.Size
 import me.shouheng.icamera.enums.*
+import me.shouheng.icamera.util.LogWatcher
 import me.shouheng.icamera.util.XLog
 import me.shouheng.icamera.util.XLog.d
 import me.shouheng.icamera.util.XLog.e
@@ -203,7 +204,8 @@ class ConfigurationProvider private constructor() {
         sizes = when (sizeFor) {
             CameraSizeFor.SIZE_FOR_PICTURE -> Size.fromList(parameters.supportedPictureSizes)
             CameraSizeFor.SIZE_FOR_PREVIEW -> Size.fromList(parameters.supportedPreviewSizes)
-            CameraSizeFor.SIZE_FOR_VIDEO -> Size.fromList(parameters.supportedVideoSizes)
+            // fix 2021-05-01 the video sizes might be null if camera don't separate preview and video output
+            CameraSizeFor.SIZE_FOR_VIDEO -> Size.fromList(parameters.supportedVideoSizes?: emptyList())
             else -> throw IllegalArgumentException("Unsupported size for $sizeFor")
         }
         // cache the sizes in memory
@@ -221,6 +223,10 @@ class ConfigurationProvider private constructor() {
      * @return           supported zoom ratios
      */
     fun getZoomRatios(camera: Camera, @CameraFace cameraFace: Int): List<Float> {
+        // fix 2020-05-01 check is zoom supported before trying to get supported ratios
+        if (!camera.parameters.isZoomSupported) {
+            return emptyList()
+        }
         // calculate hash of map
         val hash = cameraFace or CameraType.TYPE_CAMERA1
         d("ConfigurationProvider", "getZoomRatios hash : " + Integer.toHexString(hash))
@@ -272,6 +278,16 @@ class ConfigurationProvider private constructor() {
             sizeMap.put(hash, sizes)
         }
         return sizes
+    }
+
+    /** Add the log watcher */
+    fun addLogWatcher(watcher: LogWatcher) {
+        XLog.addLogWatcher(watcher)
+    }
+
+    /** Remove the log watcher */
+    fun removeLogWatcher(watcher: LogWatcher) {
+        XLog.removeLogWatcher(watcher)
     }
 
     companion object {

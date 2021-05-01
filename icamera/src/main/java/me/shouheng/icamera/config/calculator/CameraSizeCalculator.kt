@@ -24,7 +24,8 @@ interface CameraSizeCalculator {
      * @param mediaQuality      expect media quality
      * @param previewSizes      support preview sizes
      * @param pictureSizes      support picture sizes
-     * @param videoSizes        support video sizes
+     * @param videoSizes        support video sizes, might be empty of the
+     * camera don't separate preview and video output
      */
     fun init(
         expectAspectRatio: AspectRatio,
