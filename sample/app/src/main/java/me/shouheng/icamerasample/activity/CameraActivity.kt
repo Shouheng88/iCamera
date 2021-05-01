@@ -2,8 +2,6 @@ package me.shouheng.icamerasample.activity
 
 import android.animation.Animator
 import android.content.res.Configuration
-import android.graphics.Bitmap
-import android.graphics.Canvas
 import android.os.Bundle
 import android.support.v4.view.ViewCompat
 import android.support.v7.widget.PopupMenu

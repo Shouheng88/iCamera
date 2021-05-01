@@ -3,14 +3,13 @@ package me.shouheng.icamerasample.activity
 import android.os.Build
 import android.os.Bundle
 import android.support.annotation.RequiresApi
-import android.view.View
 import me.shouheng.icamera.config.ConfigurationProvider
 import me.shouheng.icamera.config.creator.impl.*
-import me.shouheng.icamera.enums.CameraFace
 import me.shouheng.icamera.util.CameraHelper
 import me.shouheng.icamerasample.R
 import me.shouheng.icamerasample.databinding.ActivityMainBinding
 import me.shouheng.utils.ktx.checkPermissions
+import me.shouheng.utils.ktx.onDebouncedClick
 import me.shouheng.utils.ktx.start
 import me.shouheng.utils.permission.Permission
 import me.shouheng.utils.stability.L
@@ -51,9 +50,11 @@ class MainActivity : CommonActivity<EmptyViewModel, ActivityMainBinding>() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             ConfigurationProvider.get().prepareCamera2(this)
         }
+
+        binding.btnOpen.onDebouncedClick { openCamera() }
     }
 
-    fun openCamera(v: View) {
+    private fun openCamera() {
         checkPermissions({
             val cameras = CameraHelper.getCameras(context)
             when {

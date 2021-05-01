@@ -103,8 +103,8 @@
             </RadioGroup>
 
             <me.shouheng.uix.widget.button.NormalButton
+                android:id="@+id/btn_open"
                 android:layout_marginTop="20dp"
-                android:onClick="openCamera"
                 android:text="@string/main_menu_camera"
                 app:btn_normal_color="@color/colorAccent"
                 app:btn_corner_radius="40dp"
