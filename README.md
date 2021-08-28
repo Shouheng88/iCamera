@@ -1,5 +1,3 @@
-![Banner](https://github.com/CostCost/Resources/blob/master/github/xbanner.jpg?raw=true)
-
 <h1 align="center">iCamera: 功能丰富、高度可定制的 Android 相机库</h1>
 
 <p align="center">
