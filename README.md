@@ -5,7 +5,7 @@
     <img src="https://img.shields.io/hexpm/l/plug.svg" alt="License" />
   </a>
   <a href="https://bintray.com/beta/#/easymark/Android/icamera?tab=overview">
-    <img src="https://img.shields.io/maven-metadata/v/https/dl.bintray.com/easymark/Android/me/shouheng/icamera/icamera/maven-metadata.xml.svg" alt="Version" />
+    <img src="https://img.shields.io/maven-metadata/v/https/s01.oss.sonatype.org/service/local/repo_groups/public/content/com/github/Shouheng88/icamera/maven-metadata.xml.svg" alt="Version" />
   </a>
   <a href="https://www.codacy.com/manual/Shouheng88/iCamera?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=Shouheng88/iCamera&amp;utm_campaign=Badge_Grade">
     <img src="https://api.codacy.com/project/badge/Grade/67d7f34109e34c20941ccd1e9ecb6318" alt="Code Grade"/>
@@ -17,7 +17,7 @@
     <img src="https://img.shields.io/badge/API-14%2B-blue.svg?style=flat-square" alt="Min Sdk Version" />
   </a>
    <a href="https://github.com/Shouheng88">
-    <img src="https://img.shields.io/badge/Author-ShouhengWang-orange.svg?style=flat-square" alt="Author" />
+    <img src="https://img.shields.io/badge/Author-SHW-orange.svg?style=flat-square" alt="Author" />
   </a>
   <a target="_blank" href="https://shang.qq.com/wpa/qunwpa?idkey=2711a5fa2e3ecfbaae34bd2cf2c98a5b25dd7d5cc56a3928abee84ae7a984253">
     <img src="https://img.shields.io/badge/QQ%E7%BE%A4-1018235573-orange.svg?style=flat-square" alt="QQ Group" />
@@ -59,16 +59,16 @@
 
 ### 2.1 引入依赖
 
-该库已经上传到了 jcenter 仓库。你需要在项目的 Gradle 中加入 jcenter 仓库：
+该库已经上传到了 MavenCentral 仓库。你需要在项目的 Gradle 中加入 MavenCentral 仓库：
 
 ```groovy
-repositories { jcenter() }
+repositories { mavenCentral() }
 ```
 
 然后，在项目依赖中直接引用我们的库即可：
 
 ```groovy
-implementation 'me.shouheng.icamera:icamera:latest-version'
+implementation "com.github.Shouheng88:icamera:${latest-version}"
 ```
 
 ### 2.2 使用相机控件
@@ -134,8 +134,6 @@ ConfigurationProvider.get().cameraManagerCreator = Camera1OnlyCreator()
 
 ## 3、关于
 
-### 3.1 关于项目
-
 **相机库的整体架构设计**：
 
 [![相机整体架构](images/design.png)](https://www.processon.com/view/link/5c976af8e4b0d1a5b10a4049)
@@ -144,28 +142,10 @@ ConfigurationProvider.get().cameraManagerCreator = Camera1OnlyCreator()
 
 - [更新日志](CHANGELOG.md)
 
-### 3.2 关于作者
-
-你可以通过访问下面的链接来获取作者的信息或者关注公众号「Hello 开发者」：
-
-1. Github: https://github.com/Shouheng88
-2. 掘金：https://juejin.im/user/585555e11b69e6006c907a2a
-3. CSDN：https://blog.csdn.net/github_35186068
-4. 简书：https://www.jianshu.com/u/e1ad842673e2
-
-## 4、捐赠项目
-
-我们致力于为广大开发者和个人开发者提供快速开发应用的解决方案。您可以通过下面的渠道来支持我们的项目，
-
-<div style="display:flex;" id="target">
-<img src="images/ali.jpg" width="25%" />
-<img src="images/mm.png" style="margin-left:10px;" width="25%"/>
-</div>
-
 ## License
 
 ```
-Copyright (c) 2019-2020 Shouheng Wang.
+Copyright (c) 2019-2021 SHW
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
