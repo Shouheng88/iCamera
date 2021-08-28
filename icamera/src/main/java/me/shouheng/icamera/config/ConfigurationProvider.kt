@@ -10,7 +10,7 @@ import android.hardware.camera2.CameraManager
 import android.hardware.camera2.params.StreamConfigurationMap
 import android.media.MediaRecorder
 import android.os.Build
-import android.support.annotation.RequiresApi
+import androidx.annotation.RequiresApi
 import android.util.SparseArray
 import android.util.SparseIntArray
 import me.shouheng.icamera.config.calculator.CameraSizeCalculator

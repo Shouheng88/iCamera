@@ -3,7 +3,7 @@ package me.shouheng.icamera.config.convert
 import android.graphics.ImageFormat
 import android.media.Image
 import android.os.Build
-import android.support.annotation.RequiresApi
+import androidx.annotation.RequiresApi
 import me.shouheng.icamera.util.ImageHelper.convertYUV_420_888toNV21
 
 /**

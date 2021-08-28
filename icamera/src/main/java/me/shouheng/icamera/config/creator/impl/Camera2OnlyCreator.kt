@@ -2,7 +2,7 @@ package me.shouheng.icamera.config.creator.impl
 
 import android.content.Context
 import android.os.Build
-import android.support.annotation.RequiresApi
+import androidx.annotation.RequiresApi
 import me.shouheng.icamera.config.creator.CameraManagerCreator
 import me.shouheng.icamera.manager.CameraManager
 import me.shouheng.icamera.manager.impl.Camera2Manager

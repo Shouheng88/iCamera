@@ -8,9 +8,9 @@ import android.hardware.SensorEvent
 import android.hardware.SensorEventListener
 import android.hardware.SensorManager
 import android.os.Build
-import android.support.annotation.IntRange
-import android.support.annotation.RequiresApi
-import android.support.v4.view.ViewCompat
+import androidx.annotation.IntRange
+import androidx.annotation.RequiresApi
+import androidx.core.view.ViewCompat
 import android.text.TextUtils
 import android.util.AttributeSet
 import android.view.ViewGroup

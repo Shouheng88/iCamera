@@ -1,6 +1,6 @@
 package me.shouheng.icamera.enums
 
-import android.support.annotation.IntDef
+import androidx.annotation.IntDef
 
 /**
  * Camera preview adjust type, will be used to decide how
