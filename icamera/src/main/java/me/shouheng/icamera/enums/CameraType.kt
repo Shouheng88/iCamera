@@ -1,6 +1,6 @@
 package me.shouheng.icamera.enums
 
-import android.support.annotation.IntDef
+import androidx.annotation.IntDef
 
 /**
  * Camera1 or camera2

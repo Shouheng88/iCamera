@@ -3,7 +3,7 @@ package me.shouheng.icamera.config.size
 import android.annotation.TargetApi
 import android.hardware.Camera
 import android.os.Build
-import android.support.annotation.IntRange
+import androidx.annotation.IntRange
 import java.util.*
 
 /**

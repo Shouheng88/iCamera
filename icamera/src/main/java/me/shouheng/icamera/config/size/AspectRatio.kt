@@ -1,6 +1,6 @@
 package me.shouheng.icamera.config.size
 
-import android.support.annotation.IntRange
+import androidx.annotation.IntRange
 import me.shouheng.icamera.util.XLog.d
 
 /**

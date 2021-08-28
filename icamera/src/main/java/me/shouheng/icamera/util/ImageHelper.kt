@@ -3,7 +3,7 @@ package me.shouheng.icamera.util
 import android.graphics.*
 import android.media.Image
 import android.os.Build
-import android.support.annotation.RequiresApi
+import androidx.annotation.RequiresApi
 import java.io.ByteArrayOutputStream
 import java.io.IOException
 import java.nio.ReadOnlyBufferException

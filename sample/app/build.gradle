@@ -11,7 +11,7 @@ android {
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 1
         versionName "1.0"
-        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+        testInstrumentationRunner 'androidx.test.runner.AndroidJUnitRunner'
     }
     signingConfigs {
         release {
@@ -48,8 +48,8 @@ android {
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
-    implementation "com.android.support:appcompat-v7:$supportLibVersion"
-    implementation "com.android.support:design:$supportLibVersion"
+    implementation 'androidx.appcompat:appcompat:1.0.0'
+    implementation 'com.google.android.material:material:1.0.0'
     implementation 'me.shouheng.vmlib:vmlib-core:1.5.9'
     implementation ('me.shouheng.ui:uix-core:1.6.20') {
         exclude group: "me.shouheng.icamera"
@@ -58,6 +58,6 @@ dependencies {
     // leakcanarye
     debugImplementation 'com.squareup.leakcanary:leakcanary-android:1.6.2'
     releaseImplementation 'com.squareup.leakcanary:leakcanary-android-no-op:1.6.1'
-//    implementation 'com.github.Shouheng88:icamera:0.1.5-beta'
-    implementation project(path: ':icamera')
+    implementation 'com.github.Shouheng88:icamera:0.2.0-beta'
+//    implementation project(path: ':icamera')
 }

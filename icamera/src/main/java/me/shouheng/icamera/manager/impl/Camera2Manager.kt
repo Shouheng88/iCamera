@@ -13,8 +13,8 @@ import android.media.ImageReader.OnImageAvailableListener
 import android.media.MediaActionSound
 import android.media.MediaRecorder
 import android.os.Build
-import android.support.annotation.IntDef
-import android.support.annotation.RequiresApi
+import androidx.annotation.IntDef
+import androidx.annotation.RequiresApi
 import android.text.TextUtils
 import android.view.Surface
 import android.view.SurfaceHolder

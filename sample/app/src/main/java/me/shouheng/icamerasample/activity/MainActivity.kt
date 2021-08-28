@@ -2,7 +2,7 @@ package me.shouheng.icamerasample.activity
 
 import android.os.Build
 import android.os.Bundle
-import android.support.annotation.RequiresApi
+import androidx.annotation.RequiresApi
 import me.shouheng.icamera.config.ConfigurationProvider
 import me.shouheng.icamera.config.creator.impl.*
 import me.shouheng.icamera.util.CameraHelper
